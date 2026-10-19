@@ -1,0 +1,81 @@
+:root {
+  --color-bg: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+  --color-muted: #4b5563;
+  --color-primary: #1d4ed8;
+  --color-ok: #166534;
+  --color-error: #b91c1c;
+  --color-border: #d1d5db;
+  --radius: 12px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page__header h1 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: clamp(2rem, 6vw, 2.75rem);
+}
+
+.page__subtitle,
+.page__note {
+  color: var(--color-muted);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.status {
+  margin: 0;
+}
+
+.status--error {
+  color: var(--color-error);
+}
+
+.status--ok div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.status--ok dt {
+  font-weight: 600;
+  min-width: 9rem;
+}
+
+.status--ok dd {
+  margin: 0;
+  color: var(--color-ok);
+}

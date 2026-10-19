@@ -1,0 +1,8 @@
+# Finales de línea consistentes entre Windows, Linux y los contenedores Docker.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.svg text
+*.jar binary

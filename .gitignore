@@ -1,0 +1,28 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+secrets/
+
+# Backend (Maven)
+backend/target/
+
+# Frontend (Node)
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+# IDE y sistema
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log
+
+# Herramientas locales de Claude Code (instaladas en cada equipo, ver skills-lock.json)
+.claude/skills/
+.claude/settings.local.json
+*.graphify-bak
+graphify-out/

@@ -1,0 +1,109 @@
+# Arquitectura técnica de LogiCode
+
+> Diseño técnico mínimo (Etapa 1). Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7.
+> Estado de cada pieza: ver [estado.md](estado.md).
+
+## Vista general
+
+LogiCode es un **monolito modular**: un único backend Spring Boot con módulos internos, una interfaz React y una base de datos PostgreSQL, todo ejecutado con Docker Compose en local.
+
+```mermaid
+flowchart LR
+    U[Navegador] -->|HTTP :3000| N[Nginx + React compilado]
+    N -->|/api/v1/*| B[Backend Spring Boot :8080]
+    B -->|JDBC| P[(PostgreSQL 17)]
+    B -.->|Etapa 4/5| F[(Almacenamiento de archivos)]
+    B -.->|Etapa 3| M[Brevo · correo transaccional]
+    B -.->|Etapa 6| O[Ollama + Qwen2.5-VL 7B]
+```
+
+Las líneas punteadas son integraciones aprobadas en la especificación que **todavía no están implementadas**.
+
+| Capa (especificación) | Implementación en el repositorio | Estado |
+| --- | --- | --- |
+| 1. Presentación | `frontend/` React 19 + Vite, JavaScript, CSS propio responsive | Implementada la base |
+| 2. Borde y entrega | Nginx en la imagen del frontend: sirve estáticos y reenvía `/api` al backend | Implementada la base (sin TLS: solo local) |
+| 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI (springdoc) | Implementada la base |
+| 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Estructura lista; sin reglas de negocio aún |
+| 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL | Pendiente (Etapas 5 y 6) |
+| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada la base (migración V1) |
+| 7. Almacenamiento | PostgreSQL; archivos en almacenamiento de objetos o volumen local | PostgreSQL listo; archivos pendientes |
+| 8. Infraestructura | `docker-compose.yml`: `db`, `backend`, `frontend` con health checks | Implementada |
+
+## Backend: módulos y capas
+
+Paquete raíz: `co.edu.unipamplona.logicode`. Cada módulo funcional es un paquete hijo directo y se divide en las cuatro capas de la especificación:
+
+```
+co.edu.unipamplona.logicode
+├── shared/            Transversal: rutas de la API, errores, reloj del negocio, ID de solicitud
+├── system/            Módulo de referencia: GET /api/v1/system/info (usa las 4 capas)
+│   ├── api/             SystemController, SystemInfoResponse
+│   ├── application/     GetSystemInfo (caso de uso), SchemaVersionPort (puerto)
+│   ├── domain/          SystemInfo
+│   └── infrastructure/  FlywaySchemaVersionAdapter (implementa el puerto)
+├── identity/          Etapa 3 · identidad, sesión, correo, recuperación, roles
+├── courses/           Etapas 3-4 · cursos, periodos, cédulas habilitadas, matrículas
+├── content/           Etapa 4 · temas, materiales, biblioteca
+├── activities/        Etapa 5 · actividades, plazos, entregas
+├── grading/           Etapas 5, 6, 8 · rúbricas, calificación determinista e IA, planilla
+├── quizzes/           Etapa 7 · quizzes, banco de preguntas, ranking
+├── games/             Etapa 7 · juegos de bloques
+├── forum/             Etapa 8 · foro y moderación
+└── administration/    Etapas 3, 8 · usuarios, aprobación docente, respaldos
+```
+
+Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
+
+### Responsabilidad de cada capa
+
+| Capa | Contiene | No contiene |
+| --- | --- | --- |
+| `api` | Controladores, DTO de entrada/salida, validación de formato (`@Valid`), traducción a códigos HTTP | Reglas de negocio, SQL, repositorios |
+| `application` | Casos de uso (un verbo por clase: `CreateActivity`, `SubmitWork`), transacciones, autorización por caso de uso, puertos (interfaces) hacia infraestructura | Detalles HTTP, implementaciones técnicas |
+| `domain` | Entidades, objetos de valor, invariantes y políticas puras (p. ej. escala 0,0-5,0, regla del 80 %) | Spring, acceso a datos, HTTP |
+| `infrastructure` | Repositorios JPA, adaptadores (correo Brevo, IA Ollama, almacenamiento de archivos), configuración técnica | Decisiones de negocio |
+
+### Reglas de dependencia (verificadas automáticamente)
+
+`backend/src/test/java/.../architecture/LayeredArchitectureTest.java` (ArchUnit) falla la compilación si:
+
+1. `domain` depende de Spring o de otra capa.
+2. `application` depende de `api` o de `infrastructure` (usa puertos).
+3. `api` depende de `infrastructure`.
+4. Un `@RestController` está fuera de `api`.
+5. `api` usa JDBC, Spring Data o JPA directamente.
+
+Entre módulos: un módulo usa a otro solo a través de su capa `application` (casos de uso o interfaces públicas), nunca sus repositorios ni entidades JPA. Esta regla se agregará a las pruebas de arquitectura cuando existan dos módulos con código (Etapa 3).
+
+## Decisiones transversales ya implementadas
+
+| Tema | Implementación |
+| --- | --- |
+| Prefijo de API | `ApiPaths.V1 = "/api/v1"` en todos los controladores |
+| Errores | Problem Details (RFC 9457) en JSON con mensajes en español (`GlobalExceptionHandler`); nunca se devuelve la traza |
+| Zona horaria | Datos en UTC (`TIMESTAMPTZ`, JVM en UTC). Reglas por "día calendario en Colombia" usan el `Clock` del negocio (`America/Bogota`, configurable con `LOGICODE_TIME_ZONE`) |
+| Trazabilidad | `RequestIdFilter`: cabecera `X-Request-Id` en cada respuesta y en cada línea de log; en Docker los logs son JSON estructurado (ECS) |
+| Health checks | `/actuator/health`, `/actuator/health/liveness`, `/actuator/health/readiness` (incluye la base de datos) |
+| OpenAPI | `/api/v1/openapi` (JSON) y `/swagger-ui.html` |
+| Configuración | Variables de entorno con valores por defecto seguros para desarrollo; secretos fuera del repositorio |
+
+## Frontend
+
+```
+frontend/src
+├── app/          Raíz de la aplicación (enrutamiento y vistas por rol desde la Etapa 3)
+├── pages/        Páginas (HomePage provisional)
+├── features/     Funcionalidades agrupadas por módulo (system/)
+├── shared/api/   Cliente HTTP (httpClient.js) con prefijo /api/v1 y manejo de errores RFC 9457
+├── styles/       Estilos globales
+└── test/         Configuración de pruebas (Vitest + Testing Library)
+```
+
+Regla: la interfaz muestra estado y recoge acciones; **no decide permisos, notas oficiales ni reglas del curso**. Toda autorización se aplica en el backend.
+
+En desarrollo, Vite reenvía `/api` a `http://localhost:8080`; en Docker lo hace Nginx. En ambos casos el navegador ve un único origen, por lo que no se configura CORS.
+
+## Procesos en segundo plano (diseño para Etapas 5-6)
+
+Según la especificación: tabla de trabajos en PostgreSQL y worker dentro del mismo backend; RabbitMQ solo como opción de crecimiento. Diseño previsto: tabla `background_job` (tipo, estado, intentos, próxima ejecución, error), toma de trabajos con `SELECT ... FOR UPDATE SKIP LOCKED`, reintentos con espera creciente y clave de idempotencia para no duplicar calificaciones. No implementado.
