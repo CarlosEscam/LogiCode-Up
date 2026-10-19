@@ -44,6 +44,9 @@ services:
       # Para enviar con Brevo, ver docker-compose.brevo.yml.
       LOGICODE_MAIL_PROVIDER: ${LOGICODE_MAIL_PROVIDER:-outbox}
       LOGICODE_MAIL_OUTBOX_DIR: /var/lib/logicode/mail-outbox
+      # Archivos de materiales en el volumen file-storage; se conservan como mínimo 6 meses (RN-21).
+      LOGICODE_FILES_DIR: /var/lib/logicode/files
+      LOGICODE_FILE_RETENTION_MONTHS: ${LOGICODE_FILE_RETENTION_MONTHS:-6}
       # Cuentas iniciales con privilegio completo (D-03). Sus datos reales solo van en .env.
       INITIAL_ADMIN_1_CEDULA: ${INITIAL_ADMIN_1_CEDULA:-}
       INITIAL_ADMIN_1_NAME: ${INITIAL_ADMIN_1_NAME:-}
@@ -68,5 +71,5 @@ services:
 
 volumes:
   db-data:
-  # Reservado para el almacenamiento local de archivos (Etapas 4 y 5). Aún no se usa.
+  # Archivos cargados (materiales). Inclúyelo en las copias de seguridad junto con db-data.
   file-storage:

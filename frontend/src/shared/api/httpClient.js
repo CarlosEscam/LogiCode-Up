@@ -38,11 +38,46 @@ export function apiPatch(path, body) {
   return send('PATCH', path, body)
 }
 
+export function apiPut(path, body) {
+  return send('PUT', path, body)
+}
+
+export function apiDelete(path) {
+  return send('DELETE', path)
+}
+
 // Envía un archivo como multipart/form-data en el campo "file".
 export function apiUpload(path, file) {
   const form = new FormData()
   form.append('file', file)
   return send('POST', path, form)
+}
+
+// Envía un formulario multipart con avance de carga (archivos grandes: hasta 1 GB en videos).
+// fetch no informa el avance de la subida, por eso se usa XMLHttpRequest.
+export async function apiSendForm(path, form, { onProgress } = {}) {
+  const token = await csrfToken()
+  const response = await new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    request.open('POST', `${API_BASE}${path}`)
+    request.withCredentials = true
+    request.setRequestHeader('Accept', 'application/json')
+    request.setRequestHeader(CSRF_HEADER, token)
+    if (onProgress) {
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+    }
+    request.onload = () =>
+      resolve({
+        ok: request.status >= 200 && request.status < 300,
+        status: request.status,
+        json: async () => JSON.parse(request.responseText),
+      })
+    request.onerror = () => reject(new TypeError('Fallo de red'))
+    request.send(form)
+  })
+  return readResponse(response)
 }
 
 async function send(method, path, body, retried = false) {

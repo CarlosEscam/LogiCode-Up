@@ -12,12 +12,17 @@ import RegistrationPage from '../features/auth/RegistrationPage.jsx'
 import { SessionProvider } from '../features/auth/SessionProvider.jsx'
 import { useSession } from '../features/auth/useSession.js'
 import VerifyEmailPage from '../features/auth/VerifyEmailPage.jsx'
+import LibraryPage from '../features/content/LibraryPage.jsx'
+import MaterialPage from '../features/content/MaterialPage.jsx'
+import CoursePage from '../features/courses/CoursePage.jsx'
+import CoursesPage from '../features/courses/CoursesPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import { Link } from '../shared/router/Link.jsx'
 import { navigate, useLocation } from '../shared/router/router.js'
 
 // access: 'public' (cualquiera), 'guest' (solo sin sesión), 'account' (con sesión) o un permiso.
 // Ocultar una ruta es solo comodidad: el backend valida cada permiso.
+// Un segmento ':id' recibe el valor de la ruta (p. ej. /cursos/123 → { id: '123' }).
 const ROUTES = {
   '/': { access: 'public', render: () => <HomePage /> },
   '/ingresar': { access: 'guest', render: () => <LoginPage /> },
@@ -28,12 +33,17 @@ const ROUTES = {
   '/restablecer-contrasena': { access: 'public', render: () => <PasswordResetPage /> },
   '/recuperar-correo': { access: 'guest', render: () => <EmailChangePage /> },
   '/mi-cuenta': { access: 'account', render: () => <AccountPage /> },
+  '/biblioteca': { access: 'public', render: () => <LibraryPage /> },
+  '/materiales/:id': { access: 'public', render: ({ id }) => <MaterialPage key={id} id={id} /> },
+  '/cursos': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: () => <CoursesPage /> },
+  '/cursos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <CoursePage key={id} id={id} /> },
   '/admin/usuarios': { access: ['MANAGE_USERS', 'APPROVE_TEACHERS'], render: () => <UsersPage /> },
   '/admin/habilitaciones': { access: ['MANAGE_STUDENT_ENABLEMENTS'], render: () => <EnablementsPage /> },
   '/admin/auditoria': { access: ['VIEW_AUDIT'], render: () => <AuditPage /> },
 }
 
 const NAV = [
+  { to: '/cursos', label: 'Cursos', access: ['VIEW_PRIVATE_COURSE_CONTENT'] },
   { to: '/admin/usuarios', label: 'Usuarios', access: ['MANAGE_USERS', 'APPROVE_TEACHERS'] },
   { to: '/admin/habilitaciones', label: 'Habilitar estudiantes', access: ['MANAGE_STUDENT_ENABLEMENTS'] },
   { to: '/admin/auditoria', label: 'Auditoría', access: ['VIEW_AUDIT'] },
@@ -58,10 +68,13 @@ function Layout() {
           LogiCode
         </Link>
         <nav aria-label="Principal" className="topbar__nav">
+          <Link to="/biblioteca" aria-current={path === '/biblioteca' ? 'page' : undefined}>
+            Biblioteca
+          </Link>
           {session.account ? (
             <>
               {NAV.filter((item) => item.access.some(session.can)).map((item) => (
-                <Link key={item.to} to={item.to} aria-current={path === item.to ? 'page' : undefined}>
+                <Link key={item.to} to={item.to} aria-current={path.startsWith(item.to) ? 'page' : undefined}>
                   {item.label}
                 </Link>
               ))}
@@ -88,9 +101,27 @@ function Layout() {
   )
 }
 
+function matchRoute(path) {
+  for (const [pattern, route] of Object.entries(ROUTES)) {
+    const names = []
+    const regex = new RegExp(
+      `^${pattern.replace(/:([a-zA-Z]+)/g, (_, name) => {
+        names.push(name)
+        return '([^/]+)'
+      })}$`,
+    )
+    const match = path.match(regex)
+    if (match) {
+      const params = Object.fromEntries(names.map((name, index) => [name, decodeURIComponent(match[index + 1])]))
+      return { route, params }
+    }
+  }
+  return null
+}
+
 function Route({ path, session }) {
-  const route = ROUTES[path]
-  if (!route) {
+  const matched = matchRoute(path)
+  if (!matched) {
     return (
       <section className="card">
         <h1>Página no encontrada</h1>
@@ -100,11 +131,12 @@ function Route({ path, session }) {
       </section>
     )
   }
-  if (route.access === 'public') return route.render()
+  const { route, params } = matched
+  if (route.access === 'public') return route.render(params)
   if (session.status === 'loading') return <p role="status">Cargando…</p>
 
   if (route.access === 'guest') {
-    return session.account ? <Redirect to="/mi-cuenta" /> : route.render()
+    return session.account ? <Redirect to="/mi-cuenta" /> : route.render(params)
   }
   if (!session.account) return <Redirect to="/ingresar" />
   if (Array.isArray(route.access) && !route.access.some(session.can)) {
@@ -115,7 +147,7 @@ function Route({ path, session }) {
       </section>
     )
   }
-  return route.render()
+  return route.render(params)
 }
 
 function Redirect({ to }) {

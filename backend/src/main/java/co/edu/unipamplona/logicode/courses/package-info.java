@@ -1,7 +1,6 @@
 /**
- * Módulo pendiente de construir.
- *
- * <p>Cursos y matrículas: curso, periodo, habilitación de cédulas y carga de estudiantes. Etapas 3 y 4.
- * Seguirá la estructura api, application, domain e infrastructure descrita en {@code docs/arquitectura.md}.
+ * Cursos: curso y periodo, docente responsable e inscripción de estudiantes por cédula. Decide quién administra
+ * el contenido de un curso y quién ve su contenido privado (RN-03) mediante {@code courses.application.CourseAccess}.
+ * Etapa 4.
  */
 package co.edu.unipamplona.logicode.courses;

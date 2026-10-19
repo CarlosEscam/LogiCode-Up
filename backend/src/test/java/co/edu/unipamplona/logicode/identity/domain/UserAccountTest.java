@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 
+import co.edu.unipamplona.logicode.shared.domain.Permission;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 import org.junit.jupiter.api.Test;
 
 class UserAccountTest {

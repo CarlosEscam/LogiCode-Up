@@ -16,6 +16,19 @@ export default function HomePage() {
         </p>
       </header>
 
+      <section aria-labelledby="biblioteca-inicio-titulo" className="card">
+        <h2 id="biblioteca-inicio-titulo">Biblioteca</h2>
+        <p>
+          Guías, presentaciones, videos y archivos de PSeInt, DFD, Scratch y Arduino.{' '}
+          <Link to="/biblioteca">Explorar la biblioteca</Link>
+        </p>
+        {account && (
+          <p>
+            <Link to="/cursos">Ir a mis cursos</Link>
+          </p>
+        )}
+      </section>
+
       {!account && (
         <section aria-labelledby="acceso-titulo" className="card">
           <h2 id="acceso-titulo">Acceso</h2>

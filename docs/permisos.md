@@ -51,6 +51,8 @@ Notas:
 
 - "Habilitar cédulas" y "gestionar usuarios" para el administrador ordinario se deducen de "gestionar usuarios y tareas administrativas permitidas"; confirmar en la revisión de la Etapa 3.
 - Un administrador ordinario no puede desactivar ni cambiar a una cuenta con privilegio completo.
+- Etapa 4: "Su curso" significa el curso del que la cuenta es docente responsable. "Si es miembro" significa que su cédula está inscrita en el curso. "Publicar/administrar biblioteca" para el administrador ordinario es cambiar la visibilidad y archivar materiales; crear o editar temas y materiales sigue siendo solo del docente y del privilegio completo (T-28).
+- Inscribir estudiantes en un curso: su docente responsable y las cuentas Administrador.
 - Cambiar el rol o desactivar una cuenta cierra sus sesiones abiertas.
 - RN-16: el backend rechaza cualquier operación que deje la plataforma sin al menos una cuenta inicial activa con privilegio completo.
 

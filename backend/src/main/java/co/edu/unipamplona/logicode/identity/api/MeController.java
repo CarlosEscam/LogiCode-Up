@@ -5,6 +5,7 @@ import co.edu.unipamplona.logicode.identity.api.AuthDtos.MessageResponse;
 import co.edu.unipamplona.logicode.identity.api.AuthDtos.PasswordChangeRequest;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.application.ChangePassword;
+import co.edu.unipamplona.logicode.identity.application.CurrentActor;
 import co.edu.unipamplona.logicode.identity.application.GetCurrentActor;
 import co.edu.unipamplona.logicode.identity.application.ResendEmailVerification;
 import co.edu.unipamplona.logicode.shared.api.ApiPaths;

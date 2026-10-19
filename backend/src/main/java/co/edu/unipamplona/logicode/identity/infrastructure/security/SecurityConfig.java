@@ -19,7 +19,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
  * Seguridad HTTP: sesión en servidor (Spring Session JDBC, D-01) con cookie HttpOnly, protección CSRF con cookie
  * {@code XSRF-TOKEN} para la interfaz React, y respuestas 401/403 en formato Problem Details.
  * <p>
- * Aquí solo se exige sesión; los permisos finos (rol, privilegio completo) los verifican los casos de uso.
+ * Aquí solo se exige sesión (salvo la biblioteca pública); los permisos finos (rol, privilegio completo) los verifican los casos de uso.
  */
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
@@ -35,6 +35,8 @@ class SecurityConfig {
         http
                 .addFilterAfter(new ActiveAccountFilter(getCurrentActor), SecurityContextHolderFilter.class)
                 .csrf(csrf -> csrf.spa())
+                // La vista previa de PDF se muestra en un iframe de la propia aplicación.
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .securityContext(context -> context.securityContextRepository(contextRepository))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -46,6 +48,9 @@ class SecurityConfig {
                         .requestMatchers("/api/v1/system/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/me").permitAll()
+                        // Biblioteca pública (RF-24, RF-25): los casos de uso deciden qué ve un visitante.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/library", "/api/v1/library/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/materials/**").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(errors -> errors

@@ -2,6 +2,7 @@ package co.edu.unipamplona.logicode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,7 +12,6 @@ import org.springframework.web.client.RestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.flywaydb.core.Flyway;
 
 /**
  * Prueba de integración de la fundación: arranca la aplicación completa contra PostgreSQL real
@@ -36,13 +36,13 @@ class LogiCodeApplicationIT {
     void appliesMigrationsAndExposesHealthAndSystemInfo() {
         RestClient client = RestClient.create("http://localhost:" + port);
 
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("3");
 
         String health = client.get().uri("/actuator/health").retrieve().body(String.class);
         assertThat(health).contains("\"status\":\"UP\"");
 
         String info = client.get().uri("/api/v1/system/info").retrieve().body(String.class);
-        assertThat(info).contains("\"schemaVersion\":\"2\"").contains("\"timeZone\":\"America/Bogota\"");
+        assertThat(info).contains("\"schemaVersion\":\"3\"").contains("\"timeZone\":\"America/Bogota\"");
 
         String openApi = client.get().uri("/api/v1/openapi").retrieve().body(String.class);
         assertThat(openApi).contains("/api/v1/system/info");

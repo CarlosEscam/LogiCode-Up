@@ -6,9 +6,9 @@ import java.util.UUID;
 import co.edu.unipamplona.logicode.identity.domain.AccountStatus;
 import co.edu.unipamplona.logicode.identity.domain.AuditAction;
 import co.edu.unipamplona.logicode.identity.domain.AuditEvent;
-import co.edu.unipamplona.logicode.identity.domain.Permission;
 import co.edu.unipamplona.logicode.identity.domain.UserAccount;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
+import co.edu.unipamplona.logicode.shared.domain.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

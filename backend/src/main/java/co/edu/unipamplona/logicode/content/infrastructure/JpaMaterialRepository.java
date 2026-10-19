@@ -1,0 +1,18 @@
+package co.edu.unipamplona.logicode.content.infrastructure;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import co.edu.unipamplona.logicode.content.domain.Material;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+interface JpaMaterialRepository extends JpaRepository<Material, UUID>, JpaSpecificationExecutor<Material> {
+
+    List<Material> findByTopicIdInAndArchivedAtIsNullOrderByPositionAscCreatedAtAsc(Collection<UUID> topicIds);
+
+    @Query("select coalesce(max(m.position), 0) from Material m where m.topicId = :topicId")
+    int maxPosition(UUID topicId);
+}

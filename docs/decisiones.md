@@ -65,11 +65,24 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-20 | Enrutador propio mínimo en React (History API) en vez de una librería | Pocas rutas planas; no agrega dependencias sin aprobación. Se puede reemplazar si la navegación crece |
 | T-21 | Se desactiva el usuario en memoria que Spring Security crea por defecto | Las cuentas viven en PostgreSQL; evita una contraseña generada en el log |
 
+## Decisiones técnicas tomadas en la Etapa 4
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-22 | Archivos en un volumen local de Docker (`file-storage`) detrás del puerto `BinaryStorage`, en vez de MinIO | Opción por defecto mientras se responde P-05: no agrega un servicio más al equipo de presentación. Cambiar a MinIO o S3 es escribir otro adaptador; el resto del código no cambia |
+| T-23 | Módulo `files` aparte: valida extensión, tamaño y firma real, guarda solo metadatos en `stored_file` y usa claves aleatorias | Las Etapas 5 a 8 (entregas, fotos) reutilizan la misma validación. El nombre original nunca se usa como ruta |
+| T-24 | Inscripción por cédula en `course_enrollment` | El docente puede inscribir antes de que el estudiante se registre; al registrarse ya ve el contenido privado |
+| T-25 | El primer curso que se crea inscribe todas las cédulas ya habilitadas | Los estudiantes habilitados en la Etapa 3 no pierden acceso al crear el curso |
+| T-26 | Temas y materiales se archivan, no se borran | Cumple la retención de seis meses (RNF-12) y permite recuperar contenido. La limpieza de archivos vencidos queda pendiente |
+| T-27 | Lo que alguien no puede ver responde `404`, no `403` | No revela la existencia de cursos o materiales privados |
+| T-28 | El administrador ordinario puede cambiar visibilidad y archivar materiales (publicar biblioteca), no crearlos ni editarlos | Une "publicar biblioteca" de RF-28 con RN-04 |
+| T-29 | `Role` y `Permission` pasan a `shared.domain`; la anotación `@CurrentActor` pasa a `identity.application` | Otros módulos los necesitan y la regla de módulos solo permite usar la capa `application` de otro módulo |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
-| P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Etapa 4 | MinIO en Docker Compose detrás de una interfaz `FileStorage`, para que el despliegue futuro use cualquier proveedor compatible con S3 sin cambiar el dominio |
+| P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Publicación en línea | Implementado con volumen local (T-22). Si se prefiere MinIO, se agrega como adaptador sin cambiar el resto |
 | P-06 | Dominio y remitente de Brevo | Envío real de correos | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml` |
 | P-07 | Carga de estudiantes desde Excel (RF-05) | Cierre de la Etapa 3 | Agregar Apache POI (librería Java estándar para leer `.xlsx`) solo para esta importación. Mientras tanto se acepta CSV, que Excel exporta con "Guardar como" |
 

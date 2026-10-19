@@ -1,5 +1,6 @@
 package co.edu.unipamplona.logicode.identity.infrastructure.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import co.edu.unipamplona.logicode.identity.application.StudentEnablementRepository;
@@ -31,6 +32,11 @@ class StudentEnablementRepositoryAdapter implements StudentEnablementRepository 
     @Override
     public boolean existsByCedula(String cedula) {
         return jpa.existsByCedula(cedula);
+    }
+
+    @Override
+    public List<String> findAllCedulas() {
+        return jpa.findAllCedulas();
     }
 
     @Override

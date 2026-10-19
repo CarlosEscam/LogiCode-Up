@@ -319,3 +319,143 @@ td {
   gap: 1rem;
   margin-top: 1rem;
 }
+
+/* Contenidos y biblioteca (Etapa 4) */
+.materials {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.material {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.material__body {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.card .material__title {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.material__meta,
+.material__description {
+  margin: 0.25rem 0 0;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.material__actions,
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+.material__actions .button,
+.toolbar .button {
+  text-decoration: none;
+}
+
+.toolbar {
+  margin: 0.5rem 0 1rem;
+}
+
+.badge--private {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.badge--next {
+  background: #dcfce7;
+  color: var(--color-ok);
+}
+
+.topic__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.topic__header h2 {
+  margin: 0 0.25rem 0 0;
+}
+
+.next-class {
+  border-left: 4px solid var(--color-ok);
+}
+
+.next-class h2 {
+  margin-bottom: 0.25rem;
+}
+
+.subform {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.subform summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.field select {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tabs button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--color-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected='true'] {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  margin: 1rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #f9fafb;
+  object-fit: contain;
+}
+
+.preview--pdf {
+  height: 80vh;
+}
+
+progress {
+  width: min(16rem, 60%);
+  vertical-align: middle;
+}

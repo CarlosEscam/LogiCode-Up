@@ -47,8 +47,12 @@ co.edu.unipamplona.logicode
 │   ├── application/     Un caso de uso por clase (RegisterStudent, AuthenticateUser, ResetPassword…) y puertos
 │   ├── domain/          UserAccount, OneTimeToken, RecoveryRequest, AccessPolicy, PasswordPolicy…
 │   └── infrastructure/  persistence/ (Spring Data), security/ (Spring Security, BCrypt, sesiones), mail/ (outbox, Brevo)
-├── courses/           Etapas 3-4 · cursos, periodos, cédulas habilitadas, matrículas
-├── content/           Etapa 4 · temas, materiales, biblioteca
+├── files/             Etapa 4 · carga, validación del tipo real, almacenamiento y entrega de archivos
+│   ├── application/     FileStore (caso de uso), AcceptedFiles, BinaryStorage y StoredFileRepository (puertos)
+│   ├── domain/          StoredFile, FileFormat (formatos, límites y firmas)
+│   └── infrastructure/  LocalBinaryStorage (volumen file-storage), persistencia
+├── courses/           Etapa 4 · cursos, docente responsable, inscripción por cédula, reglas de acceso (CourseAccess)
+├── content/           Etapa 4 · temas, materiales, próxima clase, biblioteca, vista previa y descarga
 ├── activities/        Etapa 5 · actividades, plazos, entregas
 ├── grading/           Etapas 5, 6, 8 · rúbricas, calificación determinista e IA, planilla
 ├── quizzes/           Etapa 7 · quizzes, banco de preguntas, ranking
@@ -57,7 +61,7 @@ co.edu.unipamplona.logicode
 └── administration/    Etapas 3, 8 · usuarios, aprobación docente, respaldos
 ```
 
-La habilitación de cédulas quedó en `identity` porque es requisito del registro; las matrículas por curso irán en `courses`. Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
+La habilitación de cédulas quedó en `identity` porque es requisito del registro; la inscripción por curso está en `courses`, que usa `identity` para habilitar la cédula al inscribir. `content` usa `courses` (quién ve o administra un curso) y `files` (archivos); las dependencias van en un solo sentido: content → courses → identity, y content → files. `Role` y `Permission` viven en `shared.domain` (T-29). Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
 
 ### Responsabilidad de cada capa
 

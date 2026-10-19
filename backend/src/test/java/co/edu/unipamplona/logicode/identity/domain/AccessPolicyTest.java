@@ -1,8 +1,10 @@
 package co.edu.unipamplona.logicode.identity.domain;
 
-import static co.edu.unipamplona.logicode.identity.domain.Permission.*;
+import static co.edu.unipamplona.logicode.shared.domain.Permission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import co.edu.unipamplona.logicode.shared.domain.Permission;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 import org.junit.jupiter.api.Test;
 
 class AccessPolicyTest {

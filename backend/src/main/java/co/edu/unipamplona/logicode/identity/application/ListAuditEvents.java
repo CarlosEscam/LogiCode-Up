@@ -1,8 +1,8 @@
 package co.edu.unipamplona.logicode.identity.application;
 
 import co.edu.unipamplona.logicode.identity.domain.AuditEvent;
-import co.edu.unipamplona.logicode.identity.domain.Permission;
 import co.edu.unipamplona.logicode.shared.application.PageResult;
+import co.edu.unipamplona.logicode.shared.domain.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

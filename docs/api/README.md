@@ -79,12 +79,37 @@ Content-Type: application/json
 { "cedula": "1234567", "password": "********" }
 ```
 
+### Implementados (Etapa 4 · Curso, temas y biblioteca)
+
+Todas requieren sesión salvo las marcadas como públicas. Lo que la cuenta no puede ver responde `404`.
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/courses` | Cursos de la cuenta (todos para un Administrador) |
+| `POST /api/v1/courses` | Crear curso `{name, period, description}`; quien lo crea es el docente responsable |
+| `GET/PUT /api/v1/courses/{id}` | Consultar o editar el curso |
+| `GET/POST /api/v1/courses/{id}/enrollments` | Inscritos (paginado) e inscripción `{cedula, fullName}` |
+| `POST /api/v1/courses/{id}/enrollments/import` | Inscripción por CSV (`file`, máx. 1 MB y 2000 filas) |
+| `DELETE /api/v1/courses/{id}/enrollments/{cedula}` | Retirar del curso |
+| `GET/POST /api/v1/courses/{id}/topics` | Temas con sus materiales · crear tema `{title, description, tool}` |
+| `PUT /api/v1/courses/{id}/topics/order` | Nuevo orden `{ids: [...]}` (todos los temas) |
+| `PUT /api/v1/courses/{id}/next-class` | Tema de la próxima clase `{topicId}` (`null` quita la marca) |
+| `PUT/DELETE /api/v1/topics/{id}` | Editar o archivar un tema |
+| `POST /api/v1/topics/{id}/materials` | Material en `multipart/form-data`: `title`, `description`, `kind`, `visibility` y `file`, o `url` con `kind=LINK` |
+| `PUT /api/v1/topics/{id}/materials/order` | Nuevo orden de los materiales |
+| `GET /api/v1/materials/{id}` | Detalle (**público** si el material es público) |
+| `GET /api/v1/materials/{id}/preview` | Archivo en línea: PDF, PNG, JPG, MP4, MOV; admite `Range` (**público** si el material es público) |
+| `GET /api/v1/materials/{id}/download` | Descarga con el nombre original (**público** si el material es público) |
+| `PUT /api/v1/materials/{id}` | Editar título, descripción y visibilidad (docente del curso) |
+| `PUT /api/v1/materials/{id}/visibility` | Público o privado (docente del curso o Administrador) |
+| `DELETE /api/v1/materials/{id}` | Archivar (docente del curso o Administrador) |
+| `GET /api/v1/library` | **Público.** Búsqueda paginada: `q`, `tool`, `topicId`, `kind`, `page`, `size` |
+| `GET /api/v1/library/topics` | **Público.** Temas con materiales visibles, para los filtros |
+
 ### Etapas siguientes (de la especificación, pendientes)
 
 | Recurso | Operaciones |
 | --- | --- |
-| Cursos y temas | `GET/POST /api/v1/courses` · `GET/POST /api/v1/topics` |
-| Biblioteca | `GET /api/v1/library` · `GET /api/v1/materials/{id}/preview` · `GET /api/v1/materials/{id}/download` |
 | Actividades y entregas | `GET/POST /api/v1/activities` · `POST /api/v1/activities/{id}/submissions` (`202 Accepted`) |
 | Evaluación | `GET /api/v1/submissions/{id}/grading` · `POST /api/v1/submissions/{id}/grade/confirm` |
 | Foro | `GET/POST /api/v1/forum/threads` · `PATCH /api/v1/forum/threads/{id}` |

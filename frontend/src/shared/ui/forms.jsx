@@ -1,5 +1,6 @@
-export function Field({ label, name, error, hint, ...inputProps }) {
-  const id = `campo-${name}`
+// id: necesario cuando el mismo campo aparece en varios formularios de una página.
+export function Field({ label, name, error, hint, id: customId, ...inputProps }) {
+  const id = customId ?? `campo-${name}`
   const describedBy = [hint && `${id}-ayuda`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
   return (
     <div className="field">

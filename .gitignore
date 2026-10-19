@@ -28,3 +28,6 @@ Thumbs.db
 .claude/settings.local.json
 *.graphify-bak
 graphify-out/
+
+# Archivos cargados al ejecutar el backend fuera de Docker
+backend/file-storage/

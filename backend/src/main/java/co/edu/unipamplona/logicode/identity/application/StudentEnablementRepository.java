@@ -1,5 +1,6 @@
 package co.edu.unipamplona.logicode.identity.application;
 
+import java.util.List;
 import java.util.Optional;
 
 import co.edu.unipamplona.logicode.identity.domain.StudentEnablement;
@@ -14,4 +15,6 @@ public interface StudentEnablementRepository {
     boolean existsByCedula(String cedula);
 
     PageResult<StudentEnablement> list(int page, int size);
+
+    List<String> findAllCedulas();
 }

@@ -23,3 +23,8 @@ export function usePagedQuery(path, params) {
   // Mientras carga la página siguiente se siguen mostrando los datos anteriores.
   return { status, data: state.data, error: state.error, reload }
 }
+
+// Consulta GET simple (sin paginar) con el mismo manejo de carga, error y recarga.
+export function useQuery(path, params = {}) {
+  return usePagedQuery(path, params)
+}

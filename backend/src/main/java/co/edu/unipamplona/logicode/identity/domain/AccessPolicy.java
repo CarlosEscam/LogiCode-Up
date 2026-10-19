@@ -1,9 +1,12 @@
 package co.edu.unipamplona.logicode.identity.domain;
 
-import static co.edu.unipamplona.logicode.identity.domain.Permission.*;
+import static co.edu.unipamplona.logicode.shared.domain.Permission.*;
 
 import java.util.EnumSet;
 import java.util.Set;
+
+import co.edu.unipamplona.logicode.shared.domain.Permission;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 
 /**
  * Permisos efectivos según rol, estado y privilegio completo (RF-28, RN-04, RN-15, RN-22).

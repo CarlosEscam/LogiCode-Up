@@ -31,8 +31,10 @@ spring:
       initialize-schema: never
   servlet:
     multipart:
-      max-file-size: 1MB
-      max-request-size: 2MB
+      # Materiales: hasta 500 MB y videos hasta 1 GB (RNF-04). El límite por formato lo valida el módulo files;
+      # los CSV de estudiantes se limitan a 1 MB en su controlador.
+      max-file-size: 1GB
+      max-request-size: 1100MB
   mvc:
     problemdetails:
       enabled: true
@@ -65,6 +67,11 @@ logicode:
       - cedula: ${INITIAL_ADMIN_2_CEDULA:}
         full-name: ${INITIAL_ADMIN_2_NAME:}
         email: ${INITIAL_ADMIN_2_EMAIL:}
+  files:
+    # Almacenamiento local de archivos (volumen file-storage en Docker). Ver docs/decisiones.md (P-05).
+    storage-dir: ${LOGICODE_FILES_DIR:file-storage}
+    # RN-21 / RNF-12: mínimo 6 meses.
+    retention-months: ${LOGICODE_FILE_RETENTION_MONTHS:6}
   mail:
     # outbox: guarda los correos como archivos (desarrollo). brevo: envía con Brevo (requiere secretos).
     provider: ${LOGICODE_MAIL_PROVIDER:outbox}

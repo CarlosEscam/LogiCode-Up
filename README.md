@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 3 (acceso y permisos) implementada, pendiente de revisión.** Hay registro, inicio de sesión, verificación de correo, recuperación de contraseña, aprobación docente, habilitación de estudiantes, roles y auditoría. Cursos, biblioteca, actividades, calificación con IA, quizzes, juegos y foro están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 4 (curso, temas y biblioteca) implementada, pendiente de revisión.** Además del acceso y los permisos de la Etapa 3, hay cursos con inscripción por cédula, temas por herramienta, próxima clase, materiales públicos o privados, biblioteca con filtros, vista previa y descarga. Actividades, calificación con IA, quizzes, juegos y foro están pendientes. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -59,6 +59,8 @@ Para desarrollar fuera de Docker (opcional):
 | `SESSION_COOKIE_SECURE` | `false` | `true` solo cuando la plataforma se sirva por HTTPS |
 | `LOGICODE_MAIL_PROVIDER` | `outbox` | `outbox` guarda los correos en `.local/mail-outbox`; `brevo` los envía (ver abajo) |
 | `BREVO_SENDER_NAME` | `LogiCode` | Nombre del remitente en Brevo |
+| `LOGICODE_FILE_RETENTION_MONTHS` | `6` | Meses que se conserva cada archivo cargado (mínimo 6) |
+| `LOGICODE_FILES_DIR` | `file-storage` | Solo al ejecutar el backend fuera de Docker: carpeta de los archivos cargados |
 
 La API key y el remitente de Brevo son **secretos de Docker**, nunca variables de `.env` (ver "Correo real con Brevo").
 
@@ -77,7 +79,9 @@ docker compose up --build
 | http://localhost:3000/swagger-ui.html | Documentación interactiva de la API |
 | http://localhost:8080/actuator/health | Estado del backend |
 
-Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos local: `docker compose down -v`.
+Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos y los archivos cargados: `docker compose down -v`.
+
+Los archivos de los materiales se guardan en el volumen `file-storage`; para un respaldo completo copia ese volumen junto con la base de datos.
 
 ### Primer ingreso de las cuentas iniciales
 
@@ -133,16 +137,19 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   ├── shared/                  Transversal: rutas /api/v1, errores, reloj, X-Request-Id
 │   │   ├── system/                  Módulo de referencia con las 4 capas (api, application, domain, infrastructure)
 │   │   ├── identity/                Etapa 3: cuentas, sesión, correo, recuperación, roles, auditoría
-│   │   └── courses/ content/ activities/ grading/
-│   │       quizzes/ games/ forum/ administration/   Módulos pendientes (solo descripción)
+│   │   ├── files/                   Etapa 4: carga y validación de archivos, almacenamiento local
+│   │   ├── courses/                 Etapa 4: cursos e inscripción por cédula
+│   │   ├── content/                 Etapa 4: temas, materiales, biblioteca, vista previa y descarga
+│   │   └── activities/ grading/ quizzes/
+│   │       games/ forum/ administration/            Módulos pendientes (solo descripción)
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
 │   ├── src/app                      Rutas y navegación según permisos
-│   ├── src/features                 auth, account, admin, system
+│   ├── src/features                 auth, account, admin, courses, content, system
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
@@ -162,4 +169,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 3 en [docs/estado.md](docs/estado.md) y responder P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 4 · Curso, temas y biblioteca**.
+Revisar la Etapa 4 en [docs/estado.md](docs/estado.md) y confirmar el almacenamiento local de archivos (P-05). Siguen abiertas P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 5 · Actividades y entregas**.

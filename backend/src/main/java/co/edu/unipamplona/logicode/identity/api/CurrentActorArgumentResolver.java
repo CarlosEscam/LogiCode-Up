@@ -3,6 +3,7 @@ package co.edu.unipamplona.logicode.identity.api;
 import java.util.List;
 
 import co.edu.unipamplona.logicode.identity.application.Actor;
+import co.edu.unipamplona.logicode.identity.application.CurrentActor;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
@@ -33,6 +34,9 @@ public class CurrentActorArgumentResolver implements HandlerMethodArgumentResolv
         Object actor = webRequest.getAttribute(ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
         if (actor instanceof Actor resolved) {
             return resolved;
+        }
+        if (!parameter.getParameterAnnotation(CurrentActor.class).required()) {
+            return null;
         }
         throw ApplicationException.unauthenticated("Debes iniciar sesión.");
     }

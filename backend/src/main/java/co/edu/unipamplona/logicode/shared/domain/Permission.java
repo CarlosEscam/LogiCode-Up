@@ -1,4 +1,4 @@
-package co.edu.unipamplona.logicode.identity.domain;
+package co.edu.unipamplona.logicode.shared.domain;
 
 /**
  * Permisos de la plataforma. Ver la matriz en docs/permisos.md.

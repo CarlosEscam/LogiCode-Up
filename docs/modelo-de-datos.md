@@ -21,6 +21,7 @@
 | --- | --- |
 | `V1__linea_base.sql` | Línea base: no crea tablas de negocio. Flyway crea su tabla `flyway_schema_history` |
 | `V2__identidad_y_acceso.sql` | Etapa 3: cuentas, tokens de un solo uso, límites de recuperación, cédulas habilitadas, auditoría y sesiones (`spring_session`, `spring_session_attributes`) |
+| `V3__cursos_temas_y_biblioteca.sql` | Etapa 4: cursos, inscripciones, archivos cargados, temas y materiales |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -90,3 +91,59 @@ Cómo cubre las reglas aprobadas:
 - **RN-16**: los casos de uso rechazan cualquier cambio que deje la plataforma sin una cuenta inicial activa con privilegio completo; el arranque además lo restablece (T-17).
 - **D-01**: al cambiar o restablecer la contraseña se borran las filas de `spring_session` de la cuenta (el nombre del principal es el `id` de la cuenta).
 - **RN-01**: el registro de estudiante exige una fila en `student_enablement` con su cédula y sin `registered_user_id`.
+
+## Cursos, temas y biblioteca (Etapa 4, implementado)
+
+```mermaid
+erDiagram
+    user_account ||--o{ course : "es docente de"
+    course ||--o{ course_enrollment : "inscribe"
+    course ||--o{ topic : "tiene"
+    topic ||--o{ material : "contiene"
+    stored_file |o--o| material : "archivo de"
+
+    course {
+        uuid id PK
+        varchar name
+        varchar period "p. ej. 2026-2"
+        uuid owner_id FK "docente responsable"
+    }
+    course_enrollment {
+        uuid id PK
+        uuid course_id FK
+        varchar cedula "UK con course_id; la cuenta puede no existir aún"
+        uuid enrolled_by FK
+    }
+    topic {
+        uuid id PK
+        uuid course_id FK
+        varchar title
+        varchar tool "PSEINT | DFD | SCRATCH | ARDUINO | GENERAL"
+        int position
+        boolean next_class "uno por curso (índice único parcial)"
+        timestamptz archived_at
+    }
+    material {
+        uuid id PK
+        uuid topic_id FK
+        varchar kind "GUIDE | DOCUMENT | PRESENTATION | IMAGE | VIDEO | TOOL_FILE | LINK"
+        varchar visibility "PUBLIC | PRIVATE"
+        int position
+        uuid file_id FK "o external_url, nunca ambos"
+        varchar external_url "solo LINK, http o https"
+        timestamptz archived_at
+    }
+    stored_file {
+        uuid id PK
+        varchar storage_key UK "aleatoria; nunca el nombre original"
+        varchar original_name
+        varchar format "PDF, DOCX, PNG, MP4, SB3..."
+        bigint size_bytes
+        varchar sha256
+        timestamptz retain_until "carga + 6 meses como mínimo"
+    }
+```
+
+- **RN-03 / RN-17**: un material privado solo lo ven los inscritos (por cédula), el docente responsable y las cuentas Administrador. Para los demás responde `404`.
+- **RNF-04 / RN-21**: `files` comprueba la extensión permitida para el tipo de material, el tamaño (500 MB; 1 GB videos) y la firma del contenido antes de guardar.
+- **RNF-12**: temas y materiales se archivan (`archived_at`); el archivo se conserva al menos hasta `retain_until`.

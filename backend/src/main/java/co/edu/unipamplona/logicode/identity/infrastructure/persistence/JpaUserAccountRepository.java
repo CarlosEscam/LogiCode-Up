@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.identity.domain.AccountStatus;
-import co.edu.unipamplona.logicode.identity.domain.Role;
 import co.edu.unipamplona.logicode.identity.domain.UserAccount;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

@@ -6,9 +6,9 @@ import java.util.UUID;
 
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.domain.AccountStatus;
-import co.edu.unipamplona.logicode.identity.domain.Permission;
-import co.edu.unipamplona.logicode.identity.domain.Role;
 import co.edu.unipamplona.logicode.identity.domain.UserAccount;
+import co.edu.unipamplona.logicode.shared.domain.Permission;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
