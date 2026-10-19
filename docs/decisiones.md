@@ -42,16 +42,21 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-11 | Base de datos y backend publicados solo en `127.0.0.1`; el frontend en el puerto 3000 | PostgreSQL no se expone a la red. El frontend queda accesible para presentar desde otro equipo de la red local |
 | T-12 | Flujo Git: rama `main` estable + ramas `feature/<etapa>-<tema>`; integración por pull request con CI en verde | Ver README |
 
+## Decisiones aprobadas para la Etapa 3 (19 de octubre de 2026)
+
+| # | Decisión | Detalle |
+| --- | --- | --- |
+| D-01 | Sesiones guardadas en el servidor (PostgreSQL) | Spring Session JDBC con cookie HttpOnly y protección CSRF. Cerrar todas las sesiones = borrar las sesiones de la cuenta. Reemplaza la pregunta P-01 |
+| D-02 | Contraseñas con BCrypt | Incluido en Spring Security, sin dependencias adicionales. Reemplaza P-02 |
+| D-03 | Cuentas iniciales cargadas desde configuración local | Cédula, nombre y correo de las dos administradoras se leen de variables de entorno (`INITIAL_ADMIN_*` en `.env`, ignorado por Git). Nunca se escriben en el código, en migraciones ni en el repositorio. No se configura contraseña: cada cuenta la define con el flujo de verificación de correo. Reemplaza P-03 |
+| D-04 | Límite de 2 solicitudes diarias contado por separado | Un contador para recuperación de contraseña y otro para cambio asistido de correo, por cuenta y por día calendario en Colombia. Reemplaza P-04 |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
-| P-01 | ¿Cómo se manejan las sesiones para poder "cerrar todas las sesiones"? | Etapa 3 | Sesiones en servidor guardadas en PostgreSQL (Spring Session JDBC) con cookie HttpOnly + protección CSRF. Revocar = borrar las filas de la cuenta. Alternativa: JWT con versión de credenciales en la cuenta (más complejo de revocar) |
-| P-02 | ¿BCrypt o Argon2id? | Etapa 3 | BCrypt (costo 12): incluido en Spring Security sin dependencias adicionales. Argon2id requiere agregar Bouncy Castle |
-| P-03 | Cédulas y correos de las dos cuentas iniciales | Etapa 3 | Se cargan al primer arranque desde variables/secretos de Docker (nunca contraseñas en el repositorio); cada administradora define su contraseña con el flujo de verificación de correo |
-| P-04 | El límite de 2 solicitudes diarias, ¿es compartido entre recuperación de contraseña y cambio asistido de correo, o es uno por cada flujo? | Etapa 3 | Un contador independiente por flujo |
 | P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Etapa 4 | MinIO en Docker Compose detrás de una interfaz `FileStorage`, para que el despliegue futuro use cualquier proveedor compatible con S3 sin cambiar el dominio |
-| P-06 | Dominio y remitente de Brevo | Etapa 3 | Lo define el equipo; se configura como secreto |
+| P-06 | Dominio y remitente de Brevo | Etapa 3 (envío real de correos) | Lo define el equipo; la API key y el remitente se configuran como secretos de Docker |
 
 ## Observaciones de la especificación (no bloquean la base)
 

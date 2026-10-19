@@ -11,7 +11,8 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
 | 1 · Análisis y diseño | Diseño técnico mínimo hecho | Arquitectura, convenciones de API y datos, matriz de permisos y propuesta de modelo de identidad. Pendientes de la etapa completa: casos de uso, historias con criterios de aceptación, maquetas, rúbricas y prueba de lectura manuscrita |
 | 2 · Fundaciones técnicas | Implementada, pendiente de revisión | Ver detalle abajo |
-| 3 a 10 | Pendientes | No se ha construido ninguna funcionalidad de negocio |
+| 3 · Acceso y permisos | Pendiente; decisiones previas aprobadas | D-01 a D-04 en [decisiones.md](decisiones.md) |
+| 4 a 10 | Pendientes | No se ha construido ninguna funcionalidad de negocio |
 
 ## Etapa 2 · detalle
 

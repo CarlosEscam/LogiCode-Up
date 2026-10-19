@@ -23,7 +23,7 @@
 
 ## Propuesta para la Etapa 3 · Identidad y acceso
 
-> **Propuesta para revisión, no implementada.** Depende de las decisiones P-01 a P-04 de [decisiones.md](decisiones.md).
+> **Propuesta para revisión, no implementada.** Ajustada a las decisiones D-01 a D-04 de [decisiones.md](decisiones.md).
 
 ```mermaid
 erDiagram
@@ -87,9 +87,10 @@ Cómo cubre las reglas aprobadas:
 
 - **RNF-02 / RN-25 (dos hashes)**: al cambiar la contraseña, `previous_password_hash ← password_hash`, `password_hash ← nuevo`; el hash más antiguo desaparece porque se sobrescribe. Nunca hay texto plano.
 - **RN-23 (token)**: el token aleatorio se envía en el enlace; en la base solo queda su hash, su vencimiento (60 min) y `used_at`. Un token usado o vencido se rechaza.
-- **RN-23 (2 por día)**: se cuentan filas de `recovery_request` por `user_id`, `kind` y `business_date` (fecha en `America/Bogota`).
+- **RN-23 (2 por día, D-04)**: se cuentan filas de `recovery_request` por `user_id`, `kind` y `business_date` (fecha en `America/Bogota`); cada `kind` tiene su propio límite.
 - **RN-24 / RN-25 (correo)**: el correo de recuperación es el último `user_email` con estado `VERIFIED`. Un correo nuevo entra como `PENDING` y solo al verificarse pasa a `VERIFIED` y el anterior a `REPLACED`. "Último correo registrado" = el `VERIFIED` vigente.
 - **RN-16**: la regla "al menos una cuenta inicial activa con privilegio completo" se aplica en el caso de uso y se respalda con una prueba.
-- **Cierre de sesiones**: depende de P-01 (con Spring Session JDBC se agregan sus tablas `spring_session` y `spring_session_attributes`).
+- **Cierre de sesiones (D-01)**: Spring Session JDBC agrega sus tablas `spring_session` y `spring_session_attributes`; al cambiar la contraseña se borran las sesiones de la cuenta.
+- **Cuentas iniciales (D-03)**: al arrancar, si no existen, se crean las dos cuentas con `role = ADMIN` y `full_privileges = true` a partir de `INITIAL_ADMIN_*`, sin contraseña hasta que verifiquen su correo.
 
 La habilitación de cédulas por el docente (RN-01) y las matrículas pertenecen al módulo `courses` y se diseñarán junto con la Etapa 3.

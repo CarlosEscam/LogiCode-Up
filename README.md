@@ -53,6 +53,7 @@ Para desarrollar fuera de Docker (opcional):
 | `LOGICODE_TIME_ZONE` | `America/Bogota` | Zona horaria de las reglas de negocio |
 | `DB_URL` | `jdbc:postgresql://localhost:5432/logicode` | Solo al ejecutar el backend fuera de Docker |
 | `LOGICODE_ENVIRONMENT` | `local` | Nombre del entorno (informativo) |
+| `INITIAL_ADMIN_1_*`, `INITIAL_ADMIN_2_*` | *(vacías)* | Cédula, nombre y correo de las dos cuentas iniciales con privilegio completo. Solo en `.env`; se usarán desde la Etapa 3 |
 
 Las credenciales de Brevo (Etapa 3) se configurarán como **secretos de Docker**, no en `.env`.
 
@@ -133,4 +134,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar y aprobar el cierre de la Etapa 2 y responder las preguntas P-01 a P-04 de [docs/decisiones.md](docs/decisiones.md) para iniciar la **Etapa 3 · Acceso y permisos**.
+Las decisiones previas a la Etapa 3 (D-01 a D-04) están aprobadas en [docs/decisiones.md](docs/decisiones.md). Queda iniciar la **Etapa 3 · Acceso y permisos** cuando se apruebe el cierre de la Etapa 2.
