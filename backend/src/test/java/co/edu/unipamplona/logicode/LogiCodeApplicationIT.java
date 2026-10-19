@@ -36,13 +36,13 @@ class LogiCodeApplicationIT {
     void appliesMigrationsAndExposesHealthAndSystemInfo() {
         RestClient client = RestClient.create("http://localhost:" + port);
 
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
 
         String health = client.get().uri("/actuator/health").retrieve().body(String.class);
         assertThat(health).contains("\"status\":\"UP\"");
 
         String info = client.get().uri("/api/v1/system/info").retrieve().body(String.class);
-        assertThat(info).contains("\"schemaVersion\":\"1\"").contains("\"timeZone\":\"America/Bogota\"");
+        assertThat(info).contains("\"schemaVersion\":\"2\"").contains("\"timeZone\":\"America/Bogota\"");
 
         String openApi = client.get().uri("/api/v1/openapi").retrieve().body(String.class);
         assertThat(openApi).contains("/api/v1/system/info");
