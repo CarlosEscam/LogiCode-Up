@@ -24,9 +24,9 @@ Las líneas punteadas son integraciones aprobadas en la especificación que **to
 | 1. Presentación | `frontend/` React 19 + Vite, JavaScript, CSS propio responsive | Implementada la base |
 | 2. Borde y entrega | Nginx en la imagen del frontend: sirve estáticos y reenvía `/api` al backend | Implementada la base (sin TLS: solo local) |
 | 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI (springdoc) | Implementada la base |
-| 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Estructura lista; sin reglas de negocio aún |
+| 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada para identidad y permisos (Etapa 3) |
 | 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL | Pendiente (Etapas 5 y 6) |
-| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada la base (migración V1) |
+| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones V1 y V2) |
 | 7. Almacenamiento | PostgreSQL; archivos en almacenamiento de objetos o volumen local | PostgreSQL listo; archivos pendientes |
 | 8. Infraestructura | `docker-compose.yml`: `db`, `backend`, `frontend` con health checks | Implementada |
 
@@ -42,7 +42,11 @@ co.edu.unipamplona.logicode
 │   ├── application/     GetSystemInfo (caso de uso), SchemaVersionPort (puerto)
 │   ├── domain/          SystemInfo
 │   └── infrastructure/  FlywaySchemaVersionAdapter (implementa el puerto)
-├── identity/          Etapa 3 · identidad, sesión, correo, recuperación, roles
+├── identity/          Etapa 3 · identidad, sesión, correo, recuperación, roles, habilitación de cédulas, auditoría
+│   ├── api/             AuthController, MeController, AdminUserController, StudentEnablementController
+│   ├── application/     Un caso de uso por clase (RegisterStudent, AuthenticateUser, ResetPassword…) y puertos
+│   ├── domain/          UserAccount, OneTimeToken, RecoveryRequest, AccessPolicy, PasswordPolicy…
+│   └── infrastructure/  persistence/ (Spring Data), security/ (Spring Security, BCrypt, sesiones), mail/ (outbox, Brevo)
 ├── courses/           Etapas 3-4 · cursos, periodos, cédulas habilitadas, matrículas
 ├── content/           Etapa 4 · temas, materiales, biblioteca
 ├── activities/        Etapa 5 · actividades, plazos, entregas
@@ -53,7 +57,7 @@ co.edu.unipamplona.logicode
 └── administration/    Etapas 3, 8 · usuarios, aprobación docente, respaldos
 ```
 
-Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
+La habilitación de cédulas quedó en `identity` porque es requisito del registro; las matrículas por curso irán en `courses`. Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
 
 ### Responsabilidad de cada capa
 
@@ -68,13 +72,13 @@ Los módulos pendientes solo contienen `package-info.java` describiendo su respo
 
 `backend/src/test/java/.../architecture/LayeredArchitectureTest.java` (ArchUnit) falla la compilación si:
 
-1. `domain` depende de Spring o de otra capa.
+1. `domain` depende de Spring o de otra capa. Las anotaciones `jakarta.persistence` sí se permiten (T-19).
 2. `application` depende de `api` o de `infrastructure` (usa puertos).
 3. `api` depende de `infrastructure`.
 4. Un `@RestController` está fuera de `api`.
 5. `api` usa JDBC, Spring Data o JPA directamente.
 
-Entre módulos: un módulo usa a otro solo a través de su capa `application` (casos de uso o interfaces públicas), nunca sus repositorios ni entidades JPA. Esta regla se agregará a las pruebas de arquitectura cuando existan dos módulos con código (Etapa 3).
+6. Un módulo usa `api`, `domain` o `infrastructure` de otro módulo. Entre módulos solo se usa la capa `application` (casos de uso o interfaces públicas); `shared` está disponible para todos.
 
 ## Decisiones transversales ya implementadas
 
@@ -87,15 +91,19 @@ Entre módulos: un módulo usa a otro solo a través de su capa `application` (c
 | Health checks | `/actuator/health`, `/actuator/health/liveness`, `/actuator/health/readiness` (incluye la base de datos) |
 | OpenAPI | `/api/v1/openapi` (JSON) y `/swagger-ui.html` |
 | Configuración | Variables de entorno con valores por defecto seguros para desarrollo; secretos fuera del repositorio |
+| Seguridad (Etapa 3) | Spring Security con sesión en PostgreSQL (Spring Session JDBC), cookie HttpOnly, CSRF para SPA, `ActiveAccountFilter` que recarga la cuenta en cada petición (una cuenta desactivada pierde el acceso de inmediato) |
+| Correo (Etapa 3) | Puerto `EmailSender`; se envía tras confirmar la transacción y en segundo plano; proveedor `outbox` (archivos) o `brevo` |
 
 ## Frontend
 
 ```
 frontend/src
-├── app/          Raíz de la aplicación (enrutamiento y vistas por rol desde la Etapa 3)
-├── pages/        Páginas (HomePage provisional)
-├── features/     Funcionalidades agrupadas por módulo (system/)
-├── shared/api/   Cliente HTTP (httpClient.js) con prefijo /api/v1 y manejo de errores RFC 9457
+├── app/          Raíz: tabla de rutas, protección por sesión y permiso, barra de navegación
+├── pages/        Páginas generales (HomePage provisional)
+├── features/     Funcionalidades por módulo: system/, auth/ (sesión y flujos de acceso), account/, admin/
+├── shared/api/   Cliente HTTP (httpClient.js): prefijo /api/v1, CSRF, errores RFC 9457; consultas paginadas
+├── shared/router/ Enrutador mínimo con la History API (T-20)
+├── shared/ui/    Campos de formulario, mensajes, paginador
 ├── styles/       Estilos globales
 └── test/         Configuración de pruebas (Vitest + Testing Library)
 ```

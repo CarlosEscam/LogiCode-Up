@@ -26,7 +26,8 @@ public interface UserAccountRepository {
     /** Cuentas activas con rol Administrador y privilegio completo (RN-16). */
     long countActiveFullAdmins();
 
-    PageResult<UserAccount> search(Role role, AccountStatus status, int page, int size);
+    /** {@code text} (opcional) busca por cédula, nombre o correo sin distinguir mayúsculas. */
+    PageResult<UserAccount> search(String text, Role role, AccountStatus status, int page, int size);
 
     java.util.List<UserAccount> findAllWithFullPrivileges();
 }

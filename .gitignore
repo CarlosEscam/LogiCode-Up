@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 secrets/
+# Correos guardados en desarrollo (contienen enlaces de un solo uso)
+.local/
 
 # Backend (Maven)
 backend/target/

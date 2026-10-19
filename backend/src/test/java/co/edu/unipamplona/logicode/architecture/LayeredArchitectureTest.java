@@ -4,9 +4,14 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 /**
  * Reglas de dependencia entre capas del monolito modular (ver docs/arquitectura.md).
@@ -45,4 +50,33 @@ class LayeredArchitectureTest {
             .should().dependOnClassesThat().resideInAnyPackage(
                     "org.springframework.jdbc..", "org.springframework.data..", "jakarta.persistence..")
             .because("los controladores no ejecutan consultas directas");
+
+    private static final String ROOT = "co.edu.unipamplona.logicode.";
+
+    @ArchTest
+    static final ArchRule modulesTalkThroughApplicationOnly = classes()
+            .should(new ArchCondition<JavaClass>("no usar api, domain o infrastructure de otro módulo") {
+                @Override
+                public void check(JavaClass origin, ConditionEvents events) {
+                    String from = moduleOf(origin.getPackageName());
+                    for (Dependency dependency : origin.getDirectDependenciesFromSelf()) {
+                        String target = dependency.getTargetClass().getPackageName();
+                        String to = moduleOf(target);
+                        boolean internal = target.matches(".*\\.(api|domain|infrastructure)(\\..*)?");
+                        if (to != null && from != null && !to.equals(from) && !to.equals("shared") && internal) {
+                            events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
+                        }
+                    }
+                }
+            })
+            .because("un módulo usa a otro solo a través de su capa application");
+
+    private static String moduleOf(String packageName) {
+        if (!packageName.startsWith(ROOT)) {
+            return null;
+        }
+        String rest = packageName.substring(ROOT.length());
+        int dot = rest.indexOf('.');
+        return dot < 0 ? rest : rest.substring(0, dot);
+    }
 }

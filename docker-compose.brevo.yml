@@ -1,0 +1,21 @@
+# LogiCode · envío real de correos con Brevo.
+# Uso: docker compose -f docker-compose.yml -f docker-compose.brevo.yml up --build
+#
+# Antes, crea estos archivos (la carpeta secrets/ está fuera del repositorio):
+#   secrets/brevo_api_key.txt       → la API key de Brevo (una sola línea)
+#   secrets/brevo_sender_email.txt  → el remitente verificado en Brevo
+# Spring Boot los lee desde /run/secrets/brevo_api_key y /run/secrets/brevo_sender_email.
+
+services:
+  backend:
+    environment:
+      LOGICODE_MAIL_PROVIDER: brevo
+    secrets:
+      - brevo_api_key
+      - brevo_sender_email
+
+secrets:
+  brevo_api_key:
+    file: ./secrets/brevo_api_key.txt
+  brevo_sender_email:
+    file: ./secrets/brevo_sender_email.txt

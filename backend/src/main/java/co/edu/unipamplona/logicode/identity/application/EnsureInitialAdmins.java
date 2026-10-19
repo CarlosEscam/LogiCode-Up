@@ -62,6 +62,12 @@ public class EnsureInitialAdmins {
                     auditLog.record(AuditAction.INITIAL_ADMIN_ENSURED, null, existing.getId(), cedula,
                             AuditEvent.Outcome.SUCCESS, "privilegio completo restablecido");
                 }
+                // Sin correo verificado la cuenta no puede crear su contraseña: cada arranque
+                // reenvía el enlace (el anterior queda invalidado) hasta que se verifique.
+                if (!existing.isEmailVerified()) {
+                    verificationIssuer.issue(existing, existing.getEmail());
+                    log.info("Cuenta inicial sin correo verificado; se reenvió el enlace de verificación.");
+                }
             }, () -> {
                 if (accounts.existsByEmailIgnoreCase(email)) {
                     log.error("El correo de una cuenta inicial ya pertenece a otra cuenta; se omite.");

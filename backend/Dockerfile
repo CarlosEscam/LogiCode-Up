@@ -8,7 +8,9 @@ RUN mvn -B -q package -DskipTests
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN groupadd --system logicode && useradd --system --gid logicode --no-create-home logicode
+RUN groupadd --system logicode && useradd --system --gid logicode --no-create-home logicode \
+  && mkdir -p /var/lib/logicode/files /var/lib/logicode/mail-outbox \
+  && chown -R logicode:logicode /var/lib/logicode
 COPY --from=build /workspace/target/logicode-backend.jar app.jar
 USER logicode
 EXPOSE 8080

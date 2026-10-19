@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: fundación técnica (Etapas 1 y 2).** La aplicación arranca completa (React, Spring Boot, PostgreSQL) pero **todavía no tiene funcionalidades de negocio**: autenticación, cursos, biblioteca, actividades, calificación con IA, quizzes, juegos y foro están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 3 (acceso y permisos) implementada, pendiente de revisión.** Hay registro, inicio de sesión, verificación de correo, recuperación de contraseña, aprobación docente, habilitación de estudiantes, roles y auditoría. Cursos, biblioteca, actividades, calificación con IA, quizzes, juegos y foro están pendientes. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -14,7 +14,7 @@ Fecha objetivo de entrega: 10 de diciembre de 2026.
 | [docs/decisiones.md](docs/decisiones.md) | Decisiones aprobadas, decisiones técnicas tomadas y preguntas abiertas |
 | [docs/arquitectura.md](docs/arquitectura.md) | Monolito modular, capas, módulos y reglas de dependencia |
 | [docs/api/README.md](docs/api/README.md) | Convenciones REST y catálogo de endpoints |
-| [docs/modelo-de-datos.md](docs/modelo-de-datos.md) | Convenciones de base de datos y propuesta de modelo para la Etapa 3 |
+| [docs/modelo-de-datos.md](docs/modelo-de-datos.md) | Convenciones de base de datos y esquema actual |
 | [docs/permisos.md](docs/permisos.md) | Matriz de roles y privilegio completo |
 
 ## Requisitos previos
@@ -38,7 +38,7 @@ Para desarrollar fuera de Docker (opcional):
    cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
    ```
 
-2. Edita `.env` y define `DB_PASSWORD` con una contraseña propia. El archivo `.env` está en `.gitignore` y nunca debe subirse al repositorio.
+2. Edita `.env`: define `DB_PASSWORD` con una contraseña propia y completa `INITIAL_ADMIN_1_*` e `INITIAL_ADMIN_2_*` con la cédula, el nombre y el correo de las dos cuentas iniciales. El archivo `.env` está en `.gitignore` y nunca debe subirse al repositorio.
 
 ### Variables de entorno
 
@@ -53,9 +53,14 @@ Para desarrollar fuera de Docker (opcional):
 | `LOGICODE_TIME_ZONE` | `America/Bogota` | Zona horaria de las reglas de negocio |
 | `DB_URL` | `jdbc:postgresql://localhost:5432/logicode` | Solo al ejecutar el backend fuera de Docker |
 | `LOGICODE_ENVIRONMENT` | `local` | Nombre del entorno (informativo) |
-| `INITIAL_ADMIN_1_*`, `INITIAL_ADMIN_2_*` | *(vacías)* | Cédula, nombre y correo de las dos cuentas iniciales con privilegio completo. Solo en `.env`; se usarán desde la Etapa 3 |
+| `INITIAL_ADMIN_1_*`, `INITIAL_ADMIN_2_*` | *(vacías)* | Cédula (`_CEDULA`), nombre (`_NAME`) y correo (`_EMAIL`) de las dos cuentas iniciales con privilegio completo. Solo en `.env` |
+| `LOGICODE_PUBLIC_URL` | `http://localhost:3000` | Dirección de la interfaz que aparece en los enlaces de los correos |
+| `SESSION_TIMEOUT` | `2h` | Tiempo sin actividad tras el cual se cierra la sesión |
+| `SESSION_COOKIE_SECURE` | `false` | `true` solo cuando la plataforma se sirva por HTTPS |
+| `LOGICODE_MAIL_PROVIDER` | `outbox` | `outbox` guarda los correos en `.local/mail-outbox`; `brevo` los envía (ver abajo) |
+| `BREVO_SENDER_NAME` | `LogiCode` | Nombre del remitente en Brevo |
 
-Las credenciales de Brevo (Etapa 3) se configurarán como **secretos de Docker**, no en `.env`.
+La API key y el remitente de Brevo son **secretos de Docker**, nunca variables de `.env` (ver "Correo real con Brevo").
 
 ## Iniciar
 
@@ -73,6 +78,25 @@ docker compose up --build
 | http://localhost:8080/actuator/health | Estado del backend |
 
 Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos local: `docker compose down -v`.
+
+### Primer ingreso de las cuentas iniciales
+
+Las cuentas iniciales se crean solas al arrancar el backend, sin contraseña:
+
+1. Abre el correo de verificación. En desarrollo no se envía: queda como archivo `.html` en `.local/mail-outbox/` (ábrelo con el navegador). Si se perdió o venció, reinicia el backend (`docker compose restart backend`) y llega uno nuevo.
+2. El enlace confirma el correo. Luego entra a "¿Olvidaste tu contraseña?", escribe el mismo correo y abre el nuevo archivo de `.local/mail-outbox/` para crear la contraseña.
+3. Inicia sesión con la cédula y la contraseña.
+
+En Linux, si el backend no puede escribir en `.local/mail-outbox`, crea la carpeta antes de arrancar y dale permiso de escritura (`mkdir -p .local/mail-outbox && chmod a+w .local/mail-outbox`). En Windows y macOS no hace falta.
+
+### Correo real con Brevo
+
+1. Crea `secrets/brevo_api_key.txt` con la API key y `secrets/brevo_sender_email.txt` con el remitente verificado en Brevo. La carpeta `secrets/` está fuera de Git.
+2. Arranca con el archivo adicional:
+
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.brevo.yml up --build
+   ```
 
 ### Desarrollo con recarga rápida
 
@@ -108,20 +132,24 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   ├── src/main/java/co/edu/unipamplona/logicode/
 │   │   ├── shared/                  Transversal: rutas /api/v1, errores, reloj, X-Request-Id
 │   │   ├── system/                  Módulo de referencia con las 4 capas (api, application, domain, infrastructure)
-│   │   └── identity/ courses/ content/ activities/ grading/
+│   │   ├── identity/                Etapa 3: cuentas, sesión, correo, recuperación, roles, auditoría
+│   │   └── courses/ content/ activities/ grading/
 │   │       quizzes/ games/ forum/ administration/   Módulos pendientes (solo descripción)
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1__linea_base.sql)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
-│   ├── src/app, pages, features, shared/api, styles
+│   ├── src/app                      Rutas y navegación según permisos
+│   ├── src/features                 auth, account, admin, system
+│   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
 ├── docs/                            Diseño técnico, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
 ├── docker-compose.yml               db + backend + frontend
+├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
 └── .env.example                     Variables de ejemplo (sin secretos)
 ```
 
@@ -134,4 +162,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Las decisiones previas a la Etapa 3 (D-01 a D-04) están aprobadas en [docs/decisiones.md](docs/decisiones.md). Queda iniciar la **Etapa 3 · Acceso y permisos** cuando se apruebe el cierre de la Etapa 2.
+Revisar la Etapa 3 en [docs/estado.md](docs/estado.md) y responder P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 4 · Curso, temas y biblioteca**.

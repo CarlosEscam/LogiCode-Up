@@ -36,8 +36,24 @@ services:
       LOGICODE_ENVIRONMENT: docker
       LOGICODE_TIME_ZONE: ${LOGICODE_TIME_ZONE:-America/Bogota}
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+      # Dirección pública de la interfaz, usada en los enlaces de los correos.
+      LOGICODE_PUBLIC_URL: ${LOGICODE_PUBLIC_URL:-http://localhost:3000}
+      SESSION_TIMEOUT: ${SESSION_TIMEOUT:-2h}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      # outbox: los correos se guardan como archivos en ./.local/mail-outbox (desarrollo).
+      # Para enviar con Brevo, ver docker-compose.brevo.yml.
+      LOGICODE_MAIL_PROVIDER: ${LOGICODE_MAIL_PROVIDER:-outbox}
+      LOGICODE_MAIL_OUTBOX_DIR: /var/lib/logicode/mail-outbox
+      # Cuentas iniciales con privilegio completo (D-03). Sus datos reales solo van en .env.
+      INITIAL_ADMIN_1_CEDULA: ${INITIAL_ADMIN_1_CEDULA:-}
+      INITIAL_ADMIN_1_NAME: ${INITIAL_ADMIN_1_NAME:-}
+      INITIAL_ADMIN_1_EMAIL: ${INITIAL_ADMIN_1_EMAIL:-}
+      INITIAL_ADMIN_2_CEDULA: ${INITIAL_ADMIN_2_CEDULA:-}
+      INITIAL_ADMIN_2_NAME: ${INITIAL_ADMIN_2_NAME:-}
+      INITIAL_ADMIN_2_EMAIL: ${INITIAL_ADMIN_2_EMAIL:-}
     volumes:
       - file-storage:/var/lib/logicode/files
+      - ./.local/mail-outbox:/var/lib/logicode/mail-outbox
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
 

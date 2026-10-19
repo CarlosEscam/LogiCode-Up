@@ -66,11 +66,12 @@ public class AdminUserController {
     @GetMapping("/users")
     @Operation(summary = "Listar cuentas con filtros por rol y estado")
     public PageResult<UserSummary> users(@CurrentActor Actor actor,
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) AccountStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return listUsers.execute(actor, role, status, page, size).map(UserSummary::from);
+        return listUsers.execute(actor, q, role, status, page, size).map(UserSummary::from);
     }
 
     @PostMapping("/teachers/{id}/approve")

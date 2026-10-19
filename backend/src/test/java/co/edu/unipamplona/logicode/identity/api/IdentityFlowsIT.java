@@ -99,6 +99,10 @@ class IdentityFlowsIT {
         login("500001", PASSWORD).andExpect(status().isForbidden());
 
         String teacherId = userId("500001");
+        mvc.perform(get("/api/v1/admin/users").param("q", "DOCENTE prue").cookie(admin1Session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].cedula").value("500001"));
         mvc.perform(post("/api/v1/admin/teachers/" + teacherId + "/approve").cookie(admin1Session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"));

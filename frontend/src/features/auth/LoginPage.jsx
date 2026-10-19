@@ -1,0 +1,43 @@
+import { Link } from '../../shared/router/Link.jsx'
+import { navigate, useLocation } from '../../shared/router/router.js'
+import { Field, FormStatus } from '../../shared/ui/forms.jsx'
+import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
+import { useSession } from './useSession.js'
+
+export default function LoginPage() {
+  const { login } = useSession()
+  const { query } = useLocation()
+  const passwordChanged = query.get('motivo') === 'contrasena-cambiada'
+  const { pending, error, submit } = useSubmit(async (event) => {
+    const { cedula, password } = formValues(event)
+    await login(cedula.trim(), password)
+    navigate('/mi-cuenta', { replace: true })
+  })
+
+  return (
+    <section className="card card--narrow" aria-labelledby="ingresar-titulo">
+      <h1 id="ingresar-titulo">Iniciar sesión</h1>
+      {passwordChanged && <FormStatus success="Tu contraseña cambió y se cerraron todas tus sesiones. Ingresa de nuevo." />}
+      <form onSubmit={submit} noValidate>
+        <Field label="Cédula" name="cedula" inputMode="numeric" autoComplete="username" required />
+        <Field label="Contraseña" name="password" type="password" autoComplete="current-password" required />
+        <FormStatus error={error} />
+        <button type="submit" className="button" disabled={pending}>
+          {pending ? 'Ingresando…' : 'Ingresar'}
+        </button>
+      </form>
+      <ul className="links">
+        <li>
+          <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
+        </li>
+        <li>
+          <Link to="/recuperar-correo">¿Ya no tienes acceso a tu correo?</Link>
+        </li>
+        <li>
+          <Link to="/registro/estudiante">Registrarme como estudiante</Link> ·{' '}
+          <Link to="/registro/docente">Solicitar cuenta de docente</Link>
+        </li>
+      </ul>
+    </section>
+  )
+}

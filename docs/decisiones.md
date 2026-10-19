@@ -51,12 +51,27 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | D-03 | Cuentas iniciales cargadas desde configuración local | Cédula, nombre y correo de las dos administradoras se leen de variables de entorno (`INITIAL_ADMIN_*` en `.env`, ignorado por Git). Nunca se escriben en el código, en migraciones ni en el repositorio. No se configura contraseña: cada cuenta la define con el flujo de verificación de correo. Reemplaza P-03 |
 | D-04 | Límite de 2 solicitudes diarias contado por separado | Un contador para recuperación de contraseña y otro para cambio asistido de correo, por cuenta y por día calendario en Colombia. Reemplaza P-04 |
 
+## Decisiones técnicas tomadas en la Etapa 3
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-13 | El enlace de verificación de correo vence en 24 horas | La especificación fija 60 minutos solo para la recuperación de contraseña. 24 h da margen a quien se registra y no abre el correo de inmediato; sigue siendo de un solo uso |
+| T-14 | En desarrollo los correos se guardan como archivos `.html` en `.local/mail-outbox` (proveedor `outbox`); con `docker-compose.brevo.yml` se envían con Brevo | Permite probar todos los flujos sin cuenta de Brevo. La carpeta está fuera de Git porque contiene enlaces de un solo uso |
+| T-15 | Los correos se envían después de confirmar la transacción y en segundo plano | Un correo nunca sale si la operación falló, y la respuesta no espera a Brevo. Si el envío falla queda en el log y el usuario puede pedir otro enlace |
+| T-16 | Tras 5 intentos fallidos de inicio de sesión en 15 minutos para una cédula, se responde `429` hasta que pase la ventana | Protección básica contra adivinar contraseñas (RNF de seguridad). Se cuenta en la auditoría, sin tablas nuevas |
+| T-17 | Al arrancar, el backend sincroniza las cuentas iniciales con `INITIAL_ADMIN_*`: las crea si faltan, les restablece el privilegio completo, se lo retira a cualquier otra cuenta y reenvía la verificación mientras su correo no esté verificado | Aplica D-03 y RN-16 aunque alguien edite la base de datos a mano. Si se pierde el correo de verificación basta con reiniciar el backend |
+| T-18 | El correo vive en `user_account` (columna `email` + `email_verified_at`); un correo nuevo espera en `one_time_token.target_email` hasta verificarse | Más simple que la tabla `user_email` propuesta: solo existe un correo vigente por cuenta y el pendiente solo vive mientras el enlace es válido |
+| T-19 | Las entidades del dominio usan anotaciones `jakarta.persistence`; los puertos de `application` los implementan adaptadores con Spring Data en `infrastructure` | Evita duplicar cada entidad en un modelo JPA aparte. El dominio sigue sin depender de Spring (lo verifica ArchUnit) |
+| T-20 | Enrutador propio mínimo en React (History API) en vez de una librería | Pocas rutas planas; no agrega dependencias sin aprobación. Se puede reemplazar si la navegación crece |
+| T-21 | Se desactiva el usuario en memoria que Spring Security crea por defecto | Las cuentas viven en PostgreSQL; evita una contraseña generada en el log |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
 | P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Etapa 4 | MinIO en Docker Compose detrás de una interfaz `FileStorage`, para que el despliegue futuro use cualquier proveedor compatible con S3 sin cambiar el dominio |
-| P-06 | Dominio y remitente de Brevo | Etapa 3 (envío real de correos) | Lo define el equipo; la API key y el remitente se configuran como secretos de Docker |
+| P-06 | Dominio y remitente de Brevo | Envío real de correos | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml` |
+| P-07 | Carga de estudiantes desde Excel (RF-05) | Cierre de la Etapa 3 | Agregar Apache POI (librería Java estándar para leer `.xlsx`) solo para esta importación. Mientras tanto se acepta CSV, que Excel exporta con "Guardar como" |
 
 ## Observaciones de la especificación (no bloquean la base)
 

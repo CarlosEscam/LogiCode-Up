@@ -1,6 +1,7 @@
 package co.edu.unipamplona.logicode.identity.infrastructure.persistence;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,8 +60,15 @@ class UserAccountRepositoryAdapter implements UserAccountRepository {
     }
 
     @Override
-    public PageResult<UserAccount> search(Role role, AccountStatus status, int page, int size) {
+    public PageResult<UserAccount> search(String text, Role role, AccountStatus status, int page, int size) {
         Specification<UserAccount> spec = (root, query, cb) -> cb.conjunction();
+        if (text != null) {
+            String pattern = "%" + text.toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(root.get("cedula"), pattern, '\\'),
+                    cb.like(cb.lower(root.get("fullName")), pattern, '\\'),
+                    cb.like(cb.lower(root.get("email")), pattern, '\\')));
+        }
         if (role != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("role"), role));
         }

@@ -38,28 +38,46 @@ GET /api/v1/system/info
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
-  "schemaVersion": "1"
+  "schemaVersion": "2"
 }
 ```
 
-### Planeados para la Etapa 3 · Acceso y permisos (pendientes)
+### Implementados (Etapa 3 · Acceso y permisos)
 
-Las rutas marcadas "especificación" vienen de la sección 7; las demás son **propuesta** para revisión.
+Sesión: cookie `LOGICODE_SESSION` (HttpOnly, SameSite=Lax). Toda petición `POST`/`PATCH` lleva la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`; si aún no existe, se obtiene con `GET /api/v1/auth/csrf`. Sin token válido la respuesta es `403`.
 
-| Método y ruta | Origen | Requisito |
-| --- | --- | --- |
-| `POST /api/v1/auth/login` | especificación | RF-03 |
-| `POST /api/v1/auth/logout` | propuesta | RF-03 |
-| `POST /api/v1/auth/password-recovery` | especificación | RF-04, RN-23 (respuesta genérica, `202`) |
-| `POST /api/v1/auth/password-reset` | especificación | RF-04, RN-23 |
-| `POST /api/v1/auth/student-registrations` | propuesta | RF-01, RN-01 |
-| `POST /api/v1/auth/teacher-requests` | propuesta | RF-02, RN-02 |
-| `POST /api/v1/auth/email-verifications/confirm` | propuesta | RF-29, RN-24 |
-| `POST /api/v1/auth/email-change-requests` | propuesta | RF-30, RN-25 |
-| `GET /api/v1/me` | propuesta | Datos y permisos de la sesión actual |
-| `GET/POST /api/v1/admin/users` | especificación | RF-28 |
-| `POST /api/v1/admin/teachers/{id}/approve` | especificación | RF-02, RN-02 |
-| `PATCH /api/v1/admin/users/{id}/role` | propuesta | RF-28, RN-04, RN-16 (solo privilegio completo) |
+| Método y ruta | Quién | Respuesta | Requisito |
+| --- | --- | --- | --- |
+| `GET /api/v1/auth/csrf` | Cualquiera | `200` y cookie `XSRF-TOKEN` | Protección CSRF (D-01) |
+| `POST /api/v1/auth/student-registrations` | Visitante con cédula habilitada | `201` | RF-01, RN-01 |
+| `POST /api/v1/auth/teacher-requests` | Visitante | `201`, cuenta `PENDING_APPROVAL` | RF-02, RN-02 |
+| `POST /api/v1/auth/login` | Visitante | `200` con la cuenta y sus permisos; `401` datos incorrectos; `403` cuenta pendiente o desactivada; `429` tras 5 fallos en 15 min | RF-03 |
+| `POST /api/v1/auth/logout` | Cualquiera | `204` | RF-03 |
+| `POST /api/v1/auth/email-verifications/confirm` | Dueño del enlace | `200` (`passwordSetupRequired` indica si falta crear contraseña) | RF-29, RN-24 |
+| `POST /api/v1/auth/password-recovery` | Cualquiera | `202` con mensaje genérico, exista o no la cuenta | RF-04, RN-23 |
+| `POST /api/v1/auth/password-reset` | Dueño del enlace | `200`; cierra todas las sesiones | RF-04, RN-23 |
+| `POST /api/v1/auth/email-change-requests` | Cualquiera | `202` con mensaje genérico | RF-30, RN-25 |
+| `GET /api/v1/me` | Con sesión | `200` cuenta y permisos; `401` sin sesión | |
+| `POST /api/v1/me/password` | Con sesión | `200`; cierra todas las sesiones, incluida la actual | RNF-02 |
+| `POST /api/v1/me/email-verification` | Con sesión y correo sin verificar | `202` | RF-29 |
+| `GET /api/v1/admin/users?q=&role=&status=&page=&size=` | `MANAGE_USERS` o `APPROVE_TEACHERS` | Página de usuarios; `q` busca por cédula, nombre o correo | RF-28 |
+| `POST /api/v1/admin/teachers/{id}/approve` | `APPROVE_TEACHERS` | `200` | RF-02 |
+| `PATCH /api/v1/admin/users/{id}/role` | `CHANGE_ROLES` (solo cuentas iniciales) | `200`; cierra las sesiones de esa cuenta | RF-28, RN-04, RN-16 |
+| `PATCH /api/v1/admin/users/{id}/status` | `MANAGE_USERS` | `200`; `422` si dejaría la plataforma sin cuenta inicial activa | RN-16 |
+| `GET /api/v1/admin/audit-events?page=&size=` | `VIEW_AUDIT` | Página de eventos, del más reciente al más antiguo | Auditoría |
+| `GET /api/v1/student-enablements?page=&size=` | `MANAGE_STUDENT_ENABLEMENTS` | Cédulas habilitadas | RF-05 |
+| `POST /api/v1/student-enablements` | `MANAGE_STUDENT_ENABLEMENTS` | `201` | RF-05, RN-01 |
+| `POST /api/v1/student-enablements/import` | `MANAGE_STUDENT_ENABLEMENTS` | `200` con habilitadas, repetidas y filas con error. Multipart, campo `file`, `.csv` de hasta 1 MB y 2000 filas | RF-05 |
+
+Ejemplo de inicio de sesión:
+
+```http
+POST /api/v1/auth/login
+X-XSRF-TOKEN: <valor de la cookie XSRF-TOKEN>
+Content-Type: application/json
+
+{ "cedula": "1234567", "password": "********" }
+```
 
 ### Etapas siguientes (de la especificación, pendientes)
 

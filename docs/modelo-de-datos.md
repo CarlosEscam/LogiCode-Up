@@ -20,77 +20,73 @@
 | Migración | Contenido |
 | --- | --- |
 | `V1__linea_base.sql` | Línea base: no crea tablas de negocio. Flyway crea su tabla `flyway_schema_history` |
+| `V2__identidad_y_acceso.sql` | Etapa 3: cuentas, tokens de un solo uso, límites de recuperación, cédulas habilitadas, auditoría y sesiones (`spring_session`, `spring_session_attributes`) |
 
-## Propuesta para la Etapa 3 · Identidad y acceso
-
-> **Propuesta para revisión, no implementada.** Ajustada a las decisiones D-01 a D-04 de [decisiones.md](decisiones.md).
+## Identidad y acceso (Etapa 3, implementado)
 
 ```mermaid
 erDiagram
-    user_account ||--o{ user_email : "tiene"
     user_account ||--o{ one_time_token : "recibe"
     user_account ||--o{ recovery_request : "solicita"
-    user_account ||--o{ audit_event : "genera"
+    user_account ||--o{ student_enablement : "habilita"
+    student_enablement |o--o| user_account : "se registra como"
 
     user_account {
         uuid id PK
-        varchar cedula UK "solo dígitos"
+        varchar cedula UK "solo dígitos, 3 a 15"
         varchar full_name
         varchar role "STUDENT | TEACHER | ADMIN"
         varchar status "PENDING_APPROVAL | ACTIVE | DISABLED"
-        boolean full_privileges "solo las 2 cuentas iniciales"
-        varchar password_hash "hash actual"
-        varchar previous_password_hash "hash inmediatamente anterior"
+        boolean full_privileges "solo ADMIN; solo las 2 cuentas iniciales"
+        varchar email UK "único sin distinguir mayúsculas"
+        timestamptz email_verified_at
+        varchar password_hash "BCrypt, actual"
+        varchar previous_password_hash "BCrypt, inmediatamente anterior"
         timestamptz password_changed_at
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    user_email {
-        uuid id PK
-        uuid user_id FK
-        varchar address
-        varchar status "PENDING | VERIFIED | REPLACED"
-        timestamptz verified_at
-        timestamptz created_at
+        bigint version "bloqueo optimista"
     }
     one_time_token {
         uuid id PK
         uuid user_id FK
         varchar purpose "EMAIL_VERIFICATION | PASSWORD_RESET"
-        varchar token_hash UK "SHA-256 del token; el token solo viaja en el enlace"
-        uuid email_id FK "correo al que se envió"
-        timestamptz expires_at "creación + 60 min (reset)"
+        varchar token_hash UK "SHA-256; el token solo viaja en el enlace"
+        varchar target_email "correo al que se envió; en cambio de correo, el nuevo"
+        timestamptz expires_at "60 min recuperación, 24 h verificación"
         timestamptz used_at "un solo uso"
-        timestamptz created_at
     }
     recovery_request {
         uuid id PK
         uuid user_id FK
         varchar kind "PASSWORD_RESET | EMAIL_CHANGE"
         date business_date "día calendario en Colombia"
-        varchar outcome
-        timestamptz requested_at
+        varchar outcome "ACCEPTED | REJECTED | LIMIT_REACHED"
+    }
+    student_enablement {
+        uuid id PK
+        varchar cedula UK
+        varchar full_name "opcional"
+        uuid enabled_by FK
+        uuid registered_user_id FK "cuando el estudiante se registra"
     }
     audit_event {
         uuid id PK
-        uuid actor_id FK
         varchar action
-        varchar target_type
-        uuid target_id
+        uuid actor_id
+        uuid target_user_id
+        varchar subject "p. ej. la cédula usada al iniciar sesión"
+        varchar outcome "SUCCESS | FAILURE | DENIED | LIMIT_REACHED"
         varchar request_id
-        jsonb details "sin contraseñas ni tokens"
+        text details "sin contraseñas ni tokens"
         timestamptz occurred_at
     }
 ```
 
 Cómo cubre las reglas aprobadas:
 
-- **RNF-02 / RN-25 (dos hashes)**: al cambiar la contraseña, `previous_password_hash ← password_hash`, `password_hash ← nuevo`; el hash más antiguo desaparece porque se sobrescribe. Nunca hay texto plano.
-- **RN-23 (token)**: el token aleatorio se envía en el enlace; en la base solo queda su hash, su vencimiento (60 min) y `used_at`. Un token usado o vencido se rechaza.
-- **RN-23 (2 por día, D-04)**: se cuentan filas de `recovery_request` por `user_id`, `kind` y `business_date` (fecha en `America/Bogota`); cada `kind` tiene su propio límite.
-- **RN-24 / RN-25 (correo)**: el correo de recuperación es el último `user_email` con estado `VERIFIED`. Un correo nuevo entra como `PENDING` y solo al verificarse pasa a `VERIFIED` y el anterior a `REPLACED`. "Último correo registrado" = el `VERIFIED` vigente.
-- **RN-16**: la regla "al menos una cuenta inicial activa con privilegio completo" se aplica en el caso de uso y se respalda con una prueba.
-- **Cierre de sesiones (D-01)**: Spring Session JDBC agrega sus tablas `spring_session` y `spring_session_attributes`; al cambiar la contraseña se borran las sesiones de la cuenta.
-- **Cuentas iniciales (D-03)**: al arrancar, si no existen, se crean las dos cuentas con `role = ADMIN` y `full_privileges = true` a partir de `INITIAL_ADMIN_*`, sin contraseña hasta que verifiquen su correo.
-
-La habilitación de cédulas por el docente (RN-01) y las matrículas pertenecen al módulo `courses` y se diseñarán junto con la Etapa 3.
+- **RNF-02 / RN-25 (dos hashes)**: al cambiar la contraseña, `previous_password_hash ← password_hash` y `password_hash ← nuevo`; el más antiguo se sobrescribe. Nunca hay texto plano.
+- **RN-23 (token)**: en la base solo queda el hash del token, su vencimiento y `used_at`. Un token usado o vencido se rechaza; emitir uno nuevo invalida los anteriores sin usar del mismo propósito.
+- **RN-23 / D-04 (2 por día)**: se cuentan las filas de `recovery_request` por cuenta, `kind` y `business_date` (fecha en `America/Bogota`). `LIMIT_REACHED` no suma; en cambio de correo, un intento con datos incorrectos (`REJECTED`) sí suma.
+- **RN-24 / RN-25 (correo)**: hay un solo correo vigente, en `user_account.email`. Un correo nuevo espera en `one_time_token.target_email` y solo reemplaza al actual cuando se abre el enlace (T-18).
+- **RN-16**: los casos de uso rechazan cualquier cambio que deje la plataforma sin una cuenta inicial activa con privilegio completo; el arranque además lo restablece (T-17).
+- **D-01**: al cambiar o restablecer la contraseña se borran las filas de `spring_session` de la cuenta (el nombre del principal es el `id` de la cuenta).
+- **RN-01**: el registro de estudiante exige una fila en `student_enablement` con su cédula y sin `registered_user_id`.

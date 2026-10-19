@@ -3,6 +3,10 @@
 spring:
   application:
     name: logicode
+  autoconfigure:
+    # Las cuentas viven en PostgreSQL (módulo identity); se evita el usuario en memoria
+    # con contraseña generada que Spring Security crea por defecto.
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/logicode}
     username: ${DB_USERNAME:logicode}
