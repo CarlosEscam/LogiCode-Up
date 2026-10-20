@@ -91,12 +91,29 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-36 | El borrador solo lo ve quien administra el curso; la respuesta esperada solo el docente y las cuentas Administrador | Evita que el estudiante vea la solución en la rúbrica |
 | T-37 | Las fechas de actividades se escriben y muestran en hora de Colombia (UTC−5) sin importar la zona del equipo | Colombia no tiene horario de verano; evita errores si un navegador está en otra zona |
 
+## Decisiones técnicas tomadas en la Etapa 6
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-38 | Cola de evaluación en PostgreSQL (`ai_grading_job`) y worker dentro del backend: toma un trabajo con `FOR UPDATE SKIP LOCKED` y un token de toma, llama al modelo fuera de toda transacción y guarda el resultado en otra; procesa de a uno | Es el diseño de la especificación (sin RabbitMQ). El token impide aplicar dos veces un resultado si un trabajo bloqueado se retoma; en CPU no sirve evaluar en paralelo |
+| T-39 | El modelo devuelve puntos por criterio y LogiCode calcula la nota: 5 × puntos obtenidos ÷ puntos totales, con un decimal. Puntos fuera de rango o criterios que no cuadran con la rúbrica cuentan como fallo técnico | La nota siempre corresponde a la rúbrica vigente y nunca se publica una nota que el modelo "inventó" aparte |
+| T-40 | El umbral de 80 % es fijo en el dominio, no configurable | Es una decisión aprobada; cambiarlo es un cambio de alcance |
+| T-41 | La IA lee respuestas escritas, fotos PNG/JPG y archivos `.psc`/`.ino`. Si la entrega trae otro formato, va completa al docente; no se califica a medias | PDF, Word, PowerPoint, video y Scratch necesitan conversión (P-08) |
+| T-42 | Fallo técnico: hasta 3 intentos con espera creciente (2 y 4 minutos); después la entrega pasa a Por revisar como "Falló la IA", sin nota. Cada intento queda registrado | RF-15 y RNF-06: reintento controlado y estado visible |
+| T-43 | El docente puede calificar en cualquier momento, también mientras la IA trabaja. Si la IA termina después, su resultado se guarda pero no cambia la nota | La revisión humana manda (RN-09) y nunca queda bloqueada por el modelo |
+| T-44 | Al modelo se envía el nombre del estudiante, el título, el enunciado y la respuesta esperada de la versión de rúbrica, los criterios y el contenido con etiquetas neutras ("Imagen 1", "Archivo 2"). Nunca cédula, correo ni el nombre original de los archivos. Fotos enderezadas según EXIF y reducidas a 1280 px; temperatura 0; respuesta JSON con esquema; tope de 3072 tokens | RN-08 y RN-18; el nombre de un archivo puede contener la cédula. Resultados reproducibles y sin respuestas sin fin |
+| T-45 | La IA viene apagada (`LOGICODE_AI_ENABLED=false`) y Ollama corre como servicio opcional de Docker Compose con el perfil `ia` (imagen `ollama/ollama:0.35.1`, modelo en el volumen `ollama-models`). Apagada, las entregas pasan a Por revisar como "Calificación manual", y los trabajos que hubieran quedado en cola pasan al docente al arrancar | Quien no tenga el modelo descargado puede usar todo lo demás; el modelo pesa unos 6 GB |
+| T-46 | La entrega sigue respondiendo `201` con el intento; el estado de la calificación se consulta en `GET /submissions/{id}/grade` (`PROCESSING` mientras la IA trabaja) y la interfaz lo actualiza cada 10 s | La entrega sí queda creada al responder; reemplaza la nota de la Etapa 5 que anunciaba `202` |
+| T-47 | El estudiante ve "Calificando con IA" o "En revisión" y su nota cuando se publica; no ve el motivo, la confianza ni el resultado de la IA | La confirmación docente es un trámite interno; evita que el estudiante dispute la propuesta antes de la revisión |
+| T-48 | La calificación determinista (RF-16: casos de prueba de PSeInt y claves de quizzes) se implementa en la Etapa 7 | Los casos de prueba, el intérprete aislado y los quizzes se crean en esa etapa; hoy no hay contra qué comparar |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
 | P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Publicación en línea | Implementado con volumen local (T-22). Si se prefiere MinIO, se agrega como adaptador sin cambiar el resto |
 | P-06 | Dominio y remitente de Brevo | Envío real de correos | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml` |
+| P-08 | Que la IA lea PDF (y, si se quiere, Word y PowerPoint) | Calificar con IA entregas en PDF | Agregar Apache PDFBox (librería Java estándar de Apache) para convertir cada página a imagen y extraer el texto antes de enviarlo al modelo. Word y PowerPoint seguirían con el docente salvo que se apruebe también Apache POI. Mientras tanto van a Por revisar como "Formato que la IA no lee" |
 | P-07 | Carga de estudiantes desde Excel (RF-05) | Cierre de la Etapa 3 | Agregar Apache POI (librería Java estándar para leer `.xlsx`) solo para esta importación. Mientras tanto se acepta CSV, que Excel exporta con "Guardar como" |
 
 ## Observaciones de la especificación (no bloquean la base)

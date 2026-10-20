@@ -27,7 +27,36 @@ export function acceptFor(activity) {
 
 export const STATUS_LABELS = { DRAFT: 'Borrador', PUBLISHED: 'Publicada' }
 
-export const GRADE_STATUS_LABELS = { PENDING_REVIEW: 'En revisión', PUBLISHED: 'Calificada' }
+export const GRADE_STATUS_LABELS = { PROCESSING: 'Calificando con IA', PENDING_REVIEW: 'En revisión', PUBLISHED: 'Calificada' }
+
+export const GRADE_STATUS_TONES = { PROCESSING: 'info', PENDING_REVIEW: 'warning', PUBLISHED: 'ok' }
+
+// Por qué una entrega espera al docente (solo lo ve quien califica).
+export const REVIEW_REASON_LABELS = {
+  AI_DISABLED: 'Calificación manual',
+  UNSUPPORTED: 'Formato que la IA no lee',
+  ILLEGIBLE: 'Foto ilegible',
+  LOW_CONFIDENCE: 'Confianza menor al 80 %',
+  AI_FAILED: 'Falló la IA',
+}
+
+export const REVIEW_REASON_HELP = {
+  AI_DISABLED: 'La calificación con IA estaba desactivada cuando llegó la entrega.',
+  UNSUPPORTED:
+    'La entrega trae archivos que la IA aún no lee (PDF, Word, PowerPoint, video o Scratch). La IA lee respuestas escritas, fotos PNG o JPG y archivos de PSeInt o Arduino.',
+  ILLEGIBLE: 'La IA indicó que no puede leer la entrega con seguridad. Revísala y pon la nota.',
+  LOW_CONFIDENCE: 'La IA propuso una nota, pero su confianza quedó por debajo del 80 %. Revísala y confírmala o ajústala.',
+  AI_FAILED: 'La IA no pudo procesar la entrega después de varios intentos. No se asignó nota; puedes reintentar o calificar tú.',
+}
+
+export const AI_OUTCOME_LABELS = {
+  PUBLISHED: 'Nota publicada por la IA',
+  ILLEGIBLE: 'Ilegible',
+  LOW_CONFIDENCE: 'Confianza baja',
+  FAILED: 'Fallo técnico',
+}
+
+export const AI_OUTCOME_TONES = { PUBLISHED: 'ok', ILLEGIBLE: 'warning', LOW_CONFIDENCE: 'warning', FAILED: 'danger' }
 
 export const GRADE_SOURCE_LABELS = { TEACHER: 'Docente', AI: 'IA' }
 
@@ -36,6 +65,7 @@ export function studentSituation(progress, grade) {
   if (!progress) return null
   if (progress.state === 'SUBMITTED') {
     if (grade?.status === 'PUBLISHED') return { label: `Calificada: ${formatScore(grade.score)}`, tone: 'ok' }
+    if (grade?.status === 'PROCESSING') return { label: 'Entregada, calificando con IA', tone: 'info' }
     return { label: 'Entregada, en revisión', tone: 'info' }
   }
   if (progress.state === 'OVERDUE') return { label: 'Vencida sin entrega: 0,0', tone: 'danger' }
@@ -45,6 +75,16 @@ export function studentSituation(progress, grade) {
 
 export function formatScore(score) {
   return score == null ? '—' : Number(score).toFixed(1).replace('.', ',')
+}
+
+export function formatPoints(value) {
+  return value == null ? '—' : String(Number(value)).replace('.', ',')
+}
+
+export function formatDuration(ms) {
+  if (ms == null) return '—'
+  const seconds = Math.round(ms / 1000)
+  return seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)} min ${seconds % 60} s`
 }
 
 export function formatPercent(value) {

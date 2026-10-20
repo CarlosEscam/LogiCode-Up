@@ -1,0 +1,44 @@
+{
+  "descripcion": "Ejemplo con las imágenes sintéticas de datos-demo. Sirve para ensayar el arnés; no reemplaza las muestras manuscritas reales.",
+  "actividades": {
+    "mayor": {
+      "titulo": "Mayor de dos números",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea dos números enteros y muestre cuál es el mayor. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo Mayor\n  Leer a, b\n  Si a > b Entonces\n    Escribir \"El mayor es \", a\n  SiNo\n    Escribir \"El mayor es \", b\n  FinSi\nFinAlgoritmo",
+      "criterios": [
+        { "nombre": "Lee los dos números", "puntos": 1 },
+        { "nombre": "Condición correcta", "puntos": 2.5 },
+        { "nombre": "Muestra el mayor en ambos casos", "puntos": 1.5 }
+      ]
+    }
+  },
+  "muestras": [
+    {
+      "id": "E01",
+      "archivo": "../../datos-demo/muestras/cuaderno-legible.jpg",
+      "actividad": "mayor",
+      "condicion": "legible, letra inclinada, sombra y giro leve",
+      "legibleEsperado": true,
+      "puntosDocente": [1, 2.5, 1.5],
+      "transcripcion": "Algoritmo Mayor\nDefinir a, b Como Entero\nLeer a, b\nSi a > b Entonces\nEscribir \"El mayor es \", a\nSiNo\nEscribir \"El mayor es \", b\nFinSi\nFinAlgoritmo"
+    },
+    {
+      "id": "E02",
+      "archivo": "../../datos-demo/muestras/cuaderno-con-error.jpg",
+      "actividad": "mayor",
+      "condicion": "legible, condición invertida (a < b)",
+      "legibleEsperado": true,
+      "puntosDocente": [1, 0.5, 1.5],
+      "transcripcion": "Algoritmo Mayor\nLeer a, b\nSi a < b Entonces\nEscribir \"El mayor es \", a\nSiNo\nEscribir \"El mayor es \", b\nFinSi\nFinAlgoritmo"
+    },
+    {
+      "id": "E03",
+      "archivo": "../../datos-demo/muestras/cuaderno-borroso.jpg",
+      "actividad": "mayor",
+      "condicion": "ilegible: desenfocada y oscura",
+      "legibleEsperado": false,
+      "puntosDocente": null,
+      "transcripcion": null
+    }
+  ]
+}

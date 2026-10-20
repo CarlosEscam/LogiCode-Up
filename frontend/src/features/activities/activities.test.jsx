@@ -96,9 +96,11 @@ describe('Actividades y entregas', () => {
       'GET /api/v1/courses/c1/activities': respond(200, [
         { ...ACTIVITY, progress: { ...ACTIVITY.progress, state: 'SUBMITTED', canSubmit: false, attemptsUsed: 1 } },
         { ...ACTIVITY, id: 'a2', title: 'Ciclos', progress: { ...ACTIVITY.progress, state: 'OVERDUE', canSubmit: false } },
+        { ...ACTIVITY, id: 'a3', title: 'Foto del cuaderno', progress: { ...ACTIVITY.progress, state: 'SUBMITTED', canSubmit: false, attemptsUsed: 1 } },
       ]),
       'GET /api/v1/courses/c1/grades/mine': respond(200, [
         { activityId: 'a1', submissionId: 'e1', attempt: 1, status: 'PUBLISHED', score: 4, feedback: 'Bien', gradedAt: '2026-10-09T15:00:00Z' },
+        { activityId: 'a3', submissionId: 'e3', attempt: 1, status: 'PROCESSING', score: null, feedback: null, gradedAt: null },
       ]),
     })
 
@@ -106,6 +108,7 @@ describe('Actividades y entregas', () => {
 
     expect(await screen.findByText('Calificada: 4,0')).toBeInTheDocument()
     expect(screen.getByText('Vencida sin entrega: 0,0')).toBeInTheDocument()
+    expect(screen.getByText('Entregada, calificando con IA')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Actividades' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByRole('tab', { name: 'Por revisar' })).not.toBeInTheDocument()
     expect(screen.queryByText('Nueva actividad')).not.toBeInTheDocument()
@@ -163,7 +166,9 @@ describe('Actividades y entregas', () => {
       grade: { id: 'g1', submissionId: 'e1', status: 'PENDING_REVIEW', score: null, feedback: null, rubricVersion: 1 },
       rubric: { id: 'r1', number: 1, statement: 'x', expectedAnswer: 'Promedio de tres notas', criteria: [{ name: 'Cálculo', maxPoints: 5 }], totalPoints: 5 },
       history: [],
+      aiEvaluations: [],
       canGrade: true,
+      canRetryWithAi: false,
     }
     let current = pending
     const fetchMock = stubApi({
@@ -208,5 +213,67 @@ describe('Actividades y entregas', () => {
     expect(await within(nota).findByText('Calificada')).toBeInTheDocument()
     expect(within(nota).getByText('4,5')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Historial de la nota' })).toBeInTheDocument()
+  })
+
+  it('muestra al docente la propuesta de la IA para confirmarla o reintentar', async () => {
+    window.history.replaceState(null, '', '/entregas/e2')
+    const review = {
+      grade: { id: 'g2', submissionId: 'e2', status: 'PENDING_REVIEW', reviewReason: 'LOW_CONFIDENCE', score: null, feedback: null, rubricVersion: 1 },
+      rubric: { id: 'r1', number: 1, statement: 'x', expectedAnswer: null, criteria: [{ name: 'Cálculo', maxPoints: 4 }], totalPoints: 4 },
+      history: [],
+      aiEvaluations: [
+        {
+          id: 'ia1',
+          model: 'qwen2.5vl:7b',
+          outcome: 'LOW_CONFIDENCE',
+          legible: true,
+          confidence: 72,
+          proposedScore: 3.8,
+          feedback: 'Revisa la división.',
+          transcription: 'prom <- a + b / 2',
+          error: null,
+          criteria: [{ name: 'Cálculo', points: 3, maxPoints: 4, comment: 'Falta paréntesis' }],
+          durationMs: 95000,
+          createdAt: '2026-10-09T15:00:00Z',
+        },
+        { id: 'ia0', model: 'qwen2.5vl:7b', outcome: 'FAILED', error: 'No fue posible conectar con el servicio de IA (Ollama) o no respondió a tiempo.', criteria: [], durationMs: 10, createdAt: '2026-10-09T14:00:00Z' },
+      ],
+      canGrade: true,
+      canRetryWithAi: true,
+    }
+    const fetchMock = stubApi({
+      'GET /api/v1/me': respond(200, TEACHER),
+      'GET /api/v1/submissions/e2': respond(200, {
+        id: 'e2',
+        activityId: 'a1',
+        activityTitle: 'Algoritmo del promedio',
+        studentName: 'Beto Estudiante',
+        attempt: 1,
+        textAnswer: 'prom <- a + b / 2',
+        files: [],
+        submittedAt: '2026-10-05T15:00:00Z',
+        late: false,
+      }),
+      'GET /api/v1/submissions/e2/grade': respond(200, review),
+      'POST /api/v1/submissions/e2/grade': respond(200, review),
+      'POST /api/v1/submissions/e2/grade/ai-retry': respond(200, review),
+    })
+
+    render(<App />)
+
+    expect(await screen.findByText('Confianza menor al 80 %.')).toBeInTheDocument()
+    const ia = screen.getByRole('region', { name: 'Resultado de la IA' })
+    expect(within(ia).getByText('72 %')).toBeInTheDocument()
+    expect(within(ia).getByText('3 de 4')).toBeInTheDocument()
+    expect(within(ia).getByText('Evaluaciones anteriores (1)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nota (0,0 a 5,0)')).toHaveValue('3,8')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar nota' }))
+    expect(await screen.findByText('Nota publicada.')).toBeInTheDocument()
+    const post = fetchMock.mock.calls.find(([url, options]) => options?.method === 'POST' && url.endsWith('/grade'))
+    expect(JSON.parse(post[1].body)).toEqual({ score: 3.8, feedback: 'Revisa la división.' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar con IA' }))
+    await vi.waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/ai-retry'))).toBe(true))
   })
 })

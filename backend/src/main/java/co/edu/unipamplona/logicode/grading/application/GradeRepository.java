@@ -11,6 +11,8 @@ public interface GradeRepository {
 
     Grade save(Grade grade);
 
+    Optional<Grade> findById(UUID id);
+
     Optional<Grade> findBySubmission(UUID submissionId);
 
     List<Grade> findBySubmissions(Collection<UUID> submissionIds);

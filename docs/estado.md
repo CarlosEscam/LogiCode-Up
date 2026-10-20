@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 20 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 5 (actividades y entregas)**
+Última actualización: 20 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 6 (calificación con IA)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -13,12 +13,42 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
 | 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06) y carga desde Excel (P-07) |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
-| 5 · Actividades y entregas | Implementada, pendiente de revisión | Detalle abajo. Calificación manual del docente; la IA llega en la Etapa 6 |
-| 6 a 10 | Pendientes | Calificación con IA, quizzes, juegos, foro, planilla y demás aún no existen |
+| 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
+| 6 · Calificación determinista e IA | Implementada, pendiente de revisión y de las pruebas de aceptación en el equipo de presentación | Detalle abajo. La parte determinista (PSeInt y quizzes, RF-16) pasa a la Etapa 7 (T-48) |
+| 7 a 10 | Pendientes | Quizzes, PSeInt, juegos, foro, planilla y demás aún no existen |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 5 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial y excepciones). Se amplía en cada etapa. Verificado sobre una base limpia en Docker; volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 6 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones y un taller con fotos, texto, `.psc` y PDF para la IA). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base con los datos de la Etapa 5; volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Etapa 6 · detalle
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Calificación con IA de fotos y archivos compatibles (RF-14, RN-08) | Implementado | Al llegar una entrega se crea la nota en evaluación y un trabajo en la cola (`ai_grading_job`). El worker envía a Ollama el nombre del estudiante, el enunciado, la respuesta esperada, la rúbrica y el contenido (texto, fotos PNG/JPG, archivos `.psc`/`.ino`). Nunca cédula, correo ni nombres de archivo (T-44) |
+| Publicación automática con contenido legible y confianza ≥ 80 % (RN-09, RN-11) | Implementado | `AiGradingPolicy`: la nota sale de los puntos por criterio (T-39). Con 80 % o más se publica con su retroalimentación y queda en el historial como "IA" |
+| Foto ilegible o confianza < 80 % a confirmación docente (RF-15) | Implementado | La entrega pasa a Por revisar con el motivo y la propuesta de la IA; el docente la confirma o la ajusta |
+| Fallo técnico sin nota y con reintento (RF-15, RNF-06, RNF-07) | Implementado | 3 intentos automáticos con espera creciente; después, "Falló la IA" en Por revisar. Botón "Reintentar con IA" y calificación manual siempre disponibles. La entrega nunca se bloquea ni se pierde |
+| Trabajo en segundo plano con estado visible (RNF-08) | Implementado | Estado "Calificando con IA" en la bandeja, la entrega y la vista del estudiante; se actualiza solo |
+| Resultado de la IA e historial para el docente (RF-17) | Implementado | Lectura del modelo, legibilidad, confianza, puntos y comentario por criterio, retroalimentación propuesta, duración y evaluaciones anteriores. El estudiante no ve nada de esto |
+| Scratch y Arduino (RN-10) | Parcial | `.ino` se evalúa como texto. `.sb3`, PDF, Word, PowerPoint y video pasan al docente ("Formato que la IA no lee"); ver P-08 |
+| Calificación determinista de PSeInt y quizzes (RF-16) | Pendiente (Etapa 7) | Requiere los casos de prueba y las claves que crea la Etapa 7 (T-48) |
+| Pruebas de aceptación con Qwen2.5-VL 7B en el equipo Ryzen 7 5700U | **Pendiente: las ejecuta Carlos** | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md). El modelo no se puede descargar en el entorno de desarrollo de Claude, así que no hay resultados de Qwen todavía; no se inventan |
+
+### Verificación realizada (Etapa 6)
+
+- Backend: `./mvnw verify` → 87 pruebas en verde (58 unitarias y 29 de integración). `AiGradingFlowsIT` usa PostgreSQL real con un proveedor simulado: publicación automática con 92 %, confianza de 79 % a revisión con propuesta y confirmación docente, foto ilegible sin nota, fallo técnico reintentado con reloj controlado hasta "Falló la IA", respuesta incoherente con la rúbrica tratada como fallo, reintento del docente, la IA nunca pisa una nota puesta por el docente, PDF directo a revisión, archivo `.psc` enviado como texto, y que al modelo no llegan cédula, correo ni nombres de archivo. `OllamaGradingAdapterTest` prueba el protocolo contra un servidor HTTP simulado (esquema, imágenes, errores 404/500 y tiempo agotado); `ImagePreparerTest`, `AiGradingPolicyTest` y `AiGradingJobTest` cubren las reglas.
+- Frontend: `npm run lint`, `npm test` (17 pruebas) y `npm run build` en verde.
+- Docker Compose con perfil `ia` y **Ollama 0.35.1 real**, sobre la base de la Etapa 5 (la migración a la versión 5 se aplicó sin problemas). Como Qwen2.5-VL no se puede descargar aquí, se usó un modelo de texto pequeño (Qwen2.5 0,5B) solo para comprobar el protocolo: la salida estructurada con el esquema funciona, una respuesta de texto se calificó y publicó de punta a punta, y las fotos con ese modelo sin visión fallaron como fallo técnico y pasaron a "Falló la IA". Las notas de ese modelo no significan nada: la calidad de lectura y calificación solo la miden las pruebas de aceptación con Qwen2.5-VL.
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Confianza ≥ 80 % y contenido legible publica la nota | `AiGradingPolicyTest`, `AiGradingFlowsIT` |
+| Foto ilegible o confianza inferior requiere confirmación docente | `AiGradingFlowsIT` (79 %, ilegible) y pantallas de Por revisar y de la entrega |
+| Un fallo técnico no asigna nota y permite reintento | `AiGradingFlowsIT`, `OllamaGradingAdapterTest` y el recorrido con Ollama real |
+| Lectura manuscrita, coincidencia de notas, confianza, legibilidad, latencia y RAM con Qwen2.5-VL 7B Q4_K_M en el Ryzen 7 5700U | **Pendiente.** `node ia-pruebas/ejecutar-pruebas.mjs ia-pruebas/muestras/muestras.json` en el equipo de presentación; el resumen queda en `ia-pruebas/resultados/` |
 
 ## Etapa 5 · detalle
 
@@ -136,5 +166,6 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 | RF-06, RF-07, RF-08, RF-09, RF-24, RF-25 | Implementados (Etapa 4) |
 | RF-28 | Parcial: usuarios, roles, aprobación docente, auditoría y publicación de la biblioteca implementados; foro y respaldos llegan con sus etapas |
 | RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
-| RF-17 | Parcial: entregas e historial de notas implementados; el resultado de IA llega en la Etapa 6 |
-| RF-12, RF-14 a RF-16, RF-18, RF-20 a RF-23, RF-26, RF-27 | Pendientes |
+| RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
+| RF-16 | Pendiente (Etapa 7, T-48) |
+| RF-12, RF-18, RF-20 a RF-23, RF-26, RF-27 | Pendientes |

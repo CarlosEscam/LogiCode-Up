@@ -23,6 +23,7 @@
 | `V2__identidad_y_acceso.sql` | Etapa 3: cuentas, tokens de un solo uso, límites de recuperación, cédulas habilitadas, auditoría y sesiones (`spring_session`, `spring_session_attributes`) |
 | `V3__cursos_temas_y_biblioteca.sql` | Etapa 4: cursos, inscripciones, archivos cargados, temas y materiales |
 | `V4__actividades_y_entregas.sql` | Etapa 5: actividades, entregas y sus archivos, excepciones de plazo, versiones de rúbrica con criterios, notas e historial de notas |
+| `V5__calificacion_con_ia.sql` | Etapa 6: estado `PROCESSING` y motivo de revisión en las notas, cola de evaluación con IA, evaluaciones de la IA con sus puntos por criterio |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -208,7 +209,7 @@ erDiagram
         uuid id PK
         uuid submission_id FK "UK"
         uuid rubric_version_id FK
-        varchar status "PENDING_REVIEW | PUBLISHED"
+        varchar status "PROCESSING | PENDING_REVIEW | PUBLISHED"
         numeric score "0,0 a 5,0"
         varchar source "TEACHER | AI"
     }
@@ -224,3 +225,53 @@ erDiagram
 - **RN-20**: cada entrega guarda en `grade.rubric_version_id` la versión vigente al enviarla; editar la rúbrica o el enunciado crea una fila nueva en `rubric_version`.
 - **RN-05**: la actividad vencida sin entrega no tiene fila: el estado `OVERDUE` (0,0) se calcula al consultar (T-32).
 - Las entregas y las notas no se borran; archivar la actividad solo la oculta.
+
+## Calificación con IA (Etapa 6, implementado)
+
+Migración `V5__calificacion_con_ia.sql`. `grade.status` admite además `PROCESSING` y `grade.review_reason` dice por qué una nota espera al docente: `AI_DISABLED`, `UNSUPPORTED`, `ILLEGIBLE`, `LOW_CONFIDENCE` o `AI_FAILED`.
+
+```mermaid
+erDiagram
+    grade ||--o{ ai_grading_job : "cola"
+    grade ||--o{ ai_evaluation : "evaluaciones"
+    rubric_version ||--o{ ai_evaluation : "evalúa con"
+    ai_evaluation ||--o{ ai_evaluation_criterion : "puntos"
+
+    ai_grading_job {
+        uuid id PK
+        uuid grade_id FK "un solo trabajo PENDING o RUNNING por nota"
+        varchar status "PENDING | RUNNING | DONE | FAILED"
+        int attempts
+        timestamptz next_run_at
+        timestamptz locked_at
+        uuid claim_token "toma vigente"
+        text last_error
+        uuid requested_by FK "docente que pidió reintentar"
+    }
+    ai_evaluation {
+        uuid id PK
+        uuid grade_id FK
+        uuid rubric_version_id FK
+        varchar model
+        varchar outcome "PUBLISHED | ILLEGIBLE | LOW_CONFIDENCE | FAILED"
+        boolean legible
+        int confidence "0 a 100"
+        numeric proposed_score "0,0 a 5,0; nulo si FAILED"
+        text feedback
+        text transcription
+        text error "obligatorio si FAILED"
+        bigint duration_ms
+    }
+    ai_evaluation_criterion {
+        uuid ai_evaluation_id PK
+        int position PK
+        varchar name
+        numeric points
+        numeric max_points
+        text comment
+    }
+```
+
+- **RF-17**: cada evaluación de la IA queda guardada, incluidas las fallidas, aunque el docente califique antes o después (T-43).
+- **RN-11**: un fallo técnico no deja nota: `ai_evaluation_failed_ck` exige `proposed_score` nulo y un `error`.
+- La nota publicada sigue viviendo en `grade` con `source = AI` o `TEACHER`; confirmar la propuesta registra la nota del docente y su historial.

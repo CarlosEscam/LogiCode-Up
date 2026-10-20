@@ -15,6 +15,7 @@ import co.edu.unipamplona.logicode.activities.application.ActivityCatalog;
 import co.edu.unipamplona.logicode.courses.application.CourseAccess;
 import co.edu.unipamplona.logicode.grading.domain.Grade;
 import co.edu.unipamplona.logicode.grading.domain.GradeStatus;
+import co.edu.unipamplona.logicode.grading.domain.ReviewReason;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BrowseGrades {
 
-    /** Entrega esperando calificación. */
+    /** Entrega esperando calificación: en evaluación con IA o esperando al docente, con el motivo. */
     public record ReviewItem(UUID submissionId, UUID activityId, String activityTitle, UUID studentId,
-            String studentName, int attempt, Instant submittedAt, boolean late, int rubricVersion) {
+            String studentName, int attempt, Instant submittedAt, boolean late, int rubricVersion,
+            GradeStatus status, ReviewReason reviewReason) {
     }
 
     /** Fila de notas de una actividad para el docente: un intento con su nota. */
@@ -56,7 +58,7 @@ public class BrowseGrades {
         this.views = views;
     }
 
-    /** Últimos intentos sin calificar del curso, del más antiguo al más reciente. */
+    /** Últimos intentos sin nota publicada del curso, del más antiguo al más reciente. */
     @Transactional(readOnly = true)
     public List<ReviewItem> reviewQueue(Actor actor, UUID courseId) {
         access.requireViewCourseWork(actor, courseId);
@@ -64,13 +66,16 @@ public class BrowseGrades {
                 .flatMap(a -> latestAttempts(catalog.submissions(catalog.submissionIdsOf(a.id())).values()).stream())
                 .toList();
         Map<UUID, Grade> pending = grades.findBySubmissions(latest.stream().map(ActivityCatalog.SubmissionInfo::id)
-                .toList()).stream().filter(g -> g.getStatus() == GradeStatus.PENDING_REVIEW)
+                .toList()).stream().filter(g -> !g.isPublished())
                 .collect(Collectors.toMap(Grade::getSubmissionId, Function.identity()));
         Map<UUID, GradeView> pendingViews = views.grades(pending.values(), false);
         return latest.stream().filter(s -> pending.containsKey(s.id()))
                 .sorted(Comparator.comparing(ActivityCatalog.SubmissionInfo::submittedAt))
-                .map(s -> new ReviewItem(s.id(), s.activityId(), s.activityTitle(), s.studentId(), s.studentName(),
-                        s.attempt(), s.submittedAt(), s.late(), pendingViews.get(s.id()).rubricVersion()))
+                .map(s -> {
+                    GradeView g = pendingViews.get(s.id());
+                    return new ReviewItem(s.id(), s.activityId(), s.activityTitle(), s.studentId(), s.studentName(),
+                            s.attempt(), s.submittedAt(), s.late(), g.rubricVersion(), g.status(), g.reviewReason());
+                })
                 .toList();
     }
 

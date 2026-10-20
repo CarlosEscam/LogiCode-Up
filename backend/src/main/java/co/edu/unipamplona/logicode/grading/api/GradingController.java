@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(ApiPaths.V1)
-@Tag(name = "Calificación", description = "Rúbricas versionadas, bandeja Por revisar, notas e historial (RF-17, RN-20)")
+@Tag(name = "Calificación", description = "Rúbricas versionadas, calificación con IA, bandeja Por revisar, notas e historial (RF-14 a RF-17, RN-20)")
 public class GradingController {
 
     public record CriterionRequest(@NotBlank @Size(max = 150) String name, @Size(max = 2000) String description,
@@ -107,5 +107,11 @@ public class GradingController {
     public GradeDetail publishGrade(@CurrentActor Actor actor, @PathVariable UUID submissionId,
             @Valid @RequestBody GradeRequest request) {
         return gradeSubmissions.grade(actor, submissionId, request.score(), request.feedback());
+    }
+
+    @PostMapping("/submissions/{submissionId}/grade/ai-retry")
+    @Operation(summary = "Devolver a la cola de IA una entrega que espera en Por revisar (RF-15)")
+    public GradeDetail retryWithAi(@CurrentActor Actor actor, @PathVariable UUID submissionId) {
+        return gradeSubmissions.retryWithAi(actor, submissionId);
     }
 }

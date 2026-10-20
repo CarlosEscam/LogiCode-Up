@@ -24,6 +24,11 @@ class GradeRepositoryAdapter implements GradeRepository {
     }
 
     @Override
+    public Optional<Grade> findById(UUID id) {
+        return jpa.findById(id);
+    }
+
+    @Override
     public Optional<Grade> findBySubmission(UUID submissionId) {
         return jpa.findBySubmissionId(submissionId);
     }

@@ -9,7 +9,7 @@
 | Fechas | ISO-8601 con desfase, p. ej. `2026-12-10T23:59:00-05:00` |
 | Notas | Número con un decimal entre `0.0` y `5.0` (la interfaz lo muestra como `4,5`) |
 | Errores | [Problem Details, RFC 9457](https://www.rfc-editor.org/rfc/rfc9457): `type`, `title`, `status`, `detail`, `instance`; errores de validación agregan la lista de campos. Mensajes en español y sin detalles internos |
-| Códigos | `200` consulta, `201` creación (con cabecera `Location`), `202` trabajo aceptado en segundo plano (entregas con IA), `204` sin contenido, `400` formato inválido, `401` sin sesión, `403` sin permiso, `404` no existe, `409` conflicto de estado, `422` regla de negocio incumplida, `429` límite de solicitudes |
+| Códigos | `200` consulta, `201` creación (con cabecera `Location`), `202` solicitud aceptada (correos), `204` sin contenido, `400` formato inválido, `401` sin sesión, `403` sin permiso, `404` no existe, `409` conflicto de estado, `422` regla de negocio incumplida, `429` límite de solicitudes |
 | Paginación | `?page=0&size=20&sort=campo,asc`; respuesta `{ "items": [], "page": 0, "size": 20, "totalItems": 0, "totalPages": 0 }` |
 | Trazabilidad | Cada respuesta incluye `X-Request-Id` |
 | Documentación | El contrato vivo lo genera el backend: `/api/v1/openapi` y `/swagger-ui.html` |
@@ -118,7 +118,7 @@ Todas requieren sesión. Lo que la cuenta no puede ver responde `404`; lo que ve
 | `POST /api/v1/activities/{id}/publish` | Publicar; `422` sin rúbrica |
 | `GET/PUT /api/v1/activities/{id}/rubric` | Rúbrica vigente (`204` si no hay; el estudiante no recibe `expectedAnswer`) · definir `{expectedAnswer, criteria: [{name, description, maxPoints}]}` crea una versión |
 | `GET /api/v1/activities/{id}/rubric/versions` | Todas las versiones (docente y Administradores) |
-| `POST /api/v1/activities/{id}/submissions` | Entregar en `multipart/form-data`: `text` y hasta 5 `files`. `201` con el intento; `422` si está cerrada, sin intentos o vacía. En la Etapa 6 pasará a `202 Accepted` cuando la IA procese en segundo plano |
+| `POST /api/v1/activities/{id}/submissions` | Entregar en `multipart/form-data`: `text` y hasta 5 `files`. `201` con el intento; `422` si está cerrada, sin intentos o vacía. Desde la Etapa 6 sigue respondiendo `201`; la calificación con IA se consulta en `GET /submissions/{id}/grade` (T-46) |
 | `GET /api/v1/activities/{id}/submissions/mine` | Mis intentos |
 | `GET /api/v1/activities/{id}/submissions` | Inscritos con su situación, último intento y excepción (docente y Administradores) |
 | `PUT/DELETE /api/v1/activities/{id}/exceptions/{studentId}` | Excepción `{extendedUntil, extraAttempts, reason}` o quitarla (docente del curso) |
@@ -127,12 +127,21 @@ Todas requieren sesión. Lo que la cuenta no puede ver responde `404`; lo que ve
 | `GET /api/v1/submissions/{id}/files/{fileId}/preview` · `/download` | Archivo de la entrega en línea o descarga |
 | `GET /api/v1/submissions/{id}/grade` | Nota con la versión de rúbrica usada; historial solo para docente y Administradores; el estudiante ve nota y retroalimentación solo publicadas |
 | `POST /api/v1/submissions/{id}/grade` | Calificar o corregir `{score, feedback}` (0,0 a 5,0, un decimal; docente del curso) |
-| `GET /api/v1/courses/{id}/review-queue` | Bandeja Por revisar: último intento de cada estudiante sin nota |
+| `GET /api/v1/courses/{id}/review-queue` | Bandeja Por revisar: último intento de cada estudiante sin nota publicada, con `status` y `reviewReason` (desde la Etapa 6) |
 | `GET /api/v1/courses/{id}/grades/mine` | Mis notas en el curso (último intento de cada actividad) |
+
+### Implementados (Etapa 6 · Calificación con IA)
+
+No hay rutas nuevas para consultar: la IA trabaja sobre la nota de la entrega.
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/submissions/{id}/grade` | Ahora el `status` puede ser `PROCESSING` (la IA evalúa), `PENDING_REVIEW` o `PUBLISHED`. Para docente y Administradores incluye `reviewReason` (`AI_DISABLED`, `UNSUPPORTED`, `ILLEGIBLE`, `LOW_CONFIDENCE`, `AI_FAILED`), `aiEvaluations` (más reciente primero: `model`, `outcome`, `legible`, `confidence`, `proposedScore`, `criteria[{name, points, maxPoints, comment}]`, `feedback`, `transcription`, `error`, `durationMs`, `createdAt`) y `canRetryWithAi`. El estudiante no recibe motivo ni evaluaciones (T-47) |
+| `POST /api/v1/submissions/{id}/grade/ai-retry` | Volver a enviar a la IA una entrega sin nota publicada (docente del curso). `200` con el detalle y la nota en `PROCESSING`; `409` si ya está publicada o en proceso; `422` si la IA está apagada o el formato no lo lee |
+| `POST /api/v1/submissions/{id}/grade` | Sin cambios: confirmar la propuesta de la IA es calificar con `{score, feedback}`; también funciona mientras la IA trabaja (T-43) |
 
 ### Etapas siguientes (de la especificación, pendientes)
 
 | Recurso | Operaciones |
 | --- | --- |
-| Evaluación con IA (Etapa 6) | `GET /api/v1/submissions/{id}/grading` · confirmación docente de resultados con confianza menor a 80 % |
 | Foro | `GET/POST /api/v1/forum/threads` · `PATCH /api/v1/forum/threads/{id}` |

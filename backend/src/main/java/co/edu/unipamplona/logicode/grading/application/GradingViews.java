@@ -44,7 +44,8 @@ class GradingViews {
                 .filter(Objects::nonNull).distinct().toList());
         return grades.stream().map(g -> {
             boolean hidden = ownerOnly && !g.isPublished();
-            return new GradeView(g.getId(), g.getSubmissionId(), g.getStatus(), hidden ? null : g.getScore(),
+            return new GradeView(g.getId(), g.getSubmissionId(), g.getStatus(),
+                    ownerOnly ? null : g.getReviewReason(), hidden ? null : g.getScore(),
                     hidden ? null : g.getFeedback(), hidden ? null : g.getSource(),
                     hidden ? null : names.get(g.getGradedBy()), hidden ? null : g.getGradedAt(),
                     versions.getOrDefault(g.getRubricVersionId(), 0));

@@ -54,6 +54,7 @@ Notas:
 - Etapa 4: "Su curso" significa el curso del que la cuenta es docente responsable. "Si es miembro" significa que su cédula está inscrita en el curso. "Publicar/administrar biblioteca" para el administrador ordinario es cambiar la visibilidad y archivar materiales; crear o editar temas y materiales sigue siendo solo del docente y del privilegio completo (T-28).
 - Inscribir estudiantes en un curso: su docente responsable y las cuentas Administrador.
 - Etapa 5: crear, editar, publicar o archivar actividades, definir la rúbrica y dar excepciones de plazo es del docente responsable y del privilegio completo. Calificar y corregir notas también (`GRADE`). Las cuentas Administrador ven actividades, entregas, la bandeja Por revisar, notas e historial en solo lectura (`VIEW_COURSE_GRADES`). Entregar exige `ANSWER_ACTIVITIES` y estar inscrito en el curso. El estudiante ve sus entregas y su nota cuando está publicada, nunca la respuesta esperada de la rúbrica (T-36).
+- Etapa 6: pedir que la IA vuelva a evaluar una entrega es parte de calificar (`GRADE`): docente responsable y privilegio completo. Las cuentas Administrador ven motivo, confianza y evaluaciones de la IA en solo lectura. El estudiante ve "Calificando con IA" o "En revisión" y su nota publicada, nunca el motivo ni la propuesta de la IA (T-47).
 - Cambiar el rol o desactivar una cuenta cierra sus sesiones abiertas.
 - RN-16: el backend rechaza cualquier operación que deje la plataforma sin al menos una cuenta inicial activa con privilegio completo.
 

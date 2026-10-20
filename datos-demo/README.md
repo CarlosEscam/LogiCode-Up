@@ -64,6 +64,26 @@ Las cuentas de la tabla: docente aprobada, solicitud pendiente, administradora o
 | Evaluación 1: condicionales (40 %) | Publicada; abre en 3 días |
 | Proyecto: animación en Scratch | Borrador sin rúbrica (solo lo ve la docente) |
 
+### Etapa 6 · Calificación con IA
+
+**Taller 3: mayor de dos números (foto o archivo)**, sin porcentaje, 2 intentos, rúbrica de 1 + 2,5 + 1,5 puntos. Las fotos son imágenes sintéticas de cuaderno en `muestras/` (no son de estudiantes reales).
+
+| Estudiante | Entrega | Qué se espera con la IA encendida |
+| --- | --- | --- |
+| Ana | Foto legible y correcta | Nota alta; se publica sola si la confianza es de 80 % o más |
+| Bruno | Foto legible con la condición invertida | Nota baja en "Condición correcta" |
+| David | Foto borrosa y oscura | Ilegible: pasa al docente sin nota |
+| Camila | Respuesta escrita | Correcta con `>=` |
+| Elena | Archivo `.psc` guardado en Windows (latin-1) | Incompleta: no muestra el mayor cuando `b > a` |
+| Felipe | PDF | La IA no lee PDF (P-08): va directo a Por revisar como "Formato que la IA no lee" |
+
+Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, no un resultado medido.
+
+- **Con la IA apagada** (por defecto), las seis quedan en Por revisar como "Calificación manual". Al encenderla, "Reintentar con IA" en cada entrega las manda a la cola (la de Felipe no, porque es PDF).
+- **Con la IA encendida al cargar**, cinco entran a la cola y se procesan de a una; en el equipo de referencia cada foto puede tardar varios minutos.
+- Si las etapas anteriores ya estaban cargadas, el script agrega solo el Taller 3.
+- `ia-pruebas/` usa a Laura y a Felipe en un curso aparte, "Pruebas de aceptación IA", para no mezclar las pruebas con esta demostración.
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

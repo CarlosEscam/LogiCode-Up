@@ -20,6 +20,7 @@ import {
   studentSituation,
   toBogotaInput,
 } from './labels.js'
+import { useRefreshWhile } from './useRefreshWhile.js'
 
 const MAX_FILES = 5
 
@@ -102,6 +103,7 @@ function deliveryModes(activity) {
 function StudentStatus({ activity }) {
   const grades = useQuery(`/courses/${activity.courseId}/grades/mine`)
   const grade = grades.data?.find((item) => item.activityId === activity.id)
+  useRefreshWhile(grade?.status === 'PROCESSING', grades.reload)
   const situation = studentSituation(activity.progress, grade)
   const { progress } = activity
   return (

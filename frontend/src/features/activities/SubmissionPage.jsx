@@ -5,10 +5,24 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { formatSize } from '../content/labels.js'
 import { RubricTable } from './RubricPanel.jsx'
-import { GRADE_SOURCE_LABELS, GRADE_STATUS_LABELS, formatDateTime, formatScore, submissionFileUrl } from './labels.js'
+import {
+  AI_OUTCOME_LABELS,
+  AI_OUTCOME_TONES,
+  GRADE_SOURCE_LABELS,
+  GRADE_STATUS_LABELS,
+  GRADE_STATUS_TONES,
+  REVIEW_REASON_HELP,
+  REVIEW_REASON_LABELS,
+  formatDateTime,
+  formatDuration,
+  formatPoints,
+  formatScore,
+  submissionFileUrl,
+} from './labels.js'
+import { useRefreshWhile } from './useRefreshWhile.js'
 
-// Una entrega con sus archivos, la rúbrica con que se evalúa, la nota y su historial (RF-17).
-// El docente del curso califica aquí; el estudiante ve la nota cuando está publicada.
+// Una entrega con sus archivos, la rúbrica con que se evalúa, la nota, el resultado de la IA y el
+// historial (RF-17). El docente del curso califica o confirma aquí; el estudiante ve la nota cuando está publicada.
 export default function SubmissionPage({ id }) {
   const submission = useQuery(`/submissions/${id}`)
   const grade = useQuery(`/submissions/${id}/grade`)
@@ -94,6 +108,8 @@ function SubmissionFile({ submissionId, file }) {
 }
 
 function GradeSection({ grade, submissionId }) {
+  const processing = grade.data?.grade.status === 'PROCESSING'
+  useRefreshWhile(processing, grade.reload)
   if (grade.status === 'loading' && !grade.data) return null
   if (grade.status === 'error') {
     return (
@@ -102,27 +118,30 @@ function GradeSection({ grade, submissionId }) {
       </section>
     )
   }
-  const { grade: current, rubric, history, canGrade } = grade.data
+  const { grade: current, rubric, history, aiEvaluations, canGrade, canRetryWithAi } = grade.data
+  const latest = aiEvaluations[0]
+  const proposal = current.status === 'PENDING_REVIEW' && latest?.proposedScore != null ? latest : null
   return (
     <>
       <section className="card card--wide" aria-labelledby="nota-titulo">
         <div className="topic__header">
           <h2 id="nota-titulo">Nota</h2>
-          <span className={`badge badge--${current.status === 'PUBLISHED' ? 'ok' : 'info'}`}>{GRADE_STATUS_LABELS[current.status]}</span>
+          <span className={`badge badge--${GRADE_STATUS_TONES[current.status]}`}>{GRADE_STATUS_LABELS[current.status]}</span>
         </div>
-        {current.status === 'PUBLISHED' ? (
-          <>
-            <p className="score">{formatScore(current.score)}</p>
-            <p className="page__note">
-              Calificada por {current.gradedByName ?? GRADE_SOURCE_LABELS[current.source]} el {formatDateTime(current.gradedAt)}
-            </p>
-            {current.feedback && <p className="statement">{current.feedback}</p>}
-          </>
-        ) : (
-          <p>{canGrade ? 'Esta entrega espera tu calificación.' : 'La entrega está en revisión. La nota aparecerá aquí cuando se publique.'}</p>
+        <GradeSummary current={current} canGrade={canGrade} />
+        {canRetryWithAi && <RetryWithAi submissionId={submissionId} onDone={grade.reload} />}
+        {canGrade && (
+          <GradeForm
+            key={latest?.id ?? 'sin-ia'}
+            submissionId={submissionId}
+            current={current}
+            proposal={proposal}
+            onSaved={grade.reload}
+          />
         )}
-        {canGrade && <GradeForm submissionId={submissionId} current={current} onSaved={grade.reload} />}
       </section>
+
+      {aiEvaluations.length > 0 && <AiEvaluations evaluations={aiEvaluations} />}
 
       <section className="card card--wide" aria-labelledby="rubrica-entrega-titulo">
         <div className="topic__header">
@@ -165,8 +184,158 @@ function GradeSection({ grade, submissionId }) {
   )
 }
 
-// Calificación manual (Etapa 5): nota de 0,0 a 5,0 con un decimal, guiada por la rúbrica.
-function GradeForm({ submissionId, current, onSaved }) {
+function GradeSummary({ current, canGrade }) {
+  if (current.status === 'PUBLISHED') {
+    return (
+      <>
+        <p className="score">{formatScore(current.score)}</p>
+        <p className="page__note">
+          {current.source === 'AI' ? 'Calificada automáticamente por la IA' : `Calificada por ${current.gradedByName ?? 'el docente'}`} el{' '}
+          {formatDateTime(current.gradedAt)}
+        </p>
+        {current.feedback && <p className="statement">{current.feedback}</p>}
+      </>
+    )
+  }
+  if (current.status === 'PROCESSING') {
+    return (
+      <p role="status">
+        {canGrade
+          ? 'La IA está calificando esta entrega. En el equipo local puede tardar unos minutos; esta página se actualiza sola. Si prefieres, puedes calificarla tú.'
+          : 'Tu entrega se está calificando. La nota aparecerá aquí cuando esté lista.'}
+      </p>
+    )
+  }
+  if (!canGrade) return <p>La entrega está en revisión. La nota aparecerá aquí cuando se publique.</p>
+  return (
+    <p>
+      {current.reviewReason && <strong>{REVIEW_REASON_LABELS[current.reviewReason]}. </strong>}
+      {REVIEW_REASON_HELP[current.reviewReason] ?? 'Esta entrega espera tu calificación.'}
+    </p>
+  )
+}
+
+function RetryWithAi({ submissionId, onDone }) {
+  const retry = useSubmit(async () => {
+    const result = await apiPost(`/submissions/${submissionId}/grade/ai-retry`)
+    onDone()
+    return result
+  })
+  return (
+    <form onSubmit={retry.submit} className="subform">
+      <button type="submit" className="button button--secondary" disabled={retry.pending}>
+        Reintentar con IA
+      </button>
+      <FormStatus error={retry.error} />
+    </form>
+  )
+}
+
+// Resultado de la IA para el docente (RF-17): lectura, legibilidad, confianza, puntos por criterio y propuesta.
+function AiEvaluations({ evaluations }) {
+  const [latest, ...older] = evaluations
+  return (
+    <section className="card card--wide" aria-labelledby="ia-titulo">
+      <div className="topic__header">
+        <h2 id="ia-titulo">Resultado de la IA</h2>
+        <span className={`badge badge--${AI_OUTCOME_TONES[latest.outcome]}`}>{AI_OUTCOME_LABELS[latest.outcome]}</span>
+      </div>
+      <AiEvaluation evaluation={latest} />
+      {older.length > 0 && (
+        <details className="ai-older">
+          <summary>Evaluaciones anteriores ({older.length})</summary>
+          {older.map((evaluation) => (
+            <div key={evaluation.id} className="ai-older__item">
+              <p>
+                <span className={`badge badge--${AI_OUTCOME_TONES[evaluation.outcome]}`}>{AI_OUTCOME_LABELS[evaluation.outcome]}</span>{' '}
+                {formatDateTime(evaluation.createdAt)}
+              </p>
+              <AiEvaluation evaluation={evaluation} />
+            </div>
+          ))}
+        </details>
+      )}
+    </section>
+  )
+}
+
+function AiEvaluation({ evaluation }) {
+  if (evaluation.outcome === 'FAILED') {
+    return (
+      <>
+        <p className="notice notice--error">{evaluation.error}</p>
+        <p className="page__note">
+          {formatDateTime(evaluation.createdAt)} · modelo {evaluation.model} · {formatDuration(evaluation.durationMs)}
+        </p>
+      </>
+    )
+  }
+  return (
+    <>
+      <dl className="facts">
+        <div>
+          <dt>Legible</dt>
+          <dd>{evaluation.legible ? 'Sí' : 'No'}</dd>
+        </div>
+        <div>
+          <dt>Confianza reportada</dt>
+          <dd>{evaluation.confidence} %</dd>
+        </div>
+        <div>
+          <dt>Nota propuesta</dt>
+          <dd>{formatScore(evaluation.proposedScore)}</dd>
+        </div>
+        <div>
+          <dt>Tiempo</dt>
+          <dd>{formatDuration(evaluation.durationMs)}</dd>
+        </div>
+      </dl>
+      {evaluation.criteria.length > 0 && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Criterio</th>
+                <th scope="col">Puntos</th>
+                <th scope="col">Comentario</th>
+              </tr>
+            </thead>
+            <tbody>
+              {evaluation.criteria.map((criterion) => (
+                <tr key={criterion.name}>
+                  <td>{criterion.name}</td>
+                  <td>
+                    {formatPoints(criterion.points)} de {formatPoints(criterion.maxPoints)}
+                  </td>
+                  <td>{criterion.comment ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {evaluation.feedback && (
+        <>
+          <h3>Retroalimentación propuesta</h3>
+          <p className="statement">{evaluation.feedback}</p>
+        </>
+      )}
+      {evaluation.transcription && (
+        <>
+          <h3>Lo que leyó la IA</h3>
+          <pre className="transcription">{evaluation.transcription}</pre>
+        </>
+      )}
+      <p className="page__note">
+        {formatDateTime(evaluation.createdAt)} · modelo {evaluation.model}
+      </p>
+    </>
+  )
+}
+
+// Calificación del docente: nota de 0,0 a 5,0 con un decimal, guiada por la rúbrica. Si la IA dejó una
+// propuesta (confianza baja), el formulario la trae para confirmarla o ajustarla.
+function GradeForm({ submissionId, current, proposal, onSaved }) {
   const save = useSubmit(async (event) => {
     const data = new FormData(event.currentTarget)
     const score = String(data.get('score') ?? '').replace(',', '.').trim()
@@ -178,23 +347,26 @@ function GradeForm({ submissionId, current, onSaved }) {
     return result
   })
   const published = current.status === 'PUBLISHED'
+  const initialScore = published ? formatScore(current.score) : proposal ? formatScore(proposal.proposedScore) : ''
+  const initialFeedback = published ? current.feedback : proposal?.feedback
   return (
     <form onSubmit={save.submit} noValidate className="subform">
+      {proposal && <p className="page__note">La nota y la retroalimentación vienen de la propuesta de la IA. Puedes ajustarlas antes de confirmar.</p>}
       <Field
         label={published ? 'Corregir nota (0,0 a 5,0)' : 'Nota (0,0 a 5,0)'}
         name="score"
         inputMode="decimal"
         required
-        defaultValue={published ? formatScore(current.score) : ''}
+        defaultValue={initialScore}
         error={save.fieldErrors.score}
         className="input--short"
       />
       <div className="field">
         <label htmlFor="nota-retroalimentacion">Retroalimentación para el estudiante (opcional)</label>
-        <textarea id="nota-retroalimentacion" name="feedback" rows={3} maxLength={5000} defaultValue={current.feedback ?? ''} />
+        <textarea id="nota-retroalimentacion" name="feedback" rows={3} maxLength={5000} defaultValue={initialFeedback ?? ''} />
       </div>
       <button type="submit" className="button" disabled={save.pending}>
-        {published ? 'Guardar corrección' : 'Publicar nota'}
+        {published ? 'Guardar corrección' : proposal ? 'Confirmar nota' : 'Publicar nota'}
       </button>
       <FormStatus error={save.error} success={save.result && 'Nota publicada.'} />
     </form>

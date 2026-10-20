@@ -8,6 +8,7 @@
 //
 // Cada etapa agrega su sección al final de main(). Requiere Node 20 o superior.
 
+import { readFileSync } from 'node:fs'
 import { stdin, stdout } from 'node:process'
 import readline from 'node:readline'
 import zlib from 'node:zlib'
@@ -450,6 +451,70 @@ async function stage5(teacher, students, course) {
   log('Evaluación 1 publicada (abre en 3 días) y Proyecto Scratch en borrador sin rúbrica')
 }
 
+// ---------- Etapa 6 · Calificación con IA ----------
+
+const STAGE6_TITLE = 'Taller 3: mayor de dos números (foto o archivo)'
+const sampleFile = (name) => readFileSync(new URL(`./muestras/${name}`, import.meta.url))
+
+// Entregas variadas para ver cada camino de la IA: foto legible, foto con un error, foto ilegible, texto,
+// archivo de PSeInt y un PDF que la IA no lee. Las evalúa el modelo real si la IA está activada; si no,
+// quedan en Por revisar como calificación manual y la docente puede usar "Reintentar con IA" después.
+async function stage6(teacher, students, course) {
+  console.log('Etapa 6 · calificación con IA')
+  const activity = await teacher.post(`/courses/${course.id}/activities`, {
+    title: STAGE6_TITLE,
+    kind: 'WORKSHOP',
+    statement:
+      'Escribe un algoritmo en PSeInt que lea dos números enteros y muestre cuál es el mayor.\nPuedes subir una foto clara de tu cuaderno, escribir la respuesta o adjuntar el archivo .psc.',
+    acceptsText: true,
+    acceptsFiles: true,
+    acceptsPhotos: true,
+    fileGroups: ['DOCUMENTS', 'TOOL_FILES'],
+    weightPercent: null,
+    maxAttempts: 2,
+    opensAt: at(-DAY),
+    closesAt: at(6 * DAY),
+  })
+  await teacher.put(`/activities/${activity.id}/rubric`, {
+    expectedAnswer:
+      'Algoritmo Mayor\n  Leer a, b\n  Si a > b Entonces\n    Escribir "El mayor es ", a\n  SiNo\n    Escribir "El mayor es ", b\n  FinSi\nFinAlgoritmo',
+    criteria: [
+      { name: 'Lee los dos números', maxPoints: 1, description: 'Usa Leer con dos variables' },
+      { name: 'Condición correcta', maxPoints: 2.5, description: 'Compara a > b (o equivalente) y elige bien la rama' },
+      { name: 'Muestra el mayor en ambos casos', maxPoints: 1.5, description: null },
+    ],
+  })
+  await teacher.post(`/activities/${activity.id}/publish`)
+  const submit = (student, text, files = []) =>
+    student.postForm(`/activities/${activity.id}/submissions`, fileForm({ text }, files.map((file) => ({ field: 'files', ...file }))))
+  const jpg = (name) => ({ name, type: 'image/jpeg', content: sampleFile(name) })
+
+  const submissions = [
+    await submit(students.ana, null, [jpg('cuaderno-legible.jpg')]),
+    await submit(students.bruno, null, [jpg('cuaderno-con-error.jpg')]),
+    await submit(students.david, null, [jpg('cuaderno-borroso.jpg')]),
+    await submit(students.camila, 'Algoritmo Mayor\n  Leer a, b\n  Si a >= b Entonces\n    Escribir "Mayor: ", a\n  SiNo\n    Escribir "Mayor: ", b\n  FinSi\nFinAlgoritmo'),
+    await submit(students.elena, null, [
+      {
+        name: 'mayor.psc',
+        type: 'text/plain',
+        content: Buffer.from('Algoritmo Mayor\r\n\tLeer a, b\r\n\tSi a > b Entonces\r\n\t\tEscribir a\r\n\tFinSi\r\nFinAlgoritmo\r\n', 'latin1'),
+      },
+    ]),
+    await submit(students.felipe, 'Adjunto el PDF exportado.', [
+      { name: 'mayor-felipe.pdf', type: 'application/pdf', content: pdf('Algoritmo Mayor · Felipe', ['Leer a, b', 'Si a > b Entonces', '  Escribir a']) },
+    ]),
+  ]
+  const states = await Promise.all(submissions.map((s) => teacher.get(`/submissions/${s.id}/grade`)))
+  const processing = states.filter((detail) => detail.grade.status === 'PROCESSING').length
+  log(`${STAGE6_TITLE}: 6 entregas (3 fotos, texto, archivo .psc y un PDF)`)
+  if (processing > 0) {
+    log(`${processing} entregas en la cola de la IA; el PDF pasó directo a Por revisar. Mira el avance en la bandeja Por revisar.`)
+  } else {
+    log('La IA está desactivada: las entregas quedaron en Por revisar. Al activarla, usa "Reintentar con IA" en cada una.')
+  }
+}
+
 async function idOf(session) {
   return (await session.get('/me')).id
 }
@@ -462,12 +527,15 @@ async function main() {
     throw new Error(`No hay respuesta en ${BASE}. ¿Está corriendo "docker compose up"?`)
   })
 
+  let existing = null
   try {
-    await Session.login(TEACHER.cedula, DEMO_PASSWORD)
-    console.log('Los datos de demostración ya están cargados (la docente de demostración ya existe). No se cambió nada.')
-    return
+    existing = await Session.login(TEACHER.cedula, DEMO_PASSWORD)
   } catch (error) {
     if (error.status !== 401 && error.status !== 400) throw error
+  }
+  if (existing) {
+    await addMissingStages(existing)
+    return
   }
 
   const cedula = process.env.LOGICODE_ADMIN_CEDULA || (await ask('Cédula de una cuenta inicial (privilegio completo): '))
@@ -480,8 +548,25 @@ async function main() {
   const course = await stage4(teacher)
   const students = await stage3Students(admin, teacher)
   await stage5(teacher, students, course)
+  await stage6(teacher, students, course)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
+}
+
+// Con datos de etapas anteriores ya cargados, agrega solo lo que falta (no necesita la cuenta inicial).
+async function addMissingStages(teacher) {
+  const courses = await teacher.get('/courses?size=50')
+  const course = (courses.items ?? courses).find((c) => c.name === 'Pensamiento Computacional · Grupo A')
+  if (!course) throw new Error('La docente de demostración existe, pero no se encontró su curso. Empieza de cero (ver README).')
+  const activities = await teacher.get(`/courses/${course.id}/activities`)
+  if (activities.some((a) => a.title === STAGE6_TITLE)) {
+    console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')
+    return
+  }
+  const students = {}
+  for (const [key, student] of Object.entries(STUDENTS)) students[key] = await Session.login(student.cedula, DEMO_PASSWORD)
+  await stage6(teacher, students, course)
+  console.log('\nListo: se agregaron los datos de la Etapa 6.')
 }
 
 main().catch((error) => {

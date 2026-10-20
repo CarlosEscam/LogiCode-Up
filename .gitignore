@@ -31,3 +31,10 @@ graphify-out/
 
 # Archivos cargados al ejecutar el backend fuera de Docker
 backend/file-storage/
+
+# Pruebas de aceptación de IA: fotos, muestras y resultados locales
+ia-pruebas/muestras/*.jpg
+ia-pruebas/muestras/*.jpeg
+ia-pruebas/muestras/*.png
+ia-pruebas/muestras/muestras.json
+ia-pruebas/resultados/

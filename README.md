@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 5 (actividades y entregas) implementada, pendiente de revisión.** Además del acceso (Etapa 3) y de cursos, temas y biblioteca (Etapa 4), hay actividades con rúbrica versionada, apertura, cierre, porcentaje e intentos; entregas por texto, archivo o foto; bandeja Por revisar con calificación manual e historial; y excepciones de plazo o segundo intento. Calificación con IA, quizzes, juegos, foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 6 (calificación con IA) implementada, pendiente de revisión y de las pruebas de aceptación en el equipo de referencia.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4) y actividades, entregas y calificación manual (Etapa 5), las entregas escritas, en foto o en `.psc`/`.ino` se califican en segundo plano con Ollama + Qwen2.5-VL 7B: con contenido legible y confianza de 80 % o más la nota se publica sola; si no, espera la confirmación docente. La IA viene apagada por defecto. Calificación determinista, quizzes, juegos, foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -61,6 +61,11 @@ Para desarrollar fuera de Docker (opcional):
 | `BREVO_SENDER_NAME` | `LogiCode` | Nombre del remitente en Brevo |
 | `LOGICODE_FILE_RETENTION_MONTHS` | `6` | Meses que se conserva cada archivo cargado (mínimo 6) |
 | `LOGICODE_FILES_DIR` | `file-storage` | Solo al ejecutar el backend fuera de Docker: carpeta de los archivos cargados |
+| `LOGICODE_AI_ENABLED` | `false` | `true` califica con IA (ver "Calificación con IA") |
+| `LOGICODE_AI_MODEL` | `qwen2.5vl:7b` | Modelo de Ollama |
+| `LOGICODE_AI_TIMEOUT` | `10m` | Tiempo máximo por evaluación |
+| `LOGICODE_AI_MAX_ATTEMPTS` | `3` | Intentos ante fallos técnicos antes de pasar la entrega al docente |
+| `LOGICODE_AI_OLLAMA_URL` | `http://localhost:11434` | Solo al ejecutar el backend fuera de Docker (en Docker es `http://ollama:11434`) |
 
 La API key y el remitente de Brevo son **secretos de Docker**, nunca variables de `.env` (ver "Correo real con Brevo").
 
@@ -106,6 +111,24 @@ En Linux, si el backend no puede escribir en `.local/mail-outbox`, crea la carpe
    docker compose -f docker-compose.yml -f docker-compose.brevo.yml up --build
    ```
 
+### Calificación con IA
+
+La IA viene apagada: las entregas van a Por revisar para calificación manual. Para encenderla (Windows, desde la carpeta del proyecto):
+
+1. En `.env`, pon `LOGICODE_AI_ENABLED=true`.
+2. Arranca también Ollama y descarga el modelo una sola vez (unos 6 GB, quedan en el volumen `ollama-models`):
+
+   ```powershell
+   docker compose --profile ia up -d --build --wait
+   docker compose exec ollama ollama pull qwen2.5vl:7b
+   docker compose exec ollama ollama show qwen2.5vl:7b
+   ```
+
+   `ollama show` debe indicar `Q4_K_M`, la variante aprobada.
+3. Desde entonces, arranca siempre con `docker compose --profile ia up -d`. Para apagarla, vuelve a `false` y reinicia el backend; lo que estaba en cola pasa al docente.
+
+Con la IA encendida, la entrega aparece como "Calificando con IA" y se procesa de a una. En el equipo de referencia (Ryzen 7 5700U, 32 GB, sin GPU) una foto puede tardar varios minutos. Las pruebas de aceptación del modelo se ejecutan con [ia-pruebas/README.md](ia-pruebas/README.md).
+
 ### Desarrollo con recarga rápida
 
 ```bash
@@ -145,11 +168,11 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   ├── courses/                 Etapa 4: cursos e inscripción por cédula
 │   │   ├── content/                 Etapa 4: temas, materiales, biblioteca, vista previa y descarga
 │   │   ├── activities/              Etapa 5: actividades, entregas y excepciones de plazo
-│   │   ├── grading/                 Etapa 5: rúbricas versionadas, notas, Por revisar e historial
+│   │   ├── grading/                 Etapas 5-6: rúbricas versionadas, notas, Por revisar, historial y calificación con IA
 │   │   └── quizzes/ games/ forum/ administration/   Módulos pendientes (solo descripción)
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
@@ -159,9 +182,10 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
 ├── datos-demo/                      Script de datos de demostración (se amplía en cada etapa)
+├── ia-pruebas/                      Arnés de pruebas de aceptación de la IA (muestras y resultados fuera de Git)
 ├── docs/                            Diseño técnico, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
-├── docker-compose.yml               db + backend + frontend
+├── docker-compose.yml               db + backend + frontend (+ ollama con el perfil ia)
 ├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
 └── .env.example                     Variables de ejemplo (sin secretos)
 ```
@@ -175,4 +199,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 5 en [docs/estado.md](docs/estado.md). Siguen abiertas P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 6 · Calificación determinista e IA** (Ollama + Qwen2.5-VL 7B en Docker).
+Revisar la Etapa 6 en [docs/estado.md](docs/estado.md) y ejecutar las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)). Siguen abiertas P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 7 · Quizzes, PSeInt y juegos**, que incluye la calificación determinista con casos de prueba (T-48).

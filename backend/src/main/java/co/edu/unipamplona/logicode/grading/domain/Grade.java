@@ -14,8 +14,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 /**
- * Nota de una entrega (RN-06: 0,0 a 5,0 con un decimal). Nace en la bandeja Por revisar con la versión de rúbrica
- * vigente; al calificar se publica, y cada corrección queda en el historial (RF-17).
+ * Nota de una entrega (RN-06: 0,0 a 5,0 con un decimal). Nace con la versión de rúbrica vigente, en evaluación con IA
+ * o en la bandeja Por revisar; al calificar se publica, y cada corrección queda en el historial (RF-17).
  */
 @Entity
 @Table(name = "grade")
@@ -35,6 +35,10 @@ public class Grade {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GradeStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "review_reason")
+    private ReviewReason reviewReason;
 
     private BigDecimal score;
 
@@ -70,6 +74,40 @@ public class Grade {
         this.updatedAt = now;
     }
 
+    /** Nota que espera al docente desde el inicio, con el motivo (IA desactivada o formato no compatible). */
+    public static Grade forReview(UUID submissionId, UUID rubricVersionId, ReviewReason reason, Instant now) {
+        Grade grade = new Grade(submissionId, rubricVersionId, now);
+        grade.reviewReason = reason;
+        return grade;
+    }
+
+    /** Nota que la IA evaluará en segundo plano. */
+    public static Grade forAi(UUID submissionId, UUID rubricVersionId, Instant now) {
+        Grade grade = new Grade(submissionId, rubricVersionId, now);
+        grade.status = GradeStatus.PROCESSING;
+        return grade;
+    }
+
+    /** Vuelve a evaluar con IA una nota que espera al docente. Una nota publicada solo la corrige el docente. */
+    public void startAiEvaluation(Instant now) {
+        if (status != GradeStatus.PENDING_REVIEW) {
+            throw new IllegalStateException("Solo se evalúa con IA una nota en Por revisar");
+        }
+        this.status = GradeStatus.PROCESSING;
+        this.reviewReason = null;
+        this.updatedAt = now;
+    }
+
+    /** La evaluación con IA no publicó la nota: pasa a confirmación docente con el motivo. */
+    public void sendToReview(ReviewReason reason, Instant now) {
+        if (status != GradeStatus.PROCESSING) {
+            throw new IllegalStateException("Solo pasa a Por revisar una nota en evaluación");
+        }
+        this.status = GradeStatus.PENDING_REVIEW;
+        this.reviewReason = reason;
+        this.updatedAt = now;
+    }
+
     public static boolean isValidScore(BigDecimal score) {
         return score != null && score.signum() >= 0 && score.compareTo(MAX_SCORE) <= 0
                 && score.stripTrailingZeros().scale() <= 1;
@@ -88,12 +126,17 @@ public class Grade {
         this.gradedBy = gradedBy;
         this.gradedAt = now;
         this.status = GradeStatus.PUBLISHED;
+        this.reviewReason = null;
         this.updatedAt = now;
         return change;
     }
 
     public boolean isPublished() {
         return status == GradeStatus.PUBLISHED;
+    }
+
+    public boolean isProcessing() {
+        return status == GradeStatus.PROCESSING;
     }
 
     public UUID getId() {
@@ -110,6 +153,10 @@ public class Grade {
 
     public GradeStatus getStatus() {
         return status;
+    }
+
+    public ReviewReason getReviewReason() {
+        return reviewReason;
     }
 
     public BigDecimal getScore() {

@@ -31,6 +31,10 @@ public class ActivityCatalog {
             String studentName, int attempt, Instant submittedAt, boolean late) {
     }
 
+    /** Lo entregado: respuesta escrita y archivos en el orden en que se cargaron. */
+    public record SubmissionContent(String textAnswer, List<UUID> fileIds) {
+    }
+
     private final ActivityRepository activities;
     private final SubmissionRepository submissions;
     private final ActivityAccess access;
@@ -83,6 +87,12 @@ public class ActivityCatalog {
     @Transactional(readOnly = true)
     public Optional<SubmissionInfo> submission(UUID submissionId) {
         return Optional.ofNullable(submissions(List.of(submissionId)).get(submissionId));
+    }
+
+    /** Contenido de la entrega, para evaluarla con IA. */
+    @Transactional(readOnly = true)
+    public Optional<SubmissionContent> content(UUID submissionId) {
+        return submissions.findById(submissionId).map(s -> new SubmissionContent(s.getTextAnswer(), s.getFileIds()));
     }
 
     /** Entregas de una actividad, para consultar sus notas. */

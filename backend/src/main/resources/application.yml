@@ -77,6 +77,19 @@ logicode:
     provider: ${LOGICODE_MAIL_PROVIDER:outbox}
     outbox-dir: ${LOGICODE_MAIL_OUTBOX_DIR:mail-outbox}
     sender-name: ${BREVO_SENDER_NAME:LogiCode}
+  ai:
+    # Calificación con IA (Etapa 6): Ollama + Qwen2.5-VL 7B. Apagada, las entregas pasan a Por revisar.
+    enabled: ${LOGICODE_AI_ENABLED:false}
+    ollama-url: ${LOGICODE_AI_OLLAMA_URL:http://localhost:11434}
+    model: ${LOGICODE_AI_MODEL:qwen2.5vl:7b}
+    timeout: ${LOGICODE_AI_TIMEOUT:10m}
+    keep-alive: ${LOGICODE_AI_KEEP_ALIVE:30m}
+    context-tokens: ${LOGICODE_AI_CONTEXT_TOKENS:16384}
+    max-image-side: ${LOGICODE_AI_MAX_IMAGE_SIDE:1280}
+    max-attempts: ${LOGICODE_AI_MAX_ATTEMPTS:3}
+    retry-delay: ${LOGICODE_AI_RETRY_DELAY:2m}
+    poll-interval: ${LOGICODE_AI_POLL_INTERVAL:5s}
+    worker-enabled: true
 
 management:
   endpoints:

@@ -1,5 +1,7 @@
 # LogiCode · ejecución local completa con Docker Compose.
 # Uso: copiar .env.example a .env, ajustar valores y ejecutar `docker compose up --build`.
+# Con calificación por IA: LOGICODE_AI_ENABLED=true en .env y `docker compose --profile ia up --build`
+# (ver README, sección "Calificación con IA").
 name: logicode
 
 services:
@@ -47,6 +49,12 @@ services:
       # Archivos de materiales en el volumen file-storage; se conservan como mínimo 6 meses (RN-21).
       LOGICODE_FILES_DIR: /var/lib/logicode/files
       LOGICODE_FILE_RETENTION_MONTHS: ${LOGICODE_FILE_RETENTION_MONTHS:-6}
+      # Calificación con IA (Etapa 6): Ollama + Qwen2.5-VL 7B en el servicio ollama (perfil ia).
+      LOGICODE_AI_ENABLED: ${LOGICODE_AI_ENABLED:-false}
+      LOGICODE_AI_OLLAMA_URL: http://ollama:11434
+      LOGICODE_AI_MODEL: ${LOGICODE_AI_MODEL:-qwen2.5vl:7b}
+      LOGICODE_AI_TIMEOUT: ${LOGICODE_AI_TIMEOUT:-10m}
+      LOGICODE_AI_MAX_ATTEMPTS: ${LOGICODE_AI_MAX_ATTEMPTS:-3}
       # Cuentas iniciales con privilegio completo (D-03). Sus datos reales solo van en .env.
       INITIAL_ADMIN_1_CEDULA: ${INITIAL_ADMIN_1_CEDULA:-}
       INITIAL_ADMIN_1_NAME: ${INITIAL_ADMIN_1_NAME:-}
@@ -59,6 +67,19 @@ services:
       - ./.local/mail-outbox:/var/lib/logicode/mail-outbox
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+
+  # Modelo de IA local (RN-11, RN-18). Solo arranca con `--profile ia`; el modelo se descarga una vez con
+  # `docker compose exec ollama ollama pull qwen2.5vl:7b` y queda en el volumen ollama-models.
+  ollama:
+    image: ollama/ollama:0.35.1
+    profiles: ["ia"]
+    restart: unless-stopped
+    environment:
+      # Un modelo cargado y una evaluación a la vez: en CPU no gana nada atender en paralelo.
+      OLLAMA_MAX_LOADED_MODELS: 1
+      OLLAMA_NUM_PARALLEL: 1
+    volumes:
+      - ollama-models:/root/.ollama
 
   frontend:
     build: ./frontend
@@ -73,3 +94,5 @@ volumes:
   db-data:
   # Archivos cargados (materiales). Inclúyelo en las copias de seguridad junto con db-data.
   file-storage:
+  # Modelos descargados por Ollama (unos 6 GB para Qwen2.5-VL 7B Q4_K_M).
+  ollama-models:

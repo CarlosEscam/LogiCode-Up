@@ -12,22 +12,22 @@ flowchart LR
     U[Navegador] -->|HTTP :3000| N[Nginx + React compilado]
     N -->|/api/v1/*| B[Backend Spring Boot :8080]
     B -->|JDBC| P[(PostgreSQL 17)]
-    B -.->|Etapa 4/5| F[(Almacenamiento de archivos)]
-    B -.->|Etapa 3| M[Brevo · correo transaccional]
-    B -.->|Etapa 6| O[Ollama + Qwen2.5-VL 7B]
+    B -->|disco local| F[(Almacenamiento de archivos)]
+    B -->|HTTPS| M[Brevo · correo transaccional]
+    B -.->|HTTP :11434, perfil ia| O[Ollama + Qwen2.5-VL 7B]
 ```
 
-Las líneas punteadas son integraciones aprobadas en la especificación que **todavía no están implementadas**.
+La línea punteada es opcional: Ollama solo corre con `docker compose --profile ia` y `LOGICODE_AI_ENABLED=true` (T-45). El correo usa `outbox` (archivos) mientras no se configure el remitente de Brevo (P-06).
 
 | Capa (especificación) | Implementación en el repositorio | Estado |
 | --- | --- | --- |
 | 1. Presentación | `frontend/` React 19 + Vite, JavaScript, CSS propio responsive | Implementada la base |
 | 2. Borde y entrega | Nginx en la imagen del frontend: sirve estáticos y reenvía `/api` al backend | Implementada la base (sin TLS: solo local) |
 | 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI (springdoc) | Implementada la base |
-| 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada para identidad y permisos (Etapa 3) |
-| 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL | Pendiente (Etapas 5 y 6) |
-| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones V1 y V2) |
-| 7. Almacenamiento | PostgreSQL; archivos en almacenamiento de objetos o volumen local | PostgreSQL listo; archivos pendientes |
+| 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada hasta la Etapa 6 (identidad, cursos, contenido, actividades, calificación) |
+| 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL (`ai_grading_job`) | Implementada para la calificación con IA (Etapa 6) |
+| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones V1 a V5) |
+| 7. Almacenamiento | PostgreSQL; archivos en almacenamiento de objetos o volumen local | PostgreSQL y disco local (volumen de Docker, P-05) |
 | 8. Infraestructura | `docker-compose.yml`: `db`, `backend`, `frontend` con health checks | Implementada |
 
 ## Backend: módulos y capas
@@ -54,7 +54,7 @@ co.edu.unipamplona.logicode
 ├── courses/           Etapa 4 · cursos, docente responsable, inscripción por cédula, reglas de acceso (CourseAccess)
 ├── content/           Etapa 4 · temas, materiales, próxima clase, biblioteca, vista previa y descarga
 ├── activities/        Etapa 5 · actividades, plazos, entregas, excepciones; define el puerto GradingGateway
-├── grading/           Etapa 5 · rúbricas versionadas, notas, Por revisar, historial (IA en la 6, planilla en la 8)
+├── grading/           Etapas 5-6 · rúbricas versionadas, notas, Por revisar, historial, calificación con IA (planilla en la 8)
 ├── quizzes/           Etapa 7 · quizzes, banco de preguntas, ranking
 ├── games/             Etapa 7 · juegos de bloques
 ├── forum/             Etapa 8 · foro y moderación
@@ -116,6 +116,30 @@ Regla: la interfaz muestra estado y recoge acciones; **no decide permisos, notas
 
 En desarrollo, Vite reenvía `/api` a `http://localhost:8080`; en Docker lo hace Nginx. En ambos casos el navegador ve un único origen, por lo que no se configura CORS.
 
-## Procesos en segundo plano (diseño para Etapas 5-6)
+## Procesos en segundo plano (Etapa 6)
 
-Según la especificación: tabla de trabajos en PostgreSQL y worker dentro del mismo backend; RabbitMQ solo como opción de crecimiento. Diseño previsto: tabla `background_job` (tipo, estado, intentos, próxima ejecución, error), toma de trabajos con `SELECT ... FOR UPDATE SKIP LOCKED`, reintentos con espera creciente y clave de idempotencia para no duplicar calificaciones. No implementado.
+Tabla de trabajos en PostgreSQL y worker dentro del mismo backend, como pide la especificación; RabbitMQ queda como opción de crecimiento (T-38).
+
+```mermaid
+sequenceDiagram
+    participant E as Estudiante
+    participant API as Backend (API)
+    participant DB as PostgreSQL
+    participant W as Worker (mismo backend)
+    participant O as Ollama
+    E->>API: POST /activities/{id}/submissions
+    API->>DB: entrega + nota PROCESSING + ai_grading_job PENDING
+    API-->>E: 201 (la interfaz consulta cada 10 s)
+    loop cada 5 s
+        W->>DB: toma un trabajo (FOR UPDATE SKIP LOCKED, token de toma)
+    end
+    W->>O: /api/chat con rúbrica, texto e imágenes (fuera de transacción)
+    O-->>W: JSON con puntos por criterio, legibilidad y confianza
+    W->>DB: ai_evaluation + nota PUBLISHED o PENDING_REVIEW
+```
+
+- **Toma:** `lockNext` usa `FOR UPDATE SKIP LOCKED`; cada toma recibe un `claim_token`. Un trabajo `RUNNING` cuyo bloqueo pasó de `timeout + 2 min` se retoma, y el resultado viejo se descarta porque su token ya no coincide.
+- **Reintentos:** un fallo técnico se reintenta hasta `LOGICODE_AI_MAX_ATTEMPTS` veces con espera `RETRY_DELAY × intento`; al agotarse, la nota pasa a Por revisar con motivo `AI_FAILED` y sin nota (RN-11).
+- **Decisión:** el dominio (`AiGradingPolicy`) calcula la nota con la rúbrica y publica solo si el contenido es legible y la confianza es de 80 % o más; si no, la propuesta espera al docente (RN-09, RN-10).
+- **Sin IA:** con `LOGICODE_AI_ENABLED=false` no hay worker; las entregas van a Por revisar como `AI_DISABLED` y los trabajos pendientes se liberan al arrancar (`AiQueueRelease`).
+- **Integración:** el puerto `GradingProvider` (aplicación) lo implementa `OllamaGradingAdapter` (infraestructura). Las fotos se enderezan y reducen en `ImagePreparer`.
