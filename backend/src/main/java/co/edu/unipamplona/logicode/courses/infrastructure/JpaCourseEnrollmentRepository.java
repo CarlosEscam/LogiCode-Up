@@ -21,6 +21,9 @@ interface JpaCourseEnrollmentRepository extends JpaRepository<CourseEnrollment, 
 
     long countByCourseId(UUID courseId);
 
+    @Query("select e.cedula from CourseEnrollment e where e.courseId = :courseId order by e.cedula")
+    List<String> findCedulasByCourseId(UUID courseId);
+
     @Modifying
     @Query("delete from CourseEnrollment e where e.courseId = :courseId and e.cedula = :cedula")
     void deleteByCourseIdAndCedula(UUID courseId, String cedula);

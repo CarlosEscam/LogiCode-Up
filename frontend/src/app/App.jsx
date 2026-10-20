@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import AccountPage from '../features/account/AccountPage.jsx'
 import { roleLabel } from '../features/account/labels.js'
+import ActivityPage from '../features/activities/ActivityPage.jsx'
+import SubmissionPage from '../features/activities/SubmissionPage.jsx'
 import AuditPage from '../features/admin/AuditPage.jsx'
 import EnablementsPage from '../features/admin/EnablementsPage.jsx'
 import UsersPage from '../features/admin/UsersPage.jsx'
@@ -37,6 +39,8 @@ const ROUTES = {
   '/materiales/:id': { access: 'public', render: ({ id }) => <MaterialPage key={id} id={id} /> },
   '/cursos': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: () => <CoursesPage /> },
   '/cursos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <CoursePage key={id} id={id} /> },
+  '/actividades/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <ActivityPage key={id} id={id} /> },
+  '/entregas/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <SubmissionPage key={id} id={id} /> },
   '/admin/usuarios': { access: ['MANAGE_USERS', 'APPROVE_TEACHERS'], render: () => <UsersPage /> },
   '/admin/habilitaciones': { access: ['MANAGE_STUDENT_ENABLEMENTS'], render: () => <EnablementsPage /> },
   '/admin/auditoria': { access: ['VIEW_AUDIT'], render: () => <AuditPage /> },

@@ -22,6 +22,7 @@
 | `V1__linea_base.sql` | Línea base: no crea tablas de negocio. Flyway crea su tabla `flyway_schema_history` |
 | `V2__identidad_y_acceso.sql` | Etapa 3: cuentas, tokens de un solo uso, límites de recuperación, cédulas habilitadas, auditoría y sesiones (`spring_session`, `spring_session_attributes`) |
 | `V3__cursos_temas_y_biblioteca.sql` | Etapa 4: cursos, inscripciones, archivos cargados, temas y materiales |
+| `V4__actividades_y_entregas.sql` | Etapa 5: actividades, entregas y sus archivos, excepciones de plazo, versiones de rúbrica con criterios, notas e historial de notas |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -147,3 +148,79 @@ erDiagram
 - **RN-03 / RN-17**: un material privado solo lo ven los inscritos (por cédula), el docente responsable y las cuentas Administrador. Para los demás responde `404`.
 - **RNF-04 / RN-21**: `files` comprueba la extensión permitida para el tipo de material, el tamaño (500 MB; 1 GB videos) y la firma del contenido antes de guardar.
 - **RNF-12**: temas y materiales se archivan (`archived_at`); el archivo se conserva al menos hasta `retain_until`.
+
+## Actividades, entregas y notas (Etapa 5, implementado)
+
+```mermaid
+erDiagram
+    course ||--o{ activity : "tiene"
+    activity ||--o{ submission : "recibe"
+    submission ||--o{ submission_file : "adjunta"
+    stored_file ||--o{ submission_file : "archivo"
+    activity ||--o{ deadline_exception : "ajusta"
+    activity ||--o{ rubric_version : "versiona"
+    rubric_version ||--o{ rubric_criterion : "criterios"
+    submission ||--|| grade : "nota"
+    rubric_version ||--o{ grade : "evalúa con"
+    grade ||--o{ grade_change : "historial"
+
+    activity {
+        uuid id PK
+        uuid course_id FK
+        varchar kind "TASK | WORKSHOP | EXAM"
+        text statement
+        boolean accepts_text
+        boolean accepts_files
+        boolean accepts_photos
+        varchar accepted_files "grupos: DOCUMENTS, PRESENTATIONS, IMAGES, VIDEOS, TOOL_FILES"
+        numeric weight_percent "opcional; suma del curso <= 100"
+        timestamptz opens_at
+        timestamptz closes_at "posterior a opens_at"
+        int max_attempts "1 a 10"
+        varchar status "DRAFT | PUBLISHED"
+        timestamptz archived_at
+    }
+    submission {
+        uuid id PK
+        uuid activity_id FK
+        uuid student_id FK
+        int attempt "UK con actividad y estudiante"
+        text text_answer
+        timestamptz submitted_at
+        boolean late "después del cierre original"
+    }
+    deadline_exception {
+        uuid id PK
+        uuid activity_id FK
+        uuid student_id FK "UK con activity_id"
+        timestamptz extended_until
+        int extra_attempts "0 a 10"
+        varchar reason
+    }
+    rubric_version {
+        uuid id PK
+        uuid activity_id FK
+        int number "UK con activity_id"
+        text statement "copia del enunciado vigente"
+        text expected_answer
+    }
+    grade {
+        uuid id PK
+        uuid submission_id FK "UK"
+        uuid rubric_version_id FK
+        varchar status "PENDING_REVIEW | PUBLISHED"
+        numeric score "0,0 a 5,0"
+        varchar source "TEACHER | AI"
+    }
+    grade_change {
+        uuid id PK
+        uuid grade_id FK
+        numeric previous_score
+        numeric new_score
+        uuid changed_by FK
+    }
+```
+
+- **RN-20**: cada entrega guarda en `grade.rubric_version_id` la versión vigente al enviarla; editar la rúbrica o el enunciado crea una fila nueva en `rubric_version`.
+- **RN-05**: la actividad vencida sin entrega no tiene fila: el estado `OVERDUE` (0,0) se calcula al consultar (T-32).
+- Las entregas y las notas no se borran; archivar la actividad solo la oculta.

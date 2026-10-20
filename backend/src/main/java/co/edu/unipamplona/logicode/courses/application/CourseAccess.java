@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <li>Administra el contenido: el docente responsable o una cuenta con privilegio completo.</li>
  * <li>Ve el contenido privado: los inscritos, el docente responsable y las cuentas Administrador.</li>
  * <li>Inscribe estudiantes: quien administra el curso o una cuenta Administrador.</li>
+ * <li>Califica: el docente responsable o una cuenta con privilegio completo; consulta entregas y notas también una
+ * cuenta Administrador.</li>
  * </ul>
  */
 @Service
@@ -72,6 +74,24 @@ public class CourseAccess {
         return courses.findById(courseId).map(c -> canViewPrivate(actor, c)).orElse(false);
     }
 
+    /** Estudiante inscrito en el curso (por su cédula). */
+    @Transactional(readOnly = true)
+    public boolean isEnrolled(Actor actor, UUID courseId) {
+        return actor != null && enrollments.exists(courseId, actor.cedula());
+    }
+
+    /** Califica y ajusta notas del curso: su docente responsable o una cuenta con privilegio completo. */
+    @Transactional(readOnly = true)
+    public boolean canGrade(Actor actor, UUID courseId) {
+        return courses.findById(courseId).map(c -> canGrade(actor, c)).orElse(false);
+    }
+
+    /** Consulta entregas y notas de todo el curso: su docente responsable y las cuentas Administrador. */
+    @Transactional(readOnly = true)
+    public boolean canViewCourseWork(Actor actor, UUID courseId) {
+        return courses.findById(courseId).map(c -> canViewCourseWork(actor, c)).orElse(false);
+    }
+
     /** Cursos cuyo contenido privado puede ver el actor; vacío para un visitante. */
     @Transactional(readOnly = true)
     public Set<UUID> viewableCourseIds(Actor actor) {
@@ -91,6 +111,16 @@ public class CourseAccess {
     boolean canManageContent(Actor actor, Course course) {
         return actor != null && actor.can(Permission.MANAGE_COURSE_CONTENT)
                 && (actor.fullPrivileges() || course.isOwnedBy(actor.userId()));
+    }
+
+    boolean canGrade(Actor actor, Course course) {
+        return actor != null && actor.can(Permission.GRADE)
+                && (actor.fullPrivileges() || course.isOwnedBy(actor.userId()));
+    }
+
+    boolean canViewCourseWork(Actor actor, Course course) {
+        return actor != null && actor.can(Permission.VIEW_COURSE_GRADES)
+                && (isStaff(actor) || course.isOwnedBy(actor.userId()));
     }
 
     boolean canManageEnrollments(Actor actor, Course course) {

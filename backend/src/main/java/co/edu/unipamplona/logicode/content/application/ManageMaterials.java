@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class ManageMaterials {
                 throw ApplicationException.businessRule("Adjunta el archivo del material.");
             }
             StoredFileInfo file = fileStore.store(upload.content(), upload.originalName(), actor.userId(),
-                    MaterialFormats.acceptedFor(data.kind()));
+                    Set.of(MaterialFormats.acceptedFor(data.kind())));
             material = Material.file(topicId, title, description, data.kind(), visibility, position, file.id(),
                     actor.userId(), now);
         }

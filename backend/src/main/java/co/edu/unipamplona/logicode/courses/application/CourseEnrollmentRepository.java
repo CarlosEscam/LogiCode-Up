@@ -18,5 +18,7 @@ public interface CourseEnrollmentRepository {
 
     long countByCourse(UUID courseId);
 
+    List<String> cedulasOf(UUID courseId);
+
     void delete(UUID courseId, String cedula);
 }

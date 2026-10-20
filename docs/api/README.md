@@ -106,10 +106,33 @@ Todas requieren sesión salvo las marcadas como públicas. Lo que la cuenta no p
 | `GET /api/v1/library` | **Público.** Búsqueda paginada: `q`, `tool`, `topicId`, `kind`, `page`, `size` |
 | `GET /api/v1/library/topics` | **Público.** Temas con materiales visibles, para los filtros |
 
+### Implementados (Etapa 5 · Actividades y entregas)
+
+Todas requieren sesión. Lo que la cuenta no puede ver responde `404`; lo que ve pero no puede hacer, `403`. Fechas en ISO 8601 (UTC).
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/courses/{id}/activities` | Actividades por fecha de cierre; borradores solo para el docente. Para un estudiante inscrito incluye `progress` (estado `NOT_OPEN`, `OPEN`, `SUBMITTED` u `OVERDUE`, intentos, plazo efectivo) |
+| `POST /api/v1/courses/{id}/activities` | Crear borrador `{title, kind, statement, acceptsText, acceptsFiles, acceptsPhotos, fileGroups, weightPercent, opensAt, closesAt, maxAttempts}`; `422` si los porcentajes del curso pasan de 100 % |
+| `GET/PUT/DELETE /api/v1/activities/{id}` | Consultar, editar (cambiar el enunciado crea versión de rúbrica) o archivar |
+| `POST /api/v1/activities/{id}/publish` | Publicar; `422` sin rúbrica |
+| `GET/PUT /api/v1/activities/{id}/rubric` | Rúbrica vigente (`204` si no hay; el estudiante no recibe `expectedAnswer`) · definir `{expectedAnswer, criteria: [{name, description, maxPoints}]}` crea una versión |
+| `GET /api/v1/activities/{id}/rubric/versions` | Todas las versiones (docente y Administradores) |
+| `POST /api/v1/activities/{id}/submissions` | Entregar en `multipart/form-data`: `text` y hasta 5 `files`. `201` con el intento; `422` si está cerrada, sin intentos o vacía. En la Etapa 6 pasará a `202 Accepted` cuando la IA procese en segundo plano |
+| `GET /api/v1/activities/{id}/submissions/mine` | Mis intentos |
+| `GET /api/v1/activities/{id}/submissions` | Inscritos con su situación, último intento y excepción (docente y Administradores) |
+| `PUT/DELETE /api/v1/activities/{id}/exceptions/{studentId}` | Excepción `{extendedUntil, extraAttempts, reason}` o quitarla (docente del curso) |
+| `GET /api/v1/activities/{id}/grades` | Todos los intentos con su nota (docente y Administradores) |
+| `GET /api/v1/submissions/{id}` | Detalle de la entrega (autor, docente, Administradores) |
+| `GET /api/v1/submissions/{id}/files/{fileId}/preview` · `/download` | Archivo de la entrega en línea o descarga |
+| `GET /api/v1/submissions/{id}/grade` | Nota con la versión de rúbrica usada; historial solo para docente y Administradores; el estudiante ve nota y retroalimentación solo publicadas |
+| `POST /api/v1/submissions/{id}/grade` | Calificar o corregir `{score, feedback}` (0,0 a 5,0, un decimal; docente del curso) |
+| `GET /api/v1/courses/{id}/review-queue` | Bandeja Por revisar: último intento de cada estudiante sin nota |
+| `GET /api/v1/courses/{id}/grades/mine` | Mis notas en el curso (último intento de cada actividad) |
+
 ### Etapas siguientes (de la especificación, pendientes)
 
 | Recurso | Operaciones |
 | --- | --- |
-| Actividades y entregas | `GET/POST /api/v1/activities` · `POST /api/v1/activities/{id}/submissions` (`202 Accepted`) |
-| Evaluación | `GET /api/v1/submissions/{id}/grading` · `POST /api/v1/submissions/{id}/grade/confirm` |
+| Evaluación con IA (Etapa 6) | `GET /api/v1/submissions/{id}/grading` · confirmación docente de resultados con confianza menor a 80 % |
 | Foro | `GET/POST /api/v1/forum/threads` · `PATCH /api/v1/forum/threads/{id}` |

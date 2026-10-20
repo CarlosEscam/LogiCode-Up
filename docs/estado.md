@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 19 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 4 (curso, temas y biblioteca)**
+Última actualización: 20 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 5 (actividades y entregas)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -12,8 +12,39 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 1 · Análisis y diseño | Diseño técnico mínimo hecho | Pendientes de la etapa completa: casos de uso, historias con criterios de aceptación, maquetas, rúbricas y prueba de lectura manuscrita |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
 | 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06) y carga desde Excel (P-07) |
-| 4 · Curso, temas y biblioteca | Implementada, pendiente de revisión | Detalle abajo. Almacenamiento local como opción por defecto mientras se decide P-05 |
-| 5 a 10 | Pendientes | Actividades, calificación, quizzes, juegos, foro y demás aún no existen |
+| 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
+| 5 · Actividades y entregas | Implementada, pendiente de revisión | Detalle abajo. Calificación manual del docente; la IA llega en la Etapa 6 |
+| 6 a 10 | Pendientes | Calificación con IA, quizzes, juegos, foro, planilla y demás aún no existen |
+
+## Etapa 5 · detalle
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Crear actividad (RF-10) | Implementado | `POST /courses/{id}/activities` crea un borrador; `PUT /activities/{id}` edita; `DELETE` archiva. Pestaña Actividades del curso y página `/actividades/{id}` |
+| Apertura, cierre, porcentaje, tipo de entrega e intentos (RF-11) | Implementado | Tipo (tarea, taller, evaluación), texto, archivos (grupos de formatos) o fotos, porcentaje opcional, 1 a 10 intentos. Las fechas se escriben y muestran en hora de Colombia |
+| Suma de porcentajes ≤ 100 % (RN-07) | Implementado | Crear o editar responde `422` con el disponible si se pasa |
+| Rúbrica versionada (RN-20) | Implementado | `PUT /activities/{id}/rubric` (criterios con puntos y respuesta esperada) crea una versión; cambiar el enunciado también. Sin rúbrica no se publica. Cada entrega queda ligada a la versión vigente al enviarla |
+| Entrega por texto, archivo o foto (RF-13) | Implementado | `POST /activities/{id}/submissions` (multipart, hasta 5 archivos, con avance de carga). Se valida el formato real con el módulo `files` |
+| Historial de entregas (RF-17, RF-19) | Implementado | Intentos del estudiante (`/submissions/mine`), lista de inscritos con su situación (`/submissions`), detalle `/entregas/{id}` con vista previa y descarga con permisos |
+| Bandeja Por revisar | Implementado | `GET /courses/{id}/review-queue`: último intento de cada estudiante sin nota. Pestaña Por revisar del curso |
+| Calificación e historial de nota (RN-06, RN-09) | Implementado (manual) | `POST /submissions/{id}/grade`: nota 0,0 a 5,0 con un decimal y retroalimentación; corregir deja historial. La calificación con IA es de la Etapa 6 |
+| Vencida sin entrega = 0,0 (RN-05) | Implementado | Estado `OVERDUE` calculado; se muestra 0,0 al estudiante y al docente |
+| Excepciones de plazo y segundo intento (RF-11, RN-05) | Implementado | `PUT/DELETE /activities/{id}/exceptions/{studentId}`: nuevo plazo (también para reabrir después del cierre) e intentos adicionales. La entrega fuera del plazo original queda marcada "tarde" |
+| Administrador ordinario (RN-04) | Implementado | Ve actividades, entregas, notas y la bandeja; crear, calificar o dar excepciones responde `403` |
+| Estudiante ve pendientes, entregadas, calificadas y en revisión (RF-19) | Implementado | Situación en cada actividad; la nota y la retroalimentación solo cuando están publicadas |
+
+### Verificación realizada (Etapa 5)
+
+- Backend: `./mvnw verify` → 66 pruebas en verde (43 unitarias y 23 de integración). `ActivityFlowsIT` recorre con PostgreSQL real y un reloj que se adelanta: borrador invisible para el estudiante, publicar sin rúbrica (`422`), porcentajes sobre 100 % (`422`), entrega con PDF, foto no aceptada, sin intentos, estudiante externo (`404`), docente intentando entregar (`403`), bandeja Por revisar, calificación, corrección con historial, nota visible para el estudiante sin la respuesta esperada, nueva versión de rúbrica al cambiar el enunciado, cierre vencido (0,0), fecha de excepción en el pasado (`422`), reapertura y segundo intento marcados como tarde, archivo de la actividad. `StudentProgressTest` y `GradeTest` cubren las reglas de fechas, intentos y escala.
+- Frontend: `npm run lint`, `npm test` (16 pruebas) y `npm run build` en verde.
+- Docker Compose (base de datos en versión 4), recorrido por Nginx: el docente crea la actividad en la interfaz, la publicación sin rúbrica se rechaza, define la rúbrica y publica; la estudiante entrega texto y PDF desde el celular; el docente califica 4,5 desde Por revisar, ve el historial y da un segundo intento; la estudiante ve su nota y puede volver a entregar. Escritorio y 390 px sin desplazamiento horizontal.
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Un ciclo completo de creación y entrega funciona sin IA | `ActivityFlowsIT` y recorrido en Docker: crear, rúbrica, publicar, entregar, Por revisar, calificar |
+| Fechas y excepciones de plazo verificadas | Reloj controlado en `ActivityFlowsIT`: cierre, vencida 0,0, reapertura, intento adicional, marca de tarde; `StudentProgressTest` |
 
 ## Etapa 4 · detalle
 
@@ -100,4 +131,6 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | RF-05 | Implementado con CSV; Excel pendiente (P-07) |
 | RF-06, RF-07, RF-08, RF-09, RF-24, RF-25 | Implementados (Etapa 4) |
 | RF-28 | Parcial: usuarios, roles, aprobación docente, auditoría y publicación de la biblioteca implementados; foro y respaldos llegan con sus etapas |
-| RF-10 a RF-23, RF-26, RF-27 | Pendientes |
+| RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
+| RF-17 | Parcial: entregas e historial de notas implementados; el resultado de IA llega en la Etapa 6 |
+| RF-12, RF-14 a RF-16, RF-18, RF-20 a RF-23, RF-26, RF-27 | Pendientes |

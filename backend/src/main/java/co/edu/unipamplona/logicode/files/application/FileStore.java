@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -55,9 +56,10 @@ public class FileStore {
      * revierte, el archivo guardado se borra.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public StoredFileInfo store(InputStream content, String originalName, UUID uploadedBy, AcceptedFiles accepted) {
+    public StoredFileInfo store(InputStream content, String originalName, UUID uploadedBy, Set<AcceptedFiles> accepted) {
         String name = cleanName(originalName);
-        Set<FileFormat> allowed = accepted.formats();
+        Set<FileFormat> allowed = accepted.stream().flatMap(a -> a.formats().stream())
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(FileFormat.class)));
         FileFormat format = FileFormat.fromFilename(name)
                 .filter(allowed::contains)
                 .orElseThrow(() -> ApplicationException.businessRule("Formato no permitido. Se aceptan: "

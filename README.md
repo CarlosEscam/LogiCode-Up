@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 4 (curso, temas y biblioteca) implementada, pendiente de revisión.** Además del acceso y los permisos de la Etapa 3, hay cursos con inscripción por cédula, temas por herramienta, próxima clase, materiales públicos o privados, biblioteca con filtros, vista previa y descarga. Actividades, calificación con IA, quizzes, juegos y foro están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 5 (actividades y entregas) implementada, pendiente de revisión.** Además del acceso (Etapa 3) y de cursos, temas y biblioteca (Etapa 4), hay actividades con rúbrica versionada, apertura, cierre, porcentaje e intentos; entregas por texto, archivo o foto; bandeja Por revisar con calificación manual e historial; y excepciones de plazo o segundo intento. Calificación con IA, quizzes, juegos, foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -140,16 +140,17 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   ├── files/                   Etapa 4: carga y validación de archivos, almacenamiento local
 │   │   ├── courses/                 Etapa 4: cursos e inscripción por cédula
 │   │   ├── content/                 Etapa 4: temas, materiales, biblioteca, vista previa y descarga
-│   │   └── activities/ grading/ quizzes/
-│   │       games/ forum/ administration/            Módulos pendientes (solo descripción)
+│   │   ├── activities/              Etapa 5: actividades, entregas y excepciones de plazo
+│   │   ├── grading/                 Etapa 5: rúbricas versionadas, notas, Por revisar e historial
+│   │   └── quizzes/ games/ forum/ administration/   Módulos pendientes (solo descripción)
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
 │   ├── src/app                      Rutas y navegación según permisos
-│   ├── src/features                 auth, account, admin, courses, content, system
+│   ├── src/features                 auth, account, admin, courses, content, activities, system
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
@@ -169,4 +170,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 4 en [docs/estado.md](docs/estado.md) y confirmar el almacenamiento local de archivos (P-05). Siguen abiertas P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 5 · Actividades y entregas**.
+Revisar la Etapa 5 en [docs/estado.md](docs/estado.md). Siguen abiertas P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo) y P-07 (Excel con Apache POI) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 6 · Calificación determinista e IA** (Ollama + Qwen2.5-VL 7B en Docker).

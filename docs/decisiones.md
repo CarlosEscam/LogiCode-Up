@@ -78,6 +78,19 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-28 | El administrador ordinario puede cambiar visibilidad y archivar materiales (publicar biblioteca), no crearlos ni editarlos | Une "publicar biblioteca" de RF-28 con RN-04 |
 | T-29 | `Role` y `Permission` pasan a `shared.domain`; la anotación `@CurrentActor` pasa a `identity.application` | Otros módulos los necesitan y la regla de módulos solo permite usar la capa `application` de otro módulo |
 
+## Decisiones técnicas tomadas en la Etapa 5
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-30 | Dos módulos: `activities` (actividades, entregas, excepciones) y `grading` (rúbricas, notas, historial). `activities` define el puerto `GradingGateway` y `grading` lo implementa | La dependencia va en un solo sentido (grading → activities); la Etapa 6 agrega la IA dentro de `grading` sin tocar las entregas |
+| T-31 | En la Etapa 5 el docente pone una nota global de 0,0 a 5,0 con retroalimentación; los criterios de la rúbrica orientan, no se puntúan uno a uno | Cumple el punto de control "sin IA" sin adelantar la calificación por criterio, que define la Etapa 6 con el modelo |
+| T-32 | "Vencida sin entrega = 0,0" se calcula al consultar (estado `OVERDUE`), no se guarda una nota | Si el docente reabre el plazo, el 0,0 desaparece solo; no hay tareas programadas que puedan fallar |
+| T-33 | Cuenta el último intento de cada estudiante: es el que entra a Por revisar y el que ve el estudiante como su nota. Los anteriores conservan su nota en el historial | Regla simple y predecible para el segundo intento. La nota definitiva aparte del avance parcial llega con la planilla (Etapa 8) |
+| T-34 | Una excepción por estudiante y actividad, con plazo nuevo y/o intentos adicionales; el plazo nunca se acorta y la entrega posterior al cierre original se marca "tarde" | Cubre reabrir (RN-05) y segundo intento con un solo concepto |
+| T-35 | Hasta 5 archivos por entrega, y las fotos aceptan PNG o JPG | Límite razonable para tareas; la carga total por petición está limitada a 1,1 GB por Nginx y Spring |
+| T-36 | El borrador solo lo ve quien administra el curso; la respuesta esperada solo el docente y las cuentas Administrador | Evita que el estudiante vea la solución en la rúbrica |
+| T-37 | Las fechas de actividades se escriben y muestran en hora de Colombia (UTC−5) sin importar la zona del equipo | Colombia no tiene horario de verano; evita errores si un navegador está en otra zona |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |

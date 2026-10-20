@@ -2,6 +2,7 @@ package co.edu.unipamplona.logicode.identity.application;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,8 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserDirectory {
 
-    /** Nombre conocido (de la cuenta o, si aún no se registra, de la habilitación) y si ya tiene cuenta. */
-    public record StudentInfo(String cedula, String fullName, boolean registered) {
+    /**
+     * Nombre conocido (de la cuenta o, si aún no se registra, de la habilitación) y la cuenta, si ya existe
+     * ({@code userId} nulo mientras no se registre).
+     */
+    public record StudentInfo(String cedula, String fullName, UUID userId) {
+
+        public boolean registered() {
+            return userId != null;
+        }
     }
 
     private final StudentEnablementRepository enablements;
@@ -35,7 +43,7 @@ public class UserDirectory {
             UserAccount account = accounts.findByCedula(cedula).orElse(null);
             String name = account != null ? account.getFullName()
                     : enablements.findByCedula(cedula).map(StudentEnablement::getFullName).orElse(null);
-            result.put(cedula, new StudentInfo(cedula, name, account != null));
+            result.put(cedula, new StudentInfo(cedula, name, account == null ? null : account.getId()));
         }
         return result;
     }
@@ -43,6 +51,16 @@ public class UserDirectory {
     @Transactional(readOnly = true)
     public Optional<String> fullNameOf(UUID userId) {
         return accounts.findById(userId).map(UserAccount::getFullName);
+    }
+
+    /** Nombres de varias cuentas; las que no existen no aparecen. */
+    @Transactional(readOnly = true)
+    public Map<UUID, String> fullNamesOf(Collection<UUID> userIds) {
+        Map<UUID, String> result = new HashMap<>();
+        for (UUID id : new HashSet<>(userIds)) {
+            accounts.findById(id).ifPresent(account -> result.put(id, account.getFullName()));
+        }
+        return result;
     }
 
     /** Todas las cédulas habilitadas, para inscribirlas en el primer curso que se cree. */

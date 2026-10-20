@@ -49,6 +49,11 @@ class CourseEnrollmentRepositoryAdapter implements CourseEnrollmentRepository {
     }
 
     @Override
+    public List<String> cedulasOf(UUID courseId) {
+        return jpa.findCedulasByCourseId(courseId);
+    }
+
+    @Override
     public void delete(UUID courseId, String cedula) {
         jpa.deleteByCourseIdAndCedula(courseId, cedula);
     }

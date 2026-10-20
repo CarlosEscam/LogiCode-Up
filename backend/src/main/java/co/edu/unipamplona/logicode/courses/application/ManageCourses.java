@@ -81,7 +81,8 @@ public class ManageCourses {
         return new CourseView(course.getId(), course.getName(), course.getPeriod(), course.getDescription(),
                 directory.fullNameOf(course.getOwnerId()).orElse(null), enrollments.countByCourse(course.getId()),
                 access.canManageContent(actor, course), access.canManageEnrollments(actor, course),
-                course.getCreatedAt());
+                access.canGrade(actor, course), access.canViewCourseWork(actor, course),
+                enrollments.exists(course.getId(), actor.cedula()), course.getCreatedAt());
     }
 
     static String required(String value, String field) {

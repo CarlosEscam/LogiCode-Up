@@ -53,15 +53,15 @@ co.edu.unipamplona.logicode
 │   └── infrastructure/  LocalBinaryStorage (volumen file-storage), persistencia
 ├── courses/           Etapa 4 · cursos, docente responsable, inscripción por cédula, reglas de acceso (CourseAccess)
 ├── content/           Etapa 4 · temas, materiales, próxima clase, biblioteca, vista previa y descarga
-├── activities/        Etapa 5 · actividades, plazos, entregas
-├── grading/           Etapas 5, 6, 8 · rúbricas, calificación determinista e IA, planilla
+├── activities/        Etapa 5 · actividades, plazos, entregas, excepciones; define el puerto GradingGateway
+├── grading/           Etapa 5 · rúbricas versionadas, notas, Por revisar, historial (IA en la 6, planilla en la 8)
 ├── quizzes/           Etapa 7 · quizzes, banco de preguntas, ranking
 ├── games/             Etapa 7 · juegos de bloques
 ├── forum/             Etapa 8 · foro y moderación
 └── administration/    Etapas 3, 8 · usuarios, aprobación docente, respaldos
 ```
 
-La habilitación de cédulas quedó en `identity` porque es requisito del registro; la inscripción por curso está en `courses`, que usa `identity` para habilitar la cédula al inscribir. `content` usa `courses` (quién ve o administra un curso) y `files` (archivos); las dependencias van en un solo sentido: content → courses → identity, y content → files. `Role` y `Permission` viven en `shared.domain` (T-29). Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
+La habilitación de cédulas quedó en `identity` porque es requisito del registro; la inscripción por curso está en `courses`, que usa `identity` para habilitar la cédula al inscribir. `content` usa `courses` (quién ve o administra un curso) y `files` (archivos); las dependencias van en un solo sentido: content → courses → identity, y content → files. `activities` usa `courses` y `files`; `grading` usa `activities` (a través de `ActivityCatalog`) y `courses`, e implementa el puerto `GradingGateway` que `activities` necesita para pedir la rúbrica y registrar cada entrega (T-30). `Role` y `Permission` viven en `shared.domain` (T-29). Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
 
 ### Responsabilidad de cada capa
 
@@ -104,7 +104,7 @@ La habilitación de cédulas quedó en `identity` porque es requisito del regist
 frontend/src
 ├── app/          Raíz: tabla de rutas, protección por sesión y permiso, barra de navegación
 ├── pages/        Páginas generales (HomePage provisional)
-├── features/     Funcionalidades por módulo: system/, auth/ (sesión y flujos de acceso), account/, admin/
+├── features/     Funcionalidades por módulo: system/, auth/, account/, admin/, courses/, content/, activities/ (actividades, entregas, rúbrica, calificación)
 ├── shared/api/   Cliente HTTP (httpClient.js): prefijo /api/v1, CSRF, errores RFC 9457; consultas paginadas
 ├── shared/router/ Enrutador mínimo con la History API (T-20)
 ├── shared/ui/    Campos de formulario, mensajes, paginador

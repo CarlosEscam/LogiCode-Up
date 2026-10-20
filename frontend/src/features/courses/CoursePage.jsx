@@ -1,16 +1,19 @@
-import { useState } from 'react'
 import { apiPut } from '../../shared/api/httpClient.js'
 import { useQuery } from '../../shared/api/usePagedQuery.js'
 import { Link } from '../../shared/router/Link.jsx'
+import { navigate, useLocation } from '../../shared/router/router.js'
 import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
+import ActivitiesPanel from '../activities/ActivitiesPanel.jsx'
+import ReviewPanel from '../activities/ReviewPanel.jsx'
 import StudentsPanel from './StudentsPanel.jsx'
 import TopicsPanel from './TopicsPanel.jsx'
 
-// Página de un curso: temas con sus materiales y, para el docente o un Administrador, los inscritos.
+// Página de un curso: temas con sus materiales, actividades y, para el docente o un Administrador,
+// la bandeja Por revisar y los inscritos.
 export default function CoursePage({ id }) {
   const course = useQuery(`/courses/${id}`)
-  const [tab, setTab] = useState('temas')
+  const { query } = useLocation()
 
   if (course.status === 'loading' && !course.data) return <p role="status">Cargando…</p>
   if (course.status === 'error') {
@@ -26,6 +29,15 @@ export default function CoursePage({ id }) {
   }
 
   const data = course.data
+  const tabs = [
+    ['temas', 'Temas'],
+    ['actividades', 'Actividades'],
+    data.canViewCourseWork && ['revisar', 'Por revisar'],
+    data.canManageEnrollments && ['estudiantes', 'Estudiantes'],
+  ].filter(Boolean)
+  // La sección va en la dirección (?seccion=actividades) para volver a ella desde otras páginas.
+  const tab = tabs.some(([key]) => key === query.get('seccion')) ? query.get('seccion') : 'temas'
+  const setTab = (key) => navigate(key === 'temas' ? `/cursos/${id}` : `/cursos/${id}?seccion=${key}`, { replace: true })
   return (
     <>
       <section className="card card--wide" aria-labelledby="curso-titulo">
@@ -38,22 +50,18 @@ export default function CoursePage({ id }) {
         </p>
         {data.description && <p>{data.description}</p>}
         {data.canManageContent && <EditCourse course={data} onSaved={course.reload} />}
-        {data.canManageEnrollments && (
-          <div className="tabs" role="tablist" aria-label="Secciones del curso">
-            <button type="button" role="tab" aria-selected={tab === 'temas'} onClick={() => setTab('temas')}>
-              Temas
+        <div className="tabs" role="tablist" aria-label="Secciones del curso">
+          {tabs.map(([key, label]) => (
+            <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
+              {label}
             </button>
-            <button type="button" role="tab" aria-selected={tab === 'estudiantes'} onClick={() => setTab('estudiantes')}>
-              Estudiantes
-            </button>
-          </div>
-        )}
+          ))}
+        </div>
       </section>
-      {tab === 'temas' ? (
-        <TopicsPanel courseId={id} canManage={data.canManageContent} />
-      ) : (
-        <StudentsPanel courseId={id} onChange={course.reload} />
-      )}
+      {tab === 'temas' && <TopicsPanel courseId={id} canManage={data.canManageContent} />}
+      {tab === 'actividades' && <ActivitiesPanel course={data} />}
+      {tab === 'revisar' && <ReviewPanel courseId={id} canGrade={data.canGrade} />}
+      {tab === 'estudiantes' && <StudentsPanel courseId={id} onChange={course.reload} />}
     </>
   )
 }
