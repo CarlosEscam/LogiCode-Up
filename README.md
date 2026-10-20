@@ -83,6 +83,10 @@ Detener: `docker compose down` (conserva los datos) · Borrar también la base d
 
 Los archivos de los materiales se guardan en el volumen `file-storage`; para un respaldo completo copia ese volumen junto con la base de datos.
 
+### Datos de demostración
+
+Para probar o presentar con datos ficticios (cuentas, curso, materiales, actividades, entregas y notas), con la aplicación corriendo: `node datos-demo/cargar-datos-demo.mjs`. Las cuentas y lo que contiene cada etapa están en [datos-demo/README.md](datos-demo/README.md).
+
 ### Primer ingreso de las cuentas iniciales
 
 Las cuentas iniciales se crean solas al arrancar el backend, sin contraseña:
@@ -154,6 +158,7 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
+├── datos-demo/                      Script de datos de demostración (se amplía en cada etapa)
 ├── docs/                            Diseño técnico, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
 ├── docker-compose.yml               db + backend + frontend

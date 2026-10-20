@@ -16,6 +16,10 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 5 · Actividades y entregas | Implementada, pendiente de revisión | Detalle abajo. Calificación manual del docente; la IA llega en la Etapa 6 |
 | 6 a 10 | Pendientes | Calificación con IA, quizzes, juegos, foro, planilla y demás aún no existen |
 
+## Datos de demostración
+
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 5 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial y excepciones). Se amplía en cada etapa. Verificado sobre una base limpia en Docker; volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
 ## Etapa 5 · detalle
 
 | Entregable de la especificación | Estado | Dónde |
