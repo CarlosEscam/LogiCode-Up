@@ -148,6 +148,13 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-73 | Una actividad se califica con casos de prueba o con un reto de bloques, no con los dos; el reto exige entregas en texto | El programa de bloques viaja en la respuesta escrita (JSON), sin un tipo de entrega nuevo. Dos calificaciones automáticas sobre la misma entrega no tendrían una nota clara |
 | T-74 | Nota todo o nada: 5,0 si el robot llega a la meta y 0,0 si no. El servidor vuelve a ejecutar el programa (`BlockChallenge`, copia en Java del intérprete de `games/blocks.js`) y no confía en el resultado del navegador. Un programa con bloques no permitidos, con más bloques del máximo o que no es un programa va a Por revisar | Es la regla de los juegos (llegar o no llegar) y la que el docente puede explicar. Volver a ejecutar evita que una entrega armada a mano por la API se califique sola. Lo que la interfaz no deja armar no merece un 0 automático: lo mira el docente, como un programa de PSeInt que no corre (T-52) |
 
+## Decisiones técnicas del juego de bloques ampliado (27 de octubre de 2026)
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-78 | Los 20 niveles siguen fijos en `levels.js`, con los ids de los 8 anteriores. Cada nivel trae una solución y las pruebas comprueban que cabe en el límite y que los niveles de ciclos o condiciones no se pueden resolver con una secuencia simple | Carlos pidió más niveles, no un editor (los retos con nota ya los configura el docente, RF-12). Conservar los ids mantiene el avance guardado. La prueba evita que un nivel de ciclos se pueda pasar sin usar el ciclo |
+| T-79 | El personaje del robot es solo apariencia: SVG propios dentro de la casilla, ocultos para lectores de pantalla, y la elección se guarda en el navegador (`logicode.juegos.personaje`) | Las imágenes enviadas son de terceros, así que se redibujaron en un estilo parecido. La dirección se sigue viendo (giro o mirada más triángulo) y se sigue leyendo en el texto de estado, que no cambia. No es un dato del estudiante, así que no va al servidor |
+
 ## Decisiones aprobadas el 27 de octubre de 2026 (P-07 y P-08)
 
 Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hacer las dos cosas").

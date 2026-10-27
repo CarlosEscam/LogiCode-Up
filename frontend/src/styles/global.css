@@ -796,6 +796,55 @@ td .console {
   color: var(--color-error);
 }
 
+.robot-skin {
+  width: 100%;
+  height: 100%;
+}
+
+.skin-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.skin-picker legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+}
+
+.skin-picker__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.skin-picker__option--current {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+}
+
+.skin-picker__option:focus-within {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.skin-picker__preview {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
 .block-list {
   list-style: none;
   padding-left: 0;

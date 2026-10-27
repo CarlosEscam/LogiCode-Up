@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Solved from './Solved.jsx'
 import { BLOCK_LABELS, countBlocks, parseLevel, runProgram } from './blocks.js'
+import { loadSkin, saveSkin } from './progress.js'
+import { RobotSkin, SkinPicker } from './skins.jsx'
 
 const CONTAINERS = new Set(['repetir', 'si', 'mientras'])
-const ARROWS = { N: '▲', E: '▶', S: '▼', O: '◀' }
 const DIRECTION_NAMES = { N: 'arriba', E: 'a la derecha', S: 'abajo', O: 'a la izquierda' }
 const OUTCOME_TEXT = {
   crash: 'El robot chocó. Revisa el bloque resaltado.',
@@ -56,6 +57,7 @@ export default function BlocksGame({ level, onSolved, onNext, onProgramChange })
   const [program, setProgram] = useState(() => copy(level.start ?? []))
   const [target, setTarget] = useState(null)
   const [run, setRun] = useState(null) // { result, step, playing }
+  const [skin, setSkin] = useState(loadSkin)
   const { grid, start } = useMemo(() => parseLevel(level), [level])
   const used = countBlocks(program)
   const full = used >= level.maxBlocks
@@ -112,7 +114,7 @@ export default function BlocksGame({ level, onSolved, onNext, onProgramChange })
                     key={`${r},${c}`}
                     className={`robot-cell robot-cell--${cell === '#' ? 'wall' : cell === 'M' ? 'goal' : 'free'}${visited.has(`${r},${c}`) ? ' robot-cell--visited' : ''}${here && robot.crashed ? ' robot-cell--crash' : ''}`}
                   >
-                    {here ? ARROWS[robot.dir] : cell === 'M' ? '★' : ''}
+                    {here ? <RobotSkin skin={skin} dir={robot.dir} /> : cell === 'M' ? '★' : ''}
                   </div>
                 )
               }),
@@ -121,6 +123,13 @@ export default function BlocksGame({ level, onSolved, onNext, onProgramChange })
           <p className="page__note" role="status">
             Robot en la fila {robot.r + 1}, columna {robot.c + 1}, mirando {DIRECTION_NAMES[robot.dir]}. La meta es la estrella.
           </p>
+          <SkinPicker
+            value={skin}
+            onChange={(next) => {
+              setSkin(next)
+              saveSkin(next)
+            }}
+          />
         </div>
         <div>
           <h3>Bloques ({used} de {level.maxBlocks})</h3>

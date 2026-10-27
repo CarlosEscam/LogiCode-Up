@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12) y Excel y PDF (P-07, P-08) entregados**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) y juego de bloques con 20 niveles y personajes entregados**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -21,6 +21,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 10 · Piloto y entrega | Aprobada; pendiente el piloto con el docente | Detalle abajo, en [piloto.md](piloto.md) y en los [manuales](manuales/) |
 | Ampliación · retos de bloques (RF-12) | Implementada, pendiente de revisión | Carlos la pidió el 27 de octubre al aprobar la Etapa 10. Detalle abajo |
 | Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
+| Ampliación · juego de bloques con 20 niveles y personajes | Implementada, pendiente de revisión | Carlos la pidió el 27 de octubre. Detalle abajo |
 
 ## Datos de demostración
 
@@ -45,6 +46,19 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 ### Punto de control
 
 Pendiente: revisión de Carlos (importar `datos-demo/muestras/lista-estudiantes.xlsx`, abrir la planilla exportada en Excel) y una prueba con PDF real en el equipo de referencia con la IA encendida.
+
+## Juego de bloques: 20 niveles y personajes del robot · detalle
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| 20 niveles, cada uno un poco más difícil | Implementado | `/juegos`, pestaña Bloques (`frontend/src/features/games/levels.js`). Orden: secuencias (1 a 3, el 3 empieza mirando hacia abajo), rutas (5 y 6, el 6 con dos caminos y bloques solo para el corto), ciclos (7 a 12, con ciclos anidados en el 11 y el 12), condiciones (14 a 18: girar a la derecha, a la izquierda, Si dentro de Repetir y un Si dentro de otro Si para pasillos que doblan a los dos lados) y el desafío final (20). Hay 5 niveles de depuración repartidos (4, 8, 13, 16 y 19) que empiezan con un programa que falla. Se conservan los ids de los 8 niveles anteriores, así que el avance guardado no se pierde (T-78) |
+| Personaje del robot (flecha, lápiz, cerebro o fantasma) | Implementado | Selector "Personaje del robot" debajo del tablero, también en los retos de bloques de una actividad. Dibujos propios en SVG inspirados en las imágenes que envió Carlos (`games/skins.jsx`). El lápiz gira hacia donde mira; el cerebro y el fantasma siguen de pie, miran con los ojos hacia ese lado y llevan un triángulo en el borde de la casilla. El texto "Robot en la fila…, mirando…" no cambia. Se recuerda en el navegador (T-79) |
+| Niveles y personajes aceptados por Carlos | **Pendiente: revisión de Carlos** | Capturas en `capturas-bloques-20-niveles/` |
+
+### Verificación realizada (20 niveles y personajes)
+
+- `games.test.jsx`: cada nivel se resuelve con su solución dentro del límite de bloques; los de depuración empiezan fallando; hay 20 ids distintos; y ningún nivel que permite ciclos o Mientras se puede resolver con una secuencia simple de Avanzar y giros dentro del límite (búsqueda del camino más corto). Una prueba cambia el personaje, comprueba que el texto de posición y dirección sigue igual y que se recuerda al volver. Interfaz: 58 pruebas, `oxlint` limpio y `vite build`. El backend no cambió.
+- Recorrido en Chromium con `vite preview` (sin backend): los cuatro personajes en las cuatro direcciones, un nivel de ciclos anidados resuelto paso a paso y un nivel de depuración en pantalla de teléfono (390 px). Capturas en `capturas-bloques-20-niveles/`.
 
 ## Retos de bloques que configura el docente (RF-12) · detalle
 
@@ -163,7 +177,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Quizzes calificables y de repaso (RF-10, RF-21) | Implementado | Tipos de actividad "Quiz calificable" y "Quiz de repaso" (T-53): mismas fechas, publicación, excepciones y planilla que las demás actividades. Las preguntas elegidas y su clave quedan como la rúbrica versionada del quiz (T-54). El de repaso no da nota, se repite libremente y muestra la revisión al terminar |
 | Tiempo total, envío automático e intentos (RN-13) | Implementado | El tiempo corre desde que empieza el intento; la página guarda las respuestas solas y lo envía al acabarse. Si el navegador se cierra, el servidor lo envía con lo guardado (revisión cada 30 s, margen de 30 s, T-56). Un intento por defecto; el docente da otro con "Plazo e intentos" |
 | Nota por aciertos y ranking (RN-14, RF-16) | Implementado | Nota = 5 × puntos obtenidos ÷ puntos totales, con un decimal; se publica como "Automática" y entra a la planilla como una entrega más. Ranking por nota y luego por menor tiempo; en el calificable cuenta el último intento y en el de repaso el mejor (T-57). La revisión del calificable se abre cuando cierra el quiz (T-58) |
-| Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (6 niveles, respuestas comprobadas con el intérprete), "Ordena el algoritmo" (4), "Completa el DFD" (4, diagrama dibujado en SVG) y "Bloques" (8 niveles: secuencia, ruta, ciclo, condición y depuración, con ejecución animada, paso a paso y límite de bloques). Avance guardado solo en el navegador (T-59) |
+| Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (6 niveles, respuestas comprobadas con el intérprete), "Ordena el algoritmo" (4), "Completa el DFD" (4, diagrama dibujado en SVG) y "Bloques" (20 niveles desde el 27 de octubre: secuencia, ruta, ciclo, ciclos anidados, condición y depuración, con ejecución animada, paso a paso, límite de bloques y personaje del robot a elegir). Avance guardado solo en el navegador (T-59) |
 | Niveles de bloques configurados por el docente (RF-12, "criterios de bloques") | Implementado después de la Etapa 10 | Los niveles de `/juegos` siguen fijos en el código; el docente configura retos calificables en la rúbrica (ver "Retos de bloques" arriba) |
 | Instrucciones de PSeInt no cubiertas | Pendiente | `Para Cada` y el perfil estricto (declarar todo, `;` obligatorio). Un programa que las use va a revisión del docente, nunca recibe un 0 automático |
 

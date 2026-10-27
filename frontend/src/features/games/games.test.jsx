@@ -1,8 +1,31 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
-import { MAX_STEPS, boardProblem, countBlocks, programText, runProgram } from './blocks.js'
+import { DIRECTIONS, MAX_STEPS, boardProblem, countBlocks, parseLevel, programText, runProgram } from './blocks.js'
 import { BLOCK_LEVELS, DFD_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
+
+// Menor número de bloques Avanzar/Girar (sin ciclos ni condiciones) que lleva el robot a la meta.
+function shortestSequence(level) {
+  const { grid, start, goal } = parseLevel(level)
+  const delta = { N: [-1, 0], E: [0, 1], S: [1, 0], O: [0, -1] }
+  const seen = new Set()
+  let frontier = [start]
+  for (let blocks = 1; frontier.length > 0; blocks += 1) {
+    const next = []
+    for (const { r, c, dir } of frontier) {
+      const turn = (step) => ({ r, c, dir: DIRECTIONS[(DIRECTIONS.indexOf(dir) + step) % 4] })
+      const ahead = { r: r + delta[dir][0], c: c + delta[dir][1], dir }
+      if (ahead.r === goal.r && ahead.c === goal.c) return blocks
+      const moves = [turn(1), turn(3), ...(['.', 'S'].includes(grid[ahead.r]?.[ahead.c]) ? [ahead] : [])]
+      moves.filter((state) => !seen.has(`${state.r},${state.c},${state.dir}`)).forEach((state) => {
+        seen.add(`${state.r},${state.c},${state.dir}`)
+        next.push(state)
+      })
+    }
+    frontier = next
+  }
+  return Infinity
+}
 
 function respond(status, body) {
   return { ok: status < 400, status, headers: new Headers({ 'Content-Type': 'application/json' }), json: async () => body }
@@ -20,6 +43,14 @@ describe('Niveles de los juegos', () => {
     expect(countBlocks(level.solution)).toBeLessThanOrEqual(level.maxBlocks)
     expect(runProgram(level.solution, level).outcome).toBe('goal')
     if (level.start) expect(runProgram(level.start, level).outcome).not.toBe('goal')
+  })
+
+  it('hay 20 niveles de bloques y los de ciclos o condiciones no se resuelven con una secuencia simple', () => {
+    expect(BLOCK_LEVELS).toHaveLength(20)
+    expect(new Set(BLOCK_LEVELS.map((level) => level.id)).size).toBe(20)
+    BLOCK_LEVELS.filter((level) => level.allowed.some((type) => ['repetir', 'mientras'].includes(type))).forEach((level) =>
+      expect(shortestSequence(level), level.id).toBeGreaterThan(level.maxBlocks),
+    )
   })
 
   it('el robot choca con los muros y no se cuelga en un ciclo sin salida', () => {
@@ -115,5 +146,23 @@ describe('Página de juegos', () => {
     expect(screen.getByText(/¡El robot llegó a la meta con 2 bloques!/)).toBeInTheDocument()
     const levels = screen.getByRole('navigation', { name: 'Niveles' })
     expect(within(levels).getByRole('button', { name: /Pasillo largo.*resuelto/ })).toBeInTheDocument()
+  })
+
+  it('cambia el personaje del robot, lo recuerda y sigue diciendo hacia dónde mira', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.history.replaceState(null, '', '/juegos?juego=bloques&nivel=secuencia-3')
+    const { container, unmount } = render(<App />)
+
+    expect(await screen.findByRole('radio', { name: 'Flecha' })).toBeChecked()
+    expect(container.querySelector('.robot-grid').textContent).toContain('▼')
+    fireEvent.click(screen.getByRole('radio', { name: 'Fantasma' }))
+    expect(container.querySelector('.robot-grid .robot-skin')).not.toBeNull()
+    expect(container.querySelector('.robot-grid').textContent).not.toContain('▼')
+    expect(screen.getByText(/Robot en la fila 1, columna 1, mirando abajo/)).toBeInTheDocument()
+    expect(window.localStorage.getItem('logicode.juegos.personaje')).toBe('fantasma')
+    unmount()
+
+    render(<App />)
+    expect(await screen.findByRole('radio', { name: 'Fantasma' })).toBeChecked()
   })
 })

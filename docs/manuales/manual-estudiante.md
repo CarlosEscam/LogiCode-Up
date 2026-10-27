@@ -103,7 +103,9 @@ Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero
 
 ## 8. Juegos
 
-**Juegos** del menú (no necesita cuenta y no da nota): retos de bloques con un robot (secuencias, ciclos, condiciones, rutas y depuración), "¿Qué imprime?", "Ordena el algoritmo" y "Completa el DFD". Tu avance se guarda en el navegador que uses.
+**Juegos** del menú (no necesita cuenta y no da nota): 20 niveles de bloques con un robot (secuencias, ciclos, condiciones, rutas y depuración, cada uno un poco más difícil), "¿Qué imprime?", "Ordena el algoritmo" y "Completa el DFD". Tu avance se guarda en el navegador que uses.
+
+En el juego de bloques puedes cambiar el **personaje del robot** debajo del tablero: flecha, lápiz, cerebro o fantasma. Todos muestran hacia dónde mira el robot (el lápiz apunta con la punta; el cerebro y el fantasma miran con los ojos y tienen un triángulo en el borde de la casilla), y el texto debajo del tablero lo dice con palabras.
 
 ## 9. Foro
 
