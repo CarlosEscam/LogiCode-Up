@@ -74,13 +74,19 @@ public class BrowseSubmissions {
     public List<StudentWork> forActivity(Actor actor, UUID activityId) {
         Activity activity = access.requireVisible(actor, activityId);
         access.requireViewCourseWork(actor, activity.getCourseId());
+        return work(activity, roster.members(activity.getCourseId()));
+    }
+
+    /** Situación de cada inscrito en la actividad, sin verificar permisos (también la usa la planilla). */
+    List<StudentWork> work(Activity activity, List<CourseRoster.Member> members) {
+        UUID activityId = activity.getId();
         Map<UUID, List<Submission>> byStudent = submissions.findByActivity(activityId).stream()
                 .sorted(Comparator.comparingInt(Submission::getAttempt))
                 .collect(Collectors.groupingBy(Submission::getStudentId));
         Map<UUID, DeadlineException> byException = exceptions.findByActivity(activityId).stream()
                 .collect(Collectors.toMap(DeadlineException::getStudentId, Function.identity()));
         Instant now = clock.instant();
-        return roster.members(activity.getCourseId()).stream().map(member -> {
+        return members.stream().map(member -> {
             List<Submission> attempts = member.userId() == null ? List.of()
                     : byStudent.getOrDefault(member.userId(), List.of());
             DeadlineException exception = member.userId() == null ? null : byException.get(member.userId());

@@ -3,6 +3,7 @@ import AccountPage from '../features/account/AccountPage.jsx'
 import { roleLabel } from '../features/account/labels.js'
 import ActivityPage from '../features/activities/ActivityPage.jsx'
 import SubmissionPage from '../features/activities/SubmissionPage.jsx'
+import AdminPanelPage from '../features/admin/AdminPanelPage.jsx'
 import AuditPage from '../features/admin/AuditPage.jsx'
 import EnablementsPage from '../features/admin/EnablementsPage.jsx'
 import UsersPage from '../features/admin/UsersPage.jsx'
@@ -18,6 +19,8 @@ import LibraryPage from '../features/content/LibraryPage.jsx'
 import MaterialPage from '../features/content/MaterialPage.jsx'
 import CoursePage from '../features/courses/CoursePage.jsx'
 import CoursesPage from '../features/courses/CoursesPage.jsx'
+import ForumPage from '../features/forum/ForumPage.jsx'
+import ThreadPage from '../features/forum/ThreadPage.jsx'
 import GamesPage from '../features/games/GamesPage.jsx'
 import PseintPage from '../features/pseint/PseintPage.jsx'
 import QuizAttemptPage from '../features/quizzes/QuizAttemptPage.jsx'
@@ -47,6 +50,9 @@ const ROUTES = {
   '/quiz-intentos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <QuizAttemptPage key={id} id={id} /> },
   '/juegos': { access: 'public', render: () => <GamesPage /> },
   '/pseint': { access: 'account', render: () => <PseintPage /> },
+  '/foro': { access: 'public', render: () => <ForumPage /> },
+  '/foro/:id': { access: 'public', render: ({ id }) => <ThreadPage key={id} id={id} /> },
+  '/admin': { access: ['MANAGE_USERS'], render: () => <AdminPanelPage /> },
   '/admin/usuarios': { access: ['MANAGE_USERS', 'APPROVE_TEACHERS'], render: () => <UsersPage /> },
   '/admin/habilitaciones': { access: ['MANAGE_STUDENT_ENABLEMENTS'], render: () => <EnablementsPage /> },
   '/admin/auditoria': { access: ['VIEW_AUDIT'], render: () => <AuditPage /> },
@@ -54,6 +60,7 @@ const ROUTES = {
 
 const NAV = [
   { to: '/cursos', label: 'Cursos', access: ['VIEW_PRIVATE_COURSE_CONTENT'] },
+  { to: '/admin', label: 'Administración', access: ['MANAGE_USERS'] },
   { to: '/admin/usuarios', label: 'Usuarios', access: ['MANAGE_USERS', 'APPROVE_TEACHERS'] },
   { to: '/admin/habilitaciones', label: 'Habilitar estudiantes', access: ['MANAGE_STUDENT_ENABLEMENTS'] },
   { to: '/admin/auditoria', label: 'Auditoría', access: ['VIEW_AUDIT'] },
@@ -84,13 +91,16 @@ function Layout() {
           <Link to="/juegos" aria-current={path === '/juegos' ? 'page' : undefined}>
             Juegos
           </Link>
+          <Link to="/foro" aria-current={path.startsWith('/foro') ? 'page' : undefined}>
+            Foro
+          </Link>
           {session.account ? (
             <>
               <Link to="/pseint" aria-current={path === '/pseint' ? 'page' : undefined}>
                 PSeInt
               </Link>
               {NAV.filter((item) => item.access.some(session.can)).map((item) => (
-                <Link key={item.to} to={item.to} aria-current={path.startsWith(item.to) ? 'page' : undefined}>
+                <Link key={item.to} to={item.to} aria-current={path === item.to || path.startsWith(`${item.to}/`) ? 'page' : undefined}>
                   {item.label}
                 </Link>
               ))}

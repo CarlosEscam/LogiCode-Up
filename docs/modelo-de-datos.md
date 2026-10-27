@@ -25,6 +25,7 @@
 | `V4__actividades_y_entregas.sql` | Etapa 5: actividades, entregas y sus archivos, excepciones de plazo, versiones de rúbrica con criterios, notas e historial de notas |
 | `V5__calificacion_con_ia.sql` | Etapa 6: estado `PROCESSING` y motivo de revisión en las notas, cola de evaluación con IA, evaluaciones de la IA con sus puntos por criterio |
 | `V6__quizzes_y_pseint.sql` | Etapa 7: tipos de actividad `QUIZ` y `PRACTICE_QUIZ`, casos de prueba en la rúbrica, notas `AUTOMATIC` y motivo `CODE_ERROR`, banco de preguntas, quizzes, intentos y sus respuestas |
+| `V7__foro.sql` | Etapa 8: hilos y respuestas del foro. La planilla y las estadísticas se calculan con las tablas existentes y los respaldos viven en el volumen `backups`, no en la base |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -343,3 +344,40 @@ erDiagram
 - El calificable terminado crea una fila en `submission` (con el resumen como texto) y su `grade` con `source = AUTOMATIC`; así entra al historial y a la planilla igual que las demás actividades (T-53). El de repaso no crea entrega ni nota.
 - `quiz_item` y `quiz_attempt_answer` no borran preguntas en cascada: una pregunta usada solo se archiva (T-55).
 
+## Foro (Etapa 8, implementado)
+
+```mermaid
+erDiagram
+    user_account ||--o{ forum_thread : abre
+    forum_thread ||--o{ forum_post : respuestas
+    user_account ||--o{ forum_post : escribe
+
+    forum_thread {
+        uuid id PK
+        varchar category "PSEINT | DFD | SCRATCH | ARDUINO | GENERAL"
+        varchar title "hasta 150"
+        text body
+        uuid author_id FK
+        boolean pinned
+        boolean closed
+        int reply_count "respuestas visibles"
+        timestamptz last_activity_at
+        uuid moderated_by FK "última moderación"
+        timestamptz moderated_at
+        timestamptz deleted_at
+        bigint version
+    }
+    forum_post {
+        uuid id PK
+        uuid thread_id FK
+        uuid author_id FK
+        text body
+        timestamptz created_at
+        uuid deleted_by FK
+        timestamptz deleted_at
+    }
+```
+
+- **RF-26**: `forum_thread_list_ix` sirve la lista de hilos visibles (fijados primero, luego por actividad reciente).
+- **RN-15**: eliminar marca `deleted_at` (y `deleted_by` o `moderated_by`); nada se borra de la base (T-65). `reply_count` cuenta solo respuestas visibles y no baja de cero (`forum_thread_replies_ck`).
+- `version` evita que dos moderadores se pisen al fijar o cerrar al mismo tiempo.

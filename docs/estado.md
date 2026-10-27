@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 7 (quizzes, PSeInt y juegos)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 8 (foro y operación docente)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -15,12 +15,42 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
-| 7 · Quizzes, PSeInt y juegos | Implementada, pendiente de revisión | Detalle abajo |
-| 8 a 10 | Pendientes | Foro, planilla, notificaciones y demás aún no existen |
+| 7 · Quizzes, PSeInt y juegos | Implementada y aprobada | Falta que Carlos revise niveles y notas automáticas de los datos demo |
+| 8 · Foro y operación docente | Implementada, pendiente de revisión | Detalle abajo |
+| 9 · Calidad y seguridad · 10 · Piloto y entrega | Pendientes | También falta la página de inicio con misión y visión (RF-23) |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 7 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso y un taller de PSeInt con casos de prueba). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 7); volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso un taller de PSeInt con casos de prueba y hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8); volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Etapa 8 · detalle
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Foro por herramienta (RF-26) | Implementado | Módulo `forum`. Página pública `/foro` con hilos de PSeInt, DFD, Scratch, Arduino y General, filtro por herramienta y búsqueda por título o texto; los fijados van primero y luego los de actividad más reciente. Leer no pide sesión; abrir un hilo o responder pide sesión (`PARTICIPATE_FORUM`). Se muestra el nombre del autor, nunca su cédula ni su correo (T-66) |
+| Moderación del foro (RF-27, RN-15) | Implementado | Docente y cuentas Administrador (`MODERATE_FORUM`) fijan, cierran o reabren un hilo y eliminan hilos o respuestas. Eliminar oculta y deja quién y cuándo (T-65). Un hilo cerrado no recibe respuestas (`409`) |
+| Planilla del curso (RF-18, RN-07) | Implementado | Pestaña "Planilla" del curso: una columna por actividad calificable publicada (sin quizzes de repaso ni borradores, T-60) con su porcentaje, el reparto de lo que falta y el estado de cada nota (calificada, vencida sin entrega = 0,0, en revisión o pendiente). Avance parcial y nota definitiva por separado (T-61). Avisa cuando los porcentajes no permiten cerrar la definitiva |
+| Exportación a Excel (RF-18) | Implementado como CSV (P-07) | "Exportar a Excel (CSV)": UTF-8 con BOM, `;` y coma decimal para que Excel en español lo abra directo; la exportación usa el mismo cálculo que la pantalla (T-64) |
+| Notas del estudiante (RF-20) | Implementado | El estudiante inscrito ve en "Mis notas" solo su fila: nota por actividad, avance parcial y definitiva. La retroalimentación sigue en cada entrega (Etapa 5) |
+| Estadísticas básicas | Implementado | Por actividad: entregas, calificadas, en revisión, vencidas, promedio, mínima, máxima y aprobados (≥ 3,0). Por curso: estudiantes con avance o definitiva, promedios y aprobados. Panel de administración con cifras de toda la plataforma (T-62) |
+| Biblioteca administrable (RF-28) | Implementado | En `/biblioteca`, las cuentas Administrador cambian la visibilidad y archivan materiales desde la misma página; el docente sigue publicando lo suyo desde el curso |
+| Panel de administración | Implementado | Página `/admin` (`MANAGE_USERS`): cuentas por rol y estado, docentes por aprobar, cursos, actividades, entregas, notas en revisión o con la IA, materiales, espacio usado y actividad del foro, con enlaces a usuarios, habilitación y auditoría |
+| Respaldos (RF-28) | Implementado | Servicio `backup` de Docker Compose con `respaldos/respaldo.sh`: copia diaria a la hora de `BACKUP_HOUR` (hora de Colombia) de la base y los archivos, prueba de restauración en una base aparte después de cada copia, y retención de `BACKUP_RETENTION_DAYS` días (T-63). Desde el panel (`MANAGE_BACKUPS`) se ve el estado y se pide un respaldo inmediato. Restaurar se hace por consola, documentado en [respaldos/README.md](../respaldos/README.md) |
+| Editar mensajes propios del foro | Pendiente | No pedido en RF-26/27; el autor no edita ni borra lo que escribió, lo hace un moderador |
+| Descargar respaldos desde la web | Pendiente (a propósito) | Los respaldos tienen datos de todos; se copian con `docker compose cp` por quien maneja el servidor |
+
+### Verificación realizada (Etapa 8)
+
+- Backend: `./mvnw verify` → 113 pruebas en verde (70 unitarias y 43 de integración). `GradebookRulesTest` cubre el reparto de porcentajes, la suma incompleta, el avance parcial y la definitiva. `ForumAndOperationFlowsIT` usa PostgreSQL real con reloj controlado: lectura del foro sin sesión, escritura con sesión, validación, permisos de moderación, hilo cerrado; planilla con porcentaje explícito y repartido, borrador excluido, vencida sin entrega que pasa a 0,0 y vuelve definitiva la nota, estudiante que solo ve su fila; CSV conciliado con la pantalla; permisos del panel y de los respaldos con copias falsas en una carpeta temporal.
+- Frontend: `npm run lint`, `npm test` (41 pruebas) y `npm run build` en verde.
+- Docker Compose sobre una base limpia (migraciones hasta la versión 7) con los datos de demostración de las Etapas 3 a 8, y un recorrido en Chromium: el visitante lee el foro, un estudiante responde desde el teléfono, el docente ve las acciones de moderación (fijar, cerrar y eliminar se hicieron por la API al cargar los datos demo), la planilla y su CSV coinciden, el estudiante ve "Mis notas" en pantalla de teléfono, el panel muestra las cifras y un respaldo pedido desde la web termina con la restauración probada. También se restauró un respaldo de verdad sobre la base en uso (lo creado después desapareció).
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Permisos administrativos revisados | Matriz de [permisos.md](permisos.md) (nota de la Etapa 8). `ForumAndOperationFlowsIT` comprueba que el estudiante no modera, que el administrador ordinario modera y exporta la planilla (calificar le sigue negado, como se prueba desde la Etapa 5), y que solo `MANAGE_USERS`/`MANAGE_BACKUPS` abren el panel y los respaldos. **Pendiente: revisión de Carlos** |
+| Exportación conciliada con la escala y los pesos | La prueba compara cada celda del CSV con la planilla de la pantalla (escala 0,0 a 5,0, un decimal, porcentajes explícitos y repartidos). **Pendiente: revisión de Carlos** con el curso de demostración: sus porcentajes explícitos ya suman 100 % (30 + 40 + 30), así que Quiz 1, Taller 3 y Taller 4 quedan en 0 % y la planilla lo avisa |
 
 ## Etapa 7 · detalle
 
@@ -194,8 +224,9 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 | RF-01, RF-02, RF-03, RF-04, RF-29, RF-30 | Implementados |
 | RF-05 | Implementado con CSV; Excel pendiente (P-07) |
 | RF-06, RF-07, RF-08, RF-09, RF-24, RF-25 | Implementados (Etapa 4) |
-| RF-28 | Parcial: usuarios, roles, aprobación docente, auditoría y publicación de la biblioteca implementados; foro y respaldos llegan con sus etapas |
+| RF-28 | Implementado: usuarios, roles, aprobación docente, auditoría, biblioteca, moderación del foro y respaldos |
 | RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
 | RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
 | RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Falta que el docente configure niveles de bloques (RF-12) |
-| RF-18, RF-20, RF-23, RF-26, RF-27 | Pendientes |
+| RF-18, RF-20, RF-26, RF-27 | Implementados (Etapa 8): planilla con exportación CSV (Excel `.xlsx` pendiente de P-07), notas del estudiante y foro con moderación |
+| RF-23 | Pendiente |

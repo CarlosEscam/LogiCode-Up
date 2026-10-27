@@ -5,6 +5,7 @@ import { Pager } from '../../shared/ui/Pager.jsx'
 import { useSession } from '../auth/useSession.js'
 import { KIND_LABELS, TOOL_LABELS, VISIBILITY_LABELS, formatSize } from './labels.js'
 import { MaterialLinks } from './MaterialLinks.jsx'
+import { MaterialModeration } from './MaterialModeration.jsx'
 
 // Biblioteca por tema y herramienta (RF-24). Un visitante ve solo lo público; quien participa en un
 // curso ve también lo privado de ese curso. El backend decide qué se muestra.
@@ -14,6 +15,18 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('')
   const results = usePagedQuery('/library', { ...filters, size: 20 })
   const topics = useQuery('/library/topics')
+  // Biblioteca administrable: quien modera (cuentas Administrador) publica, oculta o archiva desde aquí.
+  const [feedback, setFeedback] = useState({ error: null, success: null })
+  async function run(action, success) {
+    try {
+      await action()
+      setFeedback({ error: null, success })
+      results.reload()
+      topics.reload()
+    } catch (error) {
+      setFeedback({ error: error.message, success: null })
+    }
+  }
 
   function changeFilter(name, value) {
     setFilters((previous) => ({ ...previous, [name]: value, page: 0 }))
@@ -25,7 +38,9 @@ export default function LibraryPage() {
     <section className="card card--wide" aria-labelledby="biblioteca-titulo">
       <h1 id="biblioteca-titulo">Biblioteca</h1>
       <p className="page__note">
-        {account
+        {account?.role === 'ADMIN'
+          ? 'Todos los materiales, públicos y privados. Desde aquí los publicas, ocultas o archivas.'
+          : account
           ? 'Materiales públicos y los privados de tus cursos.'
           : 'Materiales públicos. Inicia sesión para ver también los de tu curso.'}
       </p>
@@ -82,7 +97,7 @@ export default function LibraryPage() {
         </button>
       </form>
 
-      <FormStatus error={results.error} />
+      <FormStatus error={results.error || feedback.error} success={feedback.success} />
       {results.status === 'loading' && !results.data && <p role="status">Cargando…</p>}
       {results.data && (
         <p className="page__note" role="status">
@@ -103,6 +118,7 @@ export default function LibraryPage() {
             </div>
             <div className="material__actions">
               <MaterialLinks material={material} />
+              <MaterialModeration material={material} run={run} />
             </div>
           </li>
         ))}

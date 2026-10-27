@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 7 (quizzes, PSeInt y juegos) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5) y la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia), ya hay editor de PSeInt con intérprete aislado, actividades que se califican solas con casos de prueba, banco de preguntas, quizzes calificables y de repaso con tiempo total, envío automático y ranking, y juegos de bloques, salida, orden y DFD. Foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 8 (foro y operación docente) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5), la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia) y los quizzes, PSeInt y juegos (Etapa 7), ya hay foro por herramienta con moderación, planilla del curso con avance parcial, nota definitiva, estadísticas y exportación a Excel (CSV), panel de administración y respaldos diarios con prueba de restauración. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -66,6 +66,9 @@ Para desarrollar fuera de Docker (opcional):
 | `LOGICODE_AI_TIMEOUT` | `10m` | Tiempo máximo por evaluación |
 | `LOGICODE_AI_MAX_ATTEMPTS` | `3` | Intentos ante fallos técnicos antes de pasar la entrega al docente |
 | `LOGICODE_AI_OLLAMA_URL` | `http://localhost:11434` | Solo al ejecutar el backend fuera de Docker (en Docker es `http://ollama:11434`) |
+| `BACKUP_HOUR` | `2` | Hora de Colombia (0 a 23) del respaldo diario |
+| `BACKUP_RETENTION_DAYS` | `30` | Días que se guarda cada respaldo |
+| `LOGICODE_BACKUPS_DIR` | `backups` | Solo al ejecutar el backend fuera de Docker: carpeta donde lee los respaldos |
 
 La API key y el remitente de Brevo son **secretos de Docker**, nunca variables de `.env` (ver "Correo real con Brevo").
 
@@ -86,7 +89,7 @@ docker compose up --build
 
 Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos y los archivos cargados: `docker compose down -v`.
 
-Los archivos de los materiales se guardan en el volumen `file-storage`; para un respaldo completo copia ese volumen junto con la base de datos.
+Los archivos de los materiales se guardan en el volumen `file-storage`. El servicio `backup` respalda cada día la base de datos y esos archivos en el volumen `backups` y prueba que cada copia se pueda restaurar; desde la web (Administración) se ve el estado y se pide un respaldo inmediato. Cómo copiarlos fuera del equipo y cómo restaurar: [respaldos/README.md](respaldos/README.md).
 
 ### Datos de demostración
 
@@ -171,23 +174,25 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   ├── grading/                 Etapas 5-7: rúbricas versionadas, notas, Por revisar, historial, calificación con IA y con casos de prueba
 │   │   ├── pseint/                  Etapa 7: intérprete de PSeInt con límites
 │   │   ├── quizzes/                 Etapa 7: banco de preguntas, quizzes, intentos y ranking
-│   │   └── forum/ administration/   Módulos pendientes (solo descripción)
+│   │   ├── forum/                   Etapa 8: foro por herramienta con moderación
+│   │   └── administration/          Etapa 8: panel de administración y respaldos
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA, V6 quizzes y PSeInt)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA, V6 quizzes y PSeInt, V7 foro)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
 │   ├── src/app                      Rutas y navegación según permisos
-│   ├── src/features                 auth, account, admin, courses, content, activities, quizzes, pseint, games, system
+│   ├── src/features                 auth, account, admin, courses, content, activities, quizzes, pseint, games, forum, gradebook, system
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
 ├── datos-demo/                      Script de datos de demostración (se amplía en cada etapa)
+├── respaldos/                       Script del servicio de respaldos y cómo restaurar
 ├── ia-pruebas/                      Arnés de pruebas de aceptación de la IA (muestras y resultados fuera de Git)
 ├── docs/                            Diseño técnico, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
-├── docker-compose.yml               db + backend + frontend (+ ollama con el perfil ia)
+├── docker-compose.yml               db + backend + frontend + backup (+ ollama con el perfil ia)
 ├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
 └── .env.example                     Variables de ejemplo (sin secretos)
 ```
@@ -201,4 +206,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 7 en [docs/estado.md](docs/estado.md): los niveles de `/juegos` y las notas automáticas de los quizzes y del taller de PSeInt de los datos de demostración. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 8 · Foro y operación docente**.
+Revisar la Etapa 8 en [docs/estado.md](docs/estado.md): los permisos administrativos, la planilla y su exportación con los porcentajes del curso de demostración, el foro y los respaldos. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 9 · Calidad y seguridad**.

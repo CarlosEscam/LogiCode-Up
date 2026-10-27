@@ -5,6 +5,7 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
 import { KIND_ACCEPT, KIND_LABELS, TOOL_LABELS, VISIBILITY_LABELS, formatSize } from '../content/labels.js'
 import { MaterialLinks } from '../content/MaterialLinks.jsx'
+import { MaterialModeration } from '../content/MaterialModeration.jsx'
 
 // Temas del curso en orden, con sus materiales (RF-06 a RF-09). Los controles de edición solo se
 // muestran a quien puede usarlos; el backend vuelve a validar cada acción.
@@ -162,7 +163,6 @@ function TopicCard({ topic, canManage, isFirst, isLast, onMove, run, reload, cou
 }
 
 function MaterialRow({ material, run, isFirst, isLast, onMove }) {
-  const otherVisibility = material.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC'
   return (
     <li className="material">
       <div className="material__body">
@@ -200,34 +200,7 @@ function MaterialRow({ material, run, isFirst, isLast, onMove }) {
             </button>
           </>
         )}
-        {material.canModerate && (
-          <>
-            <button
-              type="button"
-              className="button button--secondary button--small"
-              aria-label={`Hacer ${VISIBILITY_LABELS[otherVisibility].toLowerCase()} ${material.title}`}
-              onClick={() =>
-                run(
-                  () => apiPut(`/materials/${material.id}/visibility`, { visibility: otherVisibility }),
-                  `"${material.title}" ahora es ${VISIBILITY_LABELS[otherVisibility].toLowerCase()}.`,
-                )
-              }
-            >
-              Hacer {VISIBILITY_LABELS[otherVisibility].toLowerCase()}
-            </button>
-            <button
-              type="button"
-              className="button button--danger button--small"
-              aria-label={`Archivar ${material.title}`}
-              onClick={() =>
-                window.confirm(`¿Archivar "${material.title}"? Dejará de mostrarse.`) &&
-                run(() => apiDelete(`/materials/${material.id}`), 'Material archivado.')
-              }
-            >
-              Archivar
-            </button>
-          </>
-        )}
+        <MaterialModeration material={material} run={run} />
       </div>
     </li>
   )

@@ -72,6 +72,9 @@ logicode:
     storage-dir: ${LOGICODE_FILES_DIR:file-storage}
     # RN-21 / RNF-12: mínimo 6 meses.
     retention-months: ${LOGICODE_FILE_RETENTION_MONTHS:6}
+  backups:
+    # Carpeta compartida con el servicio backup (volumen backups en Docker): respaldos, latido y solicitudes.
+    dir: ${LOGICODE_BACKUPS_DIR:backups}
   mail:
     # outbox: guarda los correos como archivos (desarrollo). brevo: envía con Brevo (requiere secretos).
     provider: ${LOGICODE_MAIL_PROVIDER:outbox}

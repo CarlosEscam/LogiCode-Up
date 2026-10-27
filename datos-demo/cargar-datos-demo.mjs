@@ -681,6 +681,51 @@ async function stage7(teacher, students, course) {
   log('Juegos: abre /juegos (sin sesión). El avance se guarda en el navegador; no hay datos que cargar.')
 }
 
+// ---------- Etapa 8 · Foro y operación docente ----------
+
+const STAGE8_TITLE = 'Bienvenidos al foro de Pensamiento Computacional'
+
+async function stage8(teacher, students) {
+  console.log('Etapa 8 · foro, planilla y panel de administración')
+  const thread = (author, category, title, body) => author.post('/forum/threads', { category, title, body })
+  const reply = (author, id, body) => author.post(`/forum/threads/${id}/posts`, { body })
+
+  const welcome = await thread(
+    teacher,
+    'GENERAL',
+    STAGE8_TITLE,
+    'Aquí resolvemos dudas entre todos.\n\n1. Elige la herramienta correcta al abrir un hilo.\n2. Copia el código o la parte del diagrama que no funciona.\n3. No publiques respuestas de quizzes ni talleres abiertos.',
+  )
+  await teacher.patch(`/forum/threads/${welcome.id}`, { pinned: true })
+
+  const loop = await thread(
+    students.ana,
+    'PSEINT',
+    '¿Por qué mi ciclo Mientras no termina?',
+    'Mi programa se queda pegado:\n\nMientras i <= 10 Hacer\n    Escribir i\nFinMientras\n\n¿Qué me falta?',
+  )
+  await reply(students.bruno, loop.id, 'Te falta aumentar i dentro del ciclo: i <- i + 1. Si no, la condición nunca cambia.')
+  await reply(teacher, loop.id, 'Exacto. En el editor de PSeInt de LogiCode verás que el programa se corta por el límite de pasos; agrega el aumento y prueba de nuevo.')
+
+  const dfd = await thread(students.camila, 'DFD', '¿Qué figura uso para leer datos?', 'En el diagrama no sé si leer va en rectángulo o en otra figura.')
+  await reply(teacher, dfd.id, 'Leer y escribir van en el paralelogramo; el rectángulo es para asignaciones como suma <- a + b.')
+
+  const scratch = await thread(students.david, 'SCRATCH', 'Mi gato no se mueve con las flechas', 'Puse "al presionar tecla flecha derecha" pero no pasa nada.')
+  await reply(students.elena, scratch.id, 'Revisa que el bloque "mover 10 pasos" esté pegado debajo del evento y que hayas hecho clic en el escenario antes de presionar.')
+
+  const arduino = await thread(students.felipe, 'ARDUINO', '¿El LED necesita resistencia?', 'Voy a conectar un LED al pin 13. ¿Le pongo resistencia?')
+  await reply(teacher, arduino.id, 'Sí: una de 220 Ω en serie con el LED. Cierro el hilo porque quedó resuelto.')
+  await teacher.patch(`/forum/threads/${arduino.id}`, { closed: true })
+
+  const spam = await thread(students.bruno, 'GENERAL', 'Cambio respuestas del Quiz 1', 'Escríbanme y les paso las respuestas.')
+  const diana = await Session.login(ORDINARY_ADMIN.cedula, DEMO_PASSWORD)
+  await diana.request('DELETE', `/forum/threads/${spam.id}`, { expect: [204] })
+
+  log(`Foro: 5 hilos (bienvenida fijada, PSeInt, DFD, Scratch y Arduino cerrado) con respuestas; uno eliminado por ${ORDINARY_ADMIN.fullName}`)
+  log('Planilla: pestaña "Planilla" del curso (docente y Administradores) y "Mis notas" (estudiantes); exportación a CSV desde ahí')
+  log('Panel de administración: /admin con la cuenta de Diana o una cuenta inicial; los respaldos los hace el servicio "backup"')
+}
+
 async function idOf(session) {
   return (await session.get('/me')).id
 }
@@ -716,6 +761,7 @@ async function main() {
   await stage5(teacher, students, course)
   await stage6(teacher, students, course)
   await stage7(teacher, students, course)
+  await stage8(teacher, students)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -726,9 +772,12 @@ async function addMissingStages(teacher) {
   const course = (courses.items ?? courses).find((c) => c.name === 'Pensamiento Computacional · Grupo A')
   if (!course) throw new Error('La docente de demostración existe, pero no se encontró su curso. Empieza de cero (ver README).')
   const titles = new Set((await teacher.get(`/courses/${course.id}/activities`)).map((a) => a.title))
+  const threads = await teacher.get(`/forum/threads?q=${encodeURIComponent(STAGE8_TITLE)}`)
+  threads.items.forEach((thread) => titles.add(thread.title))
   const missing = [
     [6, STAGE6_TITLE, stage6],
     [7, STAGE7_TITLE, stage7],
+    [8, STAGE8_TITLE, stage8],
   ].filter(([, title]) => !titles.has(title))
   if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')

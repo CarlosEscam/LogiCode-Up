@@ -117,6 +117,27 @@ En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar caso
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo lo de la Etapa 7 (y lo de la 6 si faltaba).
 - Los tiempos de los intentos que hace el script son de un segundo o menos, así que el desempate por tiempo del ranking se ve mejor cuando los estudiantes responden en vivo.
 
+### Etapa 8 · Foro y operación docente
+
+**Foro** (`/foro`, se lee sin sesión):
+
+| Hilo | Herramienta | Qué muestra |
+| --- | --- | --- |
+| Bienvenidos al foro de Pensamiento Computacional (Laura) | General | Fijado arriba |
+| ¿Por qué mi ciclo Mientras no termina? (Ana) | PSeInt | Responden Bruno y la docente |
+| ¿Qué figura uso para leer datos? (Camila) | DFD | Responde la docente |
+| Mi gato no se mueve con las flechas (David) | Scratch | Responde Elena |
+| ¿El LED necesita resistencia? (Felipe) | Arduino | La docente responde y lo cierra: ya no recibe respuestas |
+| Cambio respuestas del Quiz 1 (Bruno) | General | Diana, administradora ordinaria, lo eliminó: no aparece, pero queda en la base quién lo hizo |
+
+Para probar la moderación, entra con Laura o Diana y usa "Fijar arriba", "Cerrar a respuestas" o "Eliminar" dentro de un hilo; con un estudiante esos botones no aparecen.
+
+**Planilla**: pestaña "Planilla" del curso (Laura, Diana o una cuenta inicial) y "Mis notas" para cada estudiante. No agrega notas nuevas: muestra las de las etapas anteriores. Como el curso ya tenía porcentajes que suman 100 % (Tarea 1 30 %, Taller 2 30 % y Evaluación 1 40 %), Quiz 1, Taller 3 y Taller 4 quedan en 0 % y la planilla lo avisa; para verlas pesar, quita o baja un porcentaje desde la actividad. "Exportar a Excel (CSV)" descarga la misma tabla.
+
+**Panel de administración**: `/admin` con Diana o una cuenta inicial: cifras de la plataforma y respaldos. El primer respaldo diario lo hace el servicio `backup` a la hora de `BACKUP_HOUR`; con "Crear respaldo ahora" se ve uno en un minuto.
+
+- Si las etapas anteriores ya estaban cargadas, el script agrega solo lo de la Etapa 8.
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

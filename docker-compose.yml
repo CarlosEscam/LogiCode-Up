@@ -49,6 +49,8 @@ services:
       # Archivos de materiales en el volumen file-storage; se conservan como mínimo 6 meses (RN-21).
       LOGICODE_FILES_DIR: /var/lib/logicode/files
       LOGICODE_FILE_RETENTION_MONTHS: ${LOGICODE_FILE_RETENTION_MONTHS:-6}
+      # Carpeta compartida con el servicio backup: el panel lista las copias y deja ahí las solicitudes.
+      LOGICODE_BACKUPS_DIR: /var/lib/logicode/backups
       # Calificación con IA (Etapa 6): Ollama + Qwen2.5-VL 7B en el servicio ollama (perfil ia).
       LOGICODE_AI_ENABLED: ${LOGICODE_AI_ENABLED:-false}
       LOGICODE_AI_OLLAMA_URL: http://ollama:11434
@@ -65,6 +67,7 @@ services:
     volumes:
       - file-storage:/var/lib/logicode/files
       - ./.local/mail-outbox:/var/lib/logicode/mail-outbox
+      - backups:/var/lib/logicode/backups
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
 
@@ -81,6 +84,29 @@ services:
     volumes:
       - ollama-models:/root/.ollama
 
+  # Respaldos (RNF-09): copia diaria de la base y de los archivos, prueba de restauración y retención por días.
+  # Restaurar: `docker compose stop backend` y `docker compose run --rm --no-deps backup restaurar <copia>` (respaldos/README.md).
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    # Después del backend, para copiar la base ya migrada.
+    depends_on:
+      backend:
+        condition: service_healthy
+    entrypoint: ["sh", "/opt/logicode/respaldo.sh"]
+    command: ["servicio"]
+    environment:
+      PGHOST: db
+      PGDATABASE: ${DB_NAME:-logicode}
+      PGUSER: ${DB_USERNAME:-logicode}
+      PGPASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
+      BACKUP_HOUR: ${BACKUP_HOUR:-2}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ./respaldos/respaldo.sh:/opt/logicode/respaldo.sh:ro
+      - file-storage:/archivos
+      - backups:/respaldos
+
   frontend:
     build: ./frontend
     restart: unless-stopped
@@ -92,7 +118,9 @@ services:
 
 volumes:
   db-data:
-  # Archivos cargados (materiales). Inclúyelo en las copias de seguridad junto con db-data.
+  # Archivos cargados (materiales y entregas). El servicio backup lo copia junto con la base.
   file-storage:
+  # Copias de la base y de los archivos. Para guardarlas fuera del equipo: respaldos/README.md.
+  backups:
   # Modelos descargados por Ollama (unos 6 GB para Qwen2.5-VL 7B Q4_K_M).
   ollama-models:

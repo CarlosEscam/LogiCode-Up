@@ -51,6 +51,7 @@ class SecurityConfig {
                         // Biblioteca pública (RF-24, RF-25): los casos de uso deciden qué ve un visitante.
                         .requestMatchers(HttpMethod.GET, "/api/v1/library", "/api/v1/library/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/materials/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/forum/**").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(errors -> errors

@@ -1,6 +1,6 @@
 # Matriz de permisos
 
-> Decisión aprobada en la especificación (sección 2, RF-28, RN-04, RN-15, RN-16, RN-22). **Implementada en la Etapa 3** en `identity/domain/AccessPolicy.java`; cada caso de uso exige el permiso que necesita. Las acciones de etapas futuras (actividades, notas, foro, biblioteca, respaldos) ya tienen su permiso definido y se aplicarán al construir esos endpoints.
+> Decisión aprobada en la especificación (sección 2, RF-28, RN-04, RN-15, RN-16, RN-22). **Implementada en la Etapa 3** en `identity/domain/AccessPolicy.java`; cada caso de uso exige el permiso que necesita. Desde la Etapa 8 todas las acciones de la matriz tienen su endpoint.
 
 ## Modelo
 
@@ -56,6 +56,7 @@ Notas:
 - Etapa 5: crear, editar, publicar o archivar actividades, definir la rúbrica y dar excepciones de plazo es del docente responsable y del privilegio completo. Calificar y corregir notas también (`GRADE`). Las cuentas Administrador ven actividades, entregas, la bandeja Por revisar, notas e historial en solo lectura (`VIEW_COURSE_GRADES`). Entregar exige `ANSWER_ACTIVITIES` y estar inscrito en el curso. El estudiante ve sus entregas y su nota cuando está publicada, nunca la respuesta esperada de la rúbrica (T-36).
 - Etapa 6: pedir que la IA vuelva a evaluar una entrega es parte de calificar (`GRADE`): docente responsable y privilegio completo. Las cuentas Administrador ven motivo, confianza y evaluaciones de la IA en solo lectura. El estudiante ve "Calificando con IA" o "En revisión" y su nota publicada, nunca el motivo ni la propuesta de la IA (T-47).
 - Etapa 7: el banco de preguntas, armar un quiz y los casos de prueba son del docente responsable y del privilegio completo (`MANAGE_COURSE_CONTENT`). Las cuentas Administrador ven el banco, la clave, los intentos y el ranking con enlace a cada intento, y pueden volver a correr los casos de prueba de una entrega, en solo lectura. Responder un quiz exige `ANSWER_ACTIVITIES` y estar inscrito; el estudiante ve el ranking del quiz con nombres y notas, pero no los intentos de otros, y la clave solo en la revisión permitida (T-58). El editor de PSeInt pide sesión; los juegos son públicos.
+- Etapa 8: leer el foro es público; abrir hilos y responder exige `PARTICIPATE_FORUM`; fijar, cerrar, reabrir y eliminar hilos o respuestas exige `MODERATE_FORUM` (docente y cuentas Administrador, en cualquier hilo). La planilla completa y su exportación son del docente responsable y de las cuentas Administrador (`VIEW_COURSE_GRADES`, solo lectura); el estudiante inscrito ve solo su fila. El panel de administración pide `MANAGE_USERS` y los respaldos `MANAGE_BACKUPS`; restaurar un respaldo no se hace desde la web, sino por consola en el servidor (T-63). En la biblioteca, las cuentas Administrador cambian la visibilidad y archivan materiales (`MANAGE_LIBRARY`).
 - Cambiar el rol o desactivar una cuenta cierra sus sesiones abiertas.
 - RN-16: el backend rechaza cualquier operación que deje la plataforma sin al menos una cuenta inicial activa con privilegio completo.
 

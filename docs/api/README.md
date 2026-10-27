@@ -161,8 +161,24 @@ Todas requieren sesión. Los juegos no usan la API (T-59).
 | `PUT /api/v1/quiz-attempts/{id}/answers` | Guardar `{answers: [{questionId, choices, text}]}` (`choices`: posiciones desde 0); `204`; `409` si ya se envió o se acabó el tiempo |
 | `POST /api/v1/quiz-attempts/{id}/finish` | Enviar (con las últimas respuestas opcionales) y recibir el resultado |
 
+### Implementados (Etapa 8 · Foro y operación docente)
+
+Leer el foro no pide sesión; lo demás sí.
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/forum/threads?category&q&page&size` | Hilos visibles, fijados primero y luego por actividad reciente (`size` hasta 50). `category`: `PSEINT`, `DFD`, `SCRATCH`, `ARDUINO` o `GENERAL`; `q` busca en título y texto. Cada hilo: `{id, category, title, authorName, pinned, closed, replyCount, createdAt, lastActivityAt}` |
+| `GET /api/v1/forum/threads/{id}` | El hilo con sus respuestas visibles, `canReply` y `canModerate`. `404` si no existe o fue eliminado |
+| `POST /api/v1/forum/threads` | Abrir un hilo `{category, title (3 a 150), body}` (`PARTICIPATE_FORUM`); `201` |
+| `POST /api/v1/forum/threads/{id}/posts` | Responder `{body}` (hasta 10 000 caracteres); `201`; `409` si el hilo está cerrado |
+| `PATCH /api/v1/forum/threads/{id}` | Fijar o cerrar `{pinned, closed}` (`MODERATE_FORUM`; lo que no se envía no cambia) |
+| `DELETE /api/v1/forum/threads/{id}` · `DELETE /api/v1/forum/posts/{id}` | Ocultar un hilo o una respuesta (`MODERATE_FORUM`); `204` (T-65) |
+| `GET /api/v1/courses/{id}/gradebook` | Planilla (T-61): `columns` con porcentaje explícito, efectivo y estadísticas; `rows` con cada celda (`GRADED`, `OVERDUE`, `IN_REVIEW`, `PENDING`), `partial` y `definitive`; `weightsComplete`, `weightsWarning`, `passingScore` y `stats` del curso. Docente del curso y Administradores la ven completa (`fullView: true`); el estudiante inscrito solo su fila y sin estadísticas |
+| `GET /api/v1/courses/{id}/gradebook/export` | La misma planilla en CSV para Excel (T-64), como descarga `planilla-<curso>-<periodo>.csv`. Docente del curso y Administradores |
+| `GET /api/v1/admin/overview` | Cifras de la plataforma (`MANAGE_USERS`, T-62) |
+| `GET /api/v1/admin/backups` | `{service: {running, dailyHour, retentionDays}, pendingRequest, items: [{name, createdAt, databaseBytes, filesBytes, restoreTest, restoreTestDetail}]}` (`MANAGE_BACKUPS`). `restoreTest`: `OK`, `ERROR` o vacío si no se probó |
+| `POST /api/v1/admin/backups` | Pedir un respaldo inmediato; `202`. `409` si el servicio de respaldos no corre o ya hay uno pedido |
+
 ### Etapas siguientes (de la especificación, pendientes)
 
-| Recurso | Operaciones |
-| --- | --- |
-| Foro | `GET/POST /api/v1/forum/threads` · `PATCH /api/v1/forum/threads/{id}` |
+Ninguno por ahora. Falta la página de inicio (RF-23).

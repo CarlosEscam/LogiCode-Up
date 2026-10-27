@@ -1,7 +1,9 @@
 package co.edu.unipamplona.logicode.activities.application;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 
 import co.edu.unipamplona.logicode.activities.domain.Activity;
 import co.edu.unipamplona.logicode.activities.domain.Submission;
+import co.edu.unipamplona.logicode.courses.application.CourseRoster;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.application.UserDirectory;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
@@ -45,19 +48,29 @@ public class ActivityCatalog {
     public record SubmissionContent(String textAnswer, List<UUID> fileIds) {
     }
 
+    /**
+     * Actividad que entra en la planilla: publicada, no archivada y con nota (los quizzes de repaso no la tienen).
+     * {@code work} trae a cada inscrito en el orden del listado del curso.
+     */
+    public record GradableActivity(UUID id, String title, BigDecimal weightPercent, Instant closesAt,
+            List<BrowseSubmissions.StudentWork> work) {
+    }
+
     private final ActivityRepository activities;
     private final SubmissionRepository submissions;
     private final ActivityAccess access;
     private final ActivityViews views;
     private final UserDirectory directory;
+    private final BrowseSubmissions browseSubmissions;
 
     public ActivityCatalog(ActivityRepository activities, SubmissionRepository submissions, ActivityAccess access,
-            ActivityViews views, UserDirectory directory) {
+            ActivityViews views, UserDirectory directory, BrowseSubmissions browseSubmissions) {
         this.activities = activities;
         this.submissions = submissions;
         this.access = access;
         this.views = views;
         this.directory = directory;
+        this.browseSubmissions = browseSubmissions;
     }
 
     /** El quiz, si el actor puede verlo (404 si no o si la actividad no es un quiz). */
@@ -131,6 +144,17 @@ public class ActivityCatalog {
         List<UUID> ids = activities.findActiveByCourse(courseId).stream().map(Activity::getId).toList();
         return ids.isEmpty() ? List.of()
                 : submissions.findByStudentAndActivities(studentId, ids).stream().map(Submission::getId).toList();
+    }
+
+    /** Para la planilla (RN-07), ordenadas por cierre. No verifica permisos: lo hace quien la consulta. */
+    @Transactional(readOnly = true)
+    public List<GradableActivity> gradableWork(UUID courseId, List<CourseRoster.Member> members) {
+        return activities.findActiveByCourse(courseId).stream()
+                .filter(a -> a.isPublished() && !a.isPractice())
+                .sorted(Comparator.comparing(Activity::getClosesAt).thenComparing(Activity::getTitle))
+                .map(a -> new GradableActivity(a.getId(), a.getTitle(), a.getWeightPercent(), a.getClosesAt(),
+                        browseSubmissions.work(a, members)))
+                .toList();
     }
 
     private static ActivityInfo info(Activity a) {

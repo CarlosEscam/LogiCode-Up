@@ -6,12 +6,13 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
 import ActivitiesPanel from '../activities/ActivitiesPanel.jsx'
 import ReviewPanel from '../activities/ReviewPanel.jsx'
+import GradebookPanel from '../gradebook/GradebookPanel.jsx'
 import QuestionBankPanel from '../quizzes/QuestionBankPanel.jsx'
 import StudentsPanel from './StudentsPanel.jsx'
 import TopicsPanel from './TopicsPanel.jsx'
 
 // Página de un curso: temas con sus materiales, actividades y, para el docente o un Administrador,
-// la bandeja Por revisar y los inscritos.
+// la bandeja Por revisar, la planilla y los inscritos; el estudiante ve sus notas.
 export default function CoursePage({ id }) {
   const course = useQuery(`/courses/${id}`)
   const { query } = useLocation()
@@ -34,6 +35,7 @@ export default function CoursePage({ id }) {
     ['temas', 'Temas'],
     ['actividades', 'Actividades'],
     data.canViewCourseWork && ['revisar', 'Por revisar'],
+    data.canViewCourseWork ? ['planilla', 'Planilla'] : data.enrolled && ['planilla', 'Mis notas'],
     data.canViewCourseWork && ['preguntas', 'Banco de preguntas'],
     data.canManageEnrollments && ['estudiantes', 'Estudiantes'],
   ].filter(Boolean)
@@ -63,6 +65,7 @@ export default function CoursePage({ id }) {
       {tab === 'temas' && <TopicsPanel courseId={id} canManage={data.canManageContent} />}
       {tab === 'actividades' && <ActivitiesPanel course={data} />}
       {tab === 'revisar' && <ReviewPanel courseId={id} canGrade={data.canGrade} />}
+      {tab === 'planilla' && <GradebookPanel courseId={id} />}
       {tab === 'preguntas' && <QuestionBankPanel courseId={id} canManage={data.canManageContent} />}
       {tab === 'estudiantes' && <StudentsPanel courseId={id} onChange={course.reload} />}
     </>

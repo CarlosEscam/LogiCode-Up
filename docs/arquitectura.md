@@ -54,14 +54,14 @@ co.edu.unipamplona.logicode
 ├── courses/           Etapa 4 · cursos, docente responsable, inscripción por cédula, reglas de acceso (CourseAccess)
 ├── content/           Etapa 4 · temas, materiales, próxima clase, biblioteca, vista previa y descarga
 ├── activities/        Etapa 5 · actividades, plazos, entregas, excepciones; define el puerto GradingGateway
-├── grading/           Etapas 5-6 · rúbricas versionadas, notas, Por revisar, historial, calificación con IA (planilla en la 8)
+├── grading/           Etapas 5-8 · rúbricas versionadas, notas, Por revisar, historial, calificación con IA, planilla y exportación
 ├── pseint/           Etapa 7 · intérprete de PSeInt con límites (domain puro) y RunPrograms (ejecución y casos de prueba)
 ├── quizzes/           Etapa 7 · banco de preguntas, quizzes, intentos, envío automático y ranking
-├── forum/             Etapa 8 · foro y moderación
-└── administration/    Etapas 3, 8 · usuarios, aprobación docente, respaldos
+├── forum/             Etapa 8 · foro por herramienta y moderación
+└── administration/    Etapa 8 · panel de administración (cifras) y respaldos; usuarios y aprobación docente quedaron en identity
 ```
 
-La habilitación de cédulas quedó en `identity` porque es requisito del registro; la inscripción por curso está en `courses`, que usa `identity` para habilitar la cédula al inscribir. `content` usa `courses` (quién ve o administra un curso) y `files` (archivos); las dependencias van en un solo sentido: content → courses → identity, y content → files. `activities` usa `courses` y `files`; `grading` usa `activities` (a través de `ActivityCatalog`) y `courses`, e implementa el puerto `GradingGateway` que `activities` necesita para pedir la rúbrica y registrar cada entrega (T-30). `Role` y `Permission` viven en `shared.domain` (T-29). En la Etapa 7, `quizzes` usa `activities` (el quiz es una actividad) y `grading` (guarda su rúbrica); `grading` usa `pseint` para los casos de prueba. Los juegos no tienen módulo en el backend: corren en el navegador (`frontend/src/features/games`, T-59). Los módulos pendientes solo contienen `package-info.java` describiendo su responsabilidad; no tienen código.
+La habilitación de cédulas quedó en `identity` porque es requisito del registro; la inscripción por curso está en `courses`, que usa `identity` para habilitar la cédula al inscribir. `content` usa `courses` (quién ve o administra un curso) y `files` (archivos); las dependencias van en un solo sentido: content → courses → identity, y content → files. `activities` usa `courses` y `files`; `grading` usa `activities` (a través de `ActivityCatalog`) y `courses`, e implementa el puerto `GradingGateway` que `activities` necesita para pedir la rúbrica y registrar cada entrega (T-30). `Role` y `Permission` viven en `shared.domain` (T-29). En la Etapa 7, `quizzes` usa `activities` (el quiz es una actividad) y `grading` (guarda su rúbrica); `grading` usa `pseint` para los casos de prueba. Los juegos no tienen módulo en el backend: corren en el navegador (`frontend/src/features/games`, T-59). En la Etapa 8, `grading` arma la planilla con las actividades y entregas que le da `activities` (`ActivityCatalog.gradableWork`) y el padrón de `courses`; `forum` solo usa `identity` (quién actúa y los nombres de los autores). `administration` cuenta en todas las tablas con una consulta de solo lectura (T-62) y lee los respaldos que el contenedor `backup` deja en un volumen compartido (T-63).
 
 ### Responsabilidad de cada capa
 
