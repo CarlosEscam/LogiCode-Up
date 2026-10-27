@@ -78,7 +78,7 @@ export default function EnablementsPage() {
       <section className="card" aria-labelledby="habilitadas-titulo">
         <h2 id="habilitadas-titulo">Cédulas habilitadas</h2>
         <FormStatus error={enablements.error} />
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

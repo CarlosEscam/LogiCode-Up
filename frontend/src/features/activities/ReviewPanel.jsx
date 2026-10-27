@@ -16,7 +16,7 @@ export default function ReviewPanel({ courseId, canGrade }) {
       {queue.status === 'loading' && !queue.data && <p role="status">Cargando…</p>}
       {queue.data?.length === 0 && <p>No hay entregas pendientes de calificar.</p>}
       {queue.data?.length > 0 && (
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

@@ -337,7 +337,7 @@ function Roster({ activity }) {
       {roster.status === 'loading' && !roster.data && <p role="status">Cargando…</p>}
       {roster.data?.length === 0 && <p>El curso no tiene estudiantes inscritos.</p>}
       {roster.data?.length > 0 && (
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

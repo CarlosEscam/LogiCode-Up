@@ -93,7 +93,7 @@ function Backups() {
             {data.pendingRequest ? 'Respaldo en curso…' : 'Crear respaldo ahora'}
           </button>
           <FormStatus error={request.error} />
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0}>
             <table>
               <thead>
                 <tr>

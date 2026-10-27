@@ -37,7 +37,7 @@ export default function AuditPage() {
     <section className="card card--wide" aria-labelledby="auditoria-titulo">
       <h1 id="auditoria-titulo">Auditoría</h1>
       <FormStatus error={events.error} />
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr>

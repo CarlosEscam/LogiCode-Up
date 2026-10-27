@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 8 (foro y operación docente)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 9 (calidad y seguridad)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -16,12 +16,40 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
 | 7 · Quizzes, PSeInt y juegos | Implementada y aprobada | Falta que Carlos revise niveles y notas automáticas de los datos demo |
-| 8 · Foro y operación docente | Implementada, pendiente de revisión | Detalle abajo |
-| 9 · Calidad y seguridad · 10 · Piloto y entrega | Pendientes | También falta la página de inicio con misión y visión (RF-23) |
+| 8 · Foro y operación docente | Implementada y aprobada | Carlos pidió la Etapa 9 el 27 de octubre |
+| 9 · Calidad y seguridad | Implementada, pendiente de revisión | Detalle abajo y en [calidad.md](calidad.md) |
+| 10 · Piloto y entrega | Pendiente | También falta la página de inicio con misión y visión (RF-23) |
 
 ## Datos de demostración
 
 Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso un taller de PSeInt con casos de prueba y hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8); volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Etapa 9 · detalle
+
+Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, observabilidad y guías de demostración en [calidad.md](calidad.md).
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Pruebas unitarias, de integración y de API | Implementado | 116 pruebas del backend y 41 de la interfaz; nuevas en esta etapa: `ApiSecurityIT` y el docente de otro curso en `ActivityFlowsIT` |
+| Permisos | Implementado | `ApiSecurityIT` recorre todos los endpoints sin sesión y sin CSRF; las pruebas por rol y por curso de las Etapas 3 a 8 siguen en verde |
+| Carga de archivos | Revisado, sin cambios | Pruebas de las Etapas 4 y 5 (tipo real, tamaño, nombre, formatos no aceptados) |
+| Móvil y accesibilidad (RNF-01, RNF-11) | Implementado | axe-core en 37 vistas a 1280 y 390 px: 0 hallazgos tras corregir D9-01; ninguna vista se desborda a lo ancho |
+| Seguridad | Implementado | Cabeceras de seguridad y CSP en Nginx (D9-02); `npm audit` en 0. **Pendiente:** revisar las dependencias Java contra vulnerabilidades (R9-05) y HTTPS en el despliegue (R9-01, Etapa 10) |
+| Restauración | Demostrado | Respaldo pedido desde el panel, cambio posterior, restauración por consola: el cambio desaparece |
+| Observabilidad | Implementado | Línea de log por solicitud con estado, duración e identificador (D9-03); `/actuator/metrics` solo desde el PC |
+
+### Verificación realizada (Etapa 9)
+
+- Backend: `./mvnw verify` → 116 pruebas en verde (70 unitarias y 46 de integración).
+- Frontend: `npm run lint`, `npm test` (41 pruebas) y `npm run build` en verde.
+- Docker Compose sobre una base limpia (versión 7) con los datos de demostración de las Etapas 3 a 8: auditoría con axe en Chromium, CSP sin errores en la consola (también la vista previa de PDF), métricas y líneas de log comprobadas, restauración demostrada, y el flujo de calificación hecho en la interfaz: nota automática de PSeInt (Elena, 5,0) y nota manual desde Por revisar (Camila, 4,2) vista por la estudiante en el teléfono.
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Lista de defectos críticos resuelta | [calidad.md](calidad.md): no hubo críticos; D9-01 a D9-03 corregidos. **Pendiente: revisión de Carlos** |
+| Restauración y flujo de calificación demostrados | Hechos en Docker (detalle arriba); la guía para repetirlos está en [calidad.md](calidad.md#demostraciones). **Pendiente: revisión de Carlos** |
 
 ## Etapa 8 · detalle
 

@@ -22,7 +22,7 @@ La línea punteada es opcional: Ollama solo corre con `docker compose --profile 
 | Capa (especificación) | Implementación en el repositorio | Estado |
 | --- | --- | --- |
 | 1. Presentación | `frontend/` React 19 + Vite, JavaScript, CSS propio responsive | Implementada la base |
-| 2. Borde y entrega | Nginx en la imagen del frontend: sirve estáticos y reenvía `/api` al backend | Implementada la base (sin TLS: solo local) |
+| 2. Borde y entrega | Nginx en la imagen del frontend: sirve estáticos y reenvía `/api` al backend; cabeceras de seguridad y CSP (Etapa 9) | Implementada la base (sin TLS: solo local) |
 | 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI (springdoc) | Implementada la base |
 | 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada hasta la Etapa 6 (identidad, cursos, contenido, actividades, calificación) |
 | 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL (`ai_grading_job`) | Implementada para la calificación con IA (Etapa 6) |
@@ -91,7 +91,7 @@ La habilitación de cédulas quedó en `identity` porque es requisito del regist
 | Prefijo de API | `ApiPaths.V1 = "/api/v1"` en todos los controladores |
 | Errores | Problem Details (RFC 9457) en JSON con mensajes en español (`GlobalExceptionHandler`); nunca se devuelve la traza |
 | Zona horaria | Datos en UTC (`TIMESTAMPTZ`, JVM en UTC). Reglas por "día calendario en Colombia" usan el `Clock` del negocio (`America/Bogota`, configurable con `LOGICODE_TIME_ZONE`) |
-| Trazabilidad | `RequestIdFilter`: cabecera `X-Request-Id` en cada respuesta y en cada línea de log; en Docker los logs son JSON estructurado (ECS) |
+| Trazabilidad | `RequestIdFilter`: cabecera `X-Request-Id` en cada respuesta y en cada línea de log, y una línea por solicitud a la API con estado y duración (Etapa 9); en Docker los logs son JSON estructurado (ECS). Métricas en `/actuator/metrics`, solo desde el PC |
 | Health checks | `/actuator/health`, `/actuator/health/liveness`, `/actuator/health/readiness` (incluye la base de datos) |
 | OpenAPI | `/api/v1/openapi` (JSON) y `/swagger-ui.html` |
 | Configuración | Variables de entorno con valores por defecto seguros para desarrollo; secretos fuera del repositorio |

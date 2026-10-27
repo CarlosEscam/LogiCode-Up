@@ -155,7 +155,7 @@ function GradeSection({ grade, submissionId }) {
       {history.length > 0 && (
         <section className="card card--wide" aria-labelledby="historial-titulo">
           <h2 id="historial-titulo">Historial de la nota</h2>
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0}>
             <table>
               <thead>
                 <tr>
@@ -237,7 +237,7 @@ function TestRun({ submissionId }) {
         </p>
       )}
       {report?.cases.length > 0 && (
-        <div className="table-wrap" role="status">
+        <div className="table-wrap" tabIndex={0} role="status">
           <table>
             <caption>
               {report.passed} de {report.total} casos aprobados · nota {formatScore(report.score)}
@@ -354,7 +354,7 @@ function AiEvaluation({ evaluation }) {
         </div>
       </dl>
       {evaluation.criteria.length > 0 && (
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

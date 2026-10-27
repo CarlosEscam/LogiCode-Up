@@ -98,7 +98,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # metrics: memoria, solicitudes y conexiones; el puerto del backend solo escucha en 127.0.0.1 (Etapa 9).
+        include: health,info,metrics
   endpoint:
     health:
       probes:

@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 8 (foro y operación docente) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5), la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia) y los quizzes, PSeInt y juegos (Etapa 7), ya hay foro por herramienta con moderación, planilla del curso con avance parcial, nota definitiva, estadísticas y exportación a Excel (CSV), panel de administración y respaldos diarios con prueba de restauración. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 9 (calidad y seguridad) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5), la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia) y los quizzes, PSeInt y juegos (Etapa 7), ya hay foro por herramienta con moderación, planilla del curso con avance parcial, nota definitiva, estadísticas y exportación a Excel (CSV), panel de administración y respaldos diarios con prueba de restauración. La Etapa 9 revisó seguridad, permisos, accesibilidad y móvil, agregó cabeceras de seguridad y registro de cada solicitud, y demostró la restauración y la calificación ([docs/calidad.md](docs/calidad.md)). Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -206,4 +206,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 8 en [docs/estado.md](docs/estado.md): los permisos administrativos, la planilla y su exportación con los porcentajes del curso de demostración, el foro y los respaldos. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 9 · Calidad y seguridad**.
+Revisar la Etapa 9 en [docs/calidad.md](docs/calidad.md): la lista de defectos y riesgos aceptados, y repetir las demostraciones de restauración y de calificación. Antes del piloto conviene revisar las dependencias Java contra vulnerabilidades (R9-05). Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 10 · Piloto y entrega** (HTTPS, manuales y despliegue local del piloto).

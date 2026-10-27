@@ -140,6 +140,7 @@ class ActivityFlowsIT {
     Cookie classmate;
     Cookie outsider;
     Cookie ordinaryAdmin;
+    Cookie otherTeacher;
     String courseId;
     String activityId;
     String firstSubmission;
@@ -158,6 +159,10 @@ class ActivityFlowsIT {
         mvc.perform(post("/api/v1/admin/teachers/" + userId("500001") + "/approve").cookie(admin).with(csrf()))
                 .andExpect(status().isOk());
         teacher = login("500001");
+        register("teacher-requests", "500002", "Docente Ajeno", "ajeno@example.com");
+        mvc.perform(post("/api/v1/admin/teachers/" + userId("500002") + "/approve").cookie(admin).with(csrf()))
+                .andExpect(status().isOk());
+        otherTeacher = login("500002");
 
         courseId = JsonPath.read(mvc.perform(json(post("/api/v1/courses").cookie(teacher),
                         "{\"name\":\"Lógica de programación\",\"period\":\"2026-2\"}"))
@@ -303,6 +308,15 @@ class ActivityFlowsIT {
 
         String grade = "/api/v1/submissions/" + firstSubmission + "/grade";
         mvc.perform(json(post(grade).cookie(ordinaryAdmin), "{\"score\":4.5}")).andExpect(status().isForbidden());
+        // Etapa 9: un docente de otro curso no ve ni califica este (404, no revela que existe).
+        mvc.perform(json(post(grade).cookie(otherTeacher), "{\"score\":4.5}")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/submissions/" + firstSubmission).cookie(otherTeacher))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/courses/" + courseId + "/review-queue").cookie(otherTeacher))
+                .andExpect(status().isNotFound());
+        mvc.perform(json(post("/api/v1/courses/" + courseId + "/activities").cookie(otherTeacher),
+                        activity("Intrusa", "No.", null, 1)))
+                .andExpect(status().isNotFound());
         mvc.perform(json(post(grade).cookie(teacher), "{\"score\":5.5}"))
                 .andExpect(status().isUnprocessableContent());
         mvc.perform(json(post(grade).cookie(teacher), "{\"score\":4.5,\"feedback\":\"Bien planteado.\"}"))

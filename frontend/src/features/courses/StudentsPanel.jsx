@@ -92,7 +92,7 @@ export default function StudentsPanel({ courseId, onChange }) {
       <section className="card card--wide" aria-labelledby="inscritos-titulo">
         <h2 id="inscritos-titulo">Inscritos</h2>
         <FormStatus error={feedback.error ?? students.error} success={feedback.success} />
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

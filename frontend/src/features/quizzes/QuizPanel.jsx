@@ -210,7 +210,7 @@ function Ranking({ activity }) {
       <p className="page__note">Por nota y, si empatan, por menor tiempo.{activity.kind === 'PRACTICE_QUIZ' && ' Cuenta el mejor intento.'}</p>
       {ranking.data?.length === 0 && <p>Aún nadie ha terminado el quiz.</p>}
       {ranking.data?.length > 0 && (
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>

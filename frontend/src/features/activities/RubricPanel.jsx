@@ -46,7 +46,7 @@ export default function RubricPanel({ activity }) {
 export function RubricTable({ rubric }) {
   return (
     <>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr>
@@ -88,7 +88,7 @@ export function RubricTable({ rubric }) {
 
 function TestCaseTable({ cases }) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap" tabIndex={0}>
       <table>
         <caption>Casos de prueba (la nota es 5 × casos aprobados / total)</caption>
         <thead>

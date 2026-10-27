@@ -138,6 +138,18 @@ Para probar la moderación, entra con Laura o Diana y usa "Fijar arriba", "Cerra
 
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo lo de la Etapa 8.
 
+### Etapa 9 · Calidad y seguridad
+
+No agrega datos: la etapa revisa lo que ya existe. Los datos de las Etapas 3 a 8 alcanzan para las dos demostraciones del punto de control, descritas paso a paso en [docs/calidad.md](../docs/calidad.md#demostraciones):
+
+| Demostración | Con quién | Qué hacer |
+| --- | --- | --- |
+| Nota automática de PSeInt | Elena (`1000000205`) | Entregar su programa en "Taller 4: suma de 1 a n"; la nota sale sola |
+| Nota manual | Camila (`1000000203`) y Laura (`1000000101`) | Camila entrega en texto "Taller 2"; Laura la califica desde "Por revisar"; Camila la ve |
+| Restauración | Una cuenta inicial o Diana (`1000000103`) | Respaldo desde `/admin`, un cambio cualquiera y restauración por consola |
+
+Cada demostración usa un intento de esos estudiantes. Para repetirlas desde cero, restaura el respaldo hecho antes de empezar.
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

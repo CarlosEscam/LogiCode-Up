@@ -56,7 +56,7 @@ function FullGradebook({ data, courseId }) {
           </a>
         </p>
       )}
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table className="gradebook">
           <caption className="visually-hidden">Notas por estudiante y actividad</caption>
           <thead>
@@ -102,7 +102,7 @@ function FullGradebook({ data, courseId }) {
         {formatScore(stats.averageDefinitive)}, aprueban {stats.passingDefinitive}.
       </p>
       {data.columns.length > 0 && (
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0}>
           <table>
             <thead>
               <tr>
@@ -160,7 +160,7 @@ function MyGrades({ data }) {
         </p>
       </div>
       {data.weightsWarning && <p className="page__note">{data.weightsWarning}</p>}
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr>

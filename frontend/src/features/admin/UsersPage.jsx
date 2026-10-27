@@ -71,7 +71,7 @@ export default function UsersPage() {
 
       <FormStatus error={feedback.error ?? users.error} success={feedback.success} />
 
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0}>
         <table>
           <thead>
             <tr>
