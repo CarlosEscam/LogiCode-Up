@@ -27,6 +27,7 @@ import QuizAttemptPage from '../features/quizzes/QuizAttemptPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import { Link } from '../shared/router/Link.jsx'
 import { navigate, useLocation } from '../shared/router/router.js'
+import { Icon, Logo } from '../shared/ui/Icon.jsx'
 
 // access: 'public' (cualquiera), 'guest' (solo sin sesión), 'account' (con sesión) o un permiso.
 // Ocultar una ruta es solo comodidad: el backend valida cada permiso.
@@ -59,11 +60,11 @@ const ROUTES = {
 }
 
 const NAV = [
-  { to: '/cursos', label: 'Cursos', access: ['VIEW_PRIVATE_COURSE_CONTENT'] },
-  { to: '/admin', label: 'Administración', access: ['MANAGE_USERS'] },
-  { to: '/admin/usuarios', label: 'Usuarios', access: ['MANAGE_USERS', 'APPROVE_TEACHERS'] },
-  { to: '/admin/habilitaciones', label: 'Habilitar estudiantes', access: ['MANAGE_STUDENT_ENABLEMENTS'] },
-  { to: '/admin/auditoria', label: 'Auditoría', access: ['VIEW_AUDIT'] },
+  { to: '/cursos', label: 'Cursos', icon: 'cursos', access: ['VIEW_PRIVATE_COURSE_CONTENT'] },
+  { to: '/admin', label: 'Administración', icon: 'admin', access: ['MANAGE_USERS'] },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: 'usuarios', access: ['MANAGE_USERS', 'APPROVE_TEACHERS'] },
+  { to: '/admin/habilitaciones', label: 'Habilitar estudiantes', icon: 'usuarios', access: ['MANAGE_STUDENT_ENABLEMENTS'] },
+  { to: '/admin/auditoria', label: 'Auditoría', icon: 'auditoria', access: ['VIEW_AUDIT'] },
 ]
 
 export default function App() {
@@ -77,35 +78,54 @@ export default function App() {
 function Layout() {
   const session = useSession()
   const { path } = useLocation()
+  // En el celular el menú se desliza de lado: deja a la vista la opción de la página actual.
+  useEffect(() => {
+    document.querySelector('.topbar__nav [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [path, session.account])
 
   return (
     <>
       <header className="topbar">
         <Link to="/" className="topbar__brand">
-          LogiCode
+          <Logo />
+          LogiCode<span className="topbar__cursor" aria-hidden="true">_</span>
         </Link>
         <nav aria-label="Principal" className="topbar__nav">
-          <Link to="/biblioteca" aria-current={path === '/biblioteca' ? 'page' : undefined}>
+          <NavLink to="/" icon="inicio" current={path === '/'}>
+            Inicio
+          </NavLink>
+          {session.account &&
+            NAV.filter((item) => item.to === '/cursos' && item.access.some(session.can)).map((item) => (
+              <NavLink key={item.to} to={item.to} icon={item.icon} current={path.startsWith(item.to)}>
+                {item.label}
+              </NavLink>
+            ))}
+          <NavLink to="/biblioteca" icon="biblioteca" current={path === '/biblioteca' || path.startsWith('/materiales/')}>
             Biblioteca
-          </Link>
-          <Link to="/juegos" aria-current={path === '/juegos' ? 'page' : undefined}>
+          </NavLink>
+          <NavLink to="/juegos" icon="juegos" current={path === '/juegos'}>
             Juegos
-          </Link>
-          <Link to="/foro" aria-current={path.startsWith('/foro') ? 'page' : undefined}>
+          </NavLink>
+          {session.account && (
+            <NavLink to="/pseint" icon="pseint" current={path === '/pseint'}>
+              PSeInt
+            </NavLink>
+          )}
+          <NavLink to="/foro" icon="foro" current={path.startsWith('/foro')}>
             Foro
-          </Link>
+          </NavLink>
+          {session.account &&
+            NAV.filter((item) => item.to !== '/cursos' && item.access.some(session.can)).map((item) => (
+              <NavLink key={item.to} to={item.to} icon={item.icon} current={path === item.to || path.startsWith(`${item.to}/`)}>
+                {item.label}
+              </NavLink>
+            ))}
+        </nav>
+        <div className="topbar__account">
           {session.account ? (
             <>
-              <Link to="/pseint" aria-current={path === '/pseint' ? 'page' : undefined}>
-                PSeInt
-              </Link>
-              {NAV.filter((item) => item.access.some(session.can)).map((item) => (
-                <Link key={item.to} to={item.to} aria-current={path === item.to || path.startsWith(`${item.to}/`) ? 'page' : undefined}>
-                  {item.label}
-                </Link>
-              ))}
-              <Link to="/mi-cuenta" aria-current={path === '/mi-cuenta' ? 'page' : undefined}>
-                {session.account.fullName.split(' ')[0]} · {roleLabel(session.account.role)}
+              <Link to="/mi-cuenta" className="topbar__who" aria-current={path === '/mi-cuenta' ? 'page' : undefined}>
+                <strong>{session.account.fullName.split(' ')[0]}</strong> · {roleLabel(session.account.role)}
               </Link>
               <button
                 type="button"
@@ -116,14 +136,27 @@ function Layout() {
               </button>
             </>
           ) : (
-            session.status === 'ready' && <Link to="/ingresar">Iniciar sesión</Link>
+            session.status === 'ready' && (
+              <Link to="/ingresar" className="button button--secondary button--small" aria-current={path === '/ingresar' ? 'page' : undefined}>
+                Iniciar sesión
+              </Link>
+            )
           )}
-        </nav>
+        </div>
       </header>
       <main className="page">
         <Route path={path} session={session} />
       </main>
     </>
+  )
+}
+
+function NavLink({ to, icon, current, children }) {
+  return (
+    <Link to={to} aria-current={current ? 'page' : undefined}>
+      <Icon name={icon} />
+      {children}
+    </Link>
   )
 }
 

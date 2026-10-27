@@ -44,7 +44,7 @@ export default function CoursePage({ id }) {
   const setTab = (key) => navigate(key === 'temas' ? `/cursos/${id}` : `/cursos/${id}?seccion=${key}`, { replace: true })
   return (
     <>
-      <section className="card card--wide" aria-labelledby="curso-titulo">
+      <section className="card card--wide page-head" aria-labelledby="curso-titulo">
         <p className="page__note">
           <Link to="/cursos">Cursos</Link> · Periodo {data.period}
         </p>

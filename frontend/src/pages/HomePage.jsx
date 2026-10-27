@@ -1,6 +1,8 @@
 import SystemStatus from '../features/system/SystemStatus.jsx'
 import { useSession } from '../features/auth/useSession.js'
+import { BrainMascot } from '../features/games/skins.jsx'
 import { Link } from '../shared/router/Link.jsx'
+import { Icon } from '../shared/ui/Icon.jsx'
 
 // Página de inicio (RF-23): misión, visión y explicación de la plataforma.
 // La misión y la visión se redactaron con el propósito de la especificación; el equipo puede ajustar el texto aquí.
@@ -9,62 +11,65 @@ export default function HomePage() {
 
   return (
     <>
-      <header className="page__header">
-        <h1>LogiCode</h1>
-        <p className="page__subtitle">
-          Plataforma de Pensamiento Computacional · Universidad de Pamplona
-        </p>
-        <p>
-          Contenidos, práctica, entregas, notas y foro del curso de primer semestre en un solo lugar, desde el
-          computador o el celular.
-        </p>
-      </header>
-
-      {account ? (
-        <p className="card">
-          Hola, {account.fullName.split(' ')[0]}. <Link to="/cursos">Ir a mis cursos</Link>
-        </p>
-      ) : (
-        <section aria-labelledby="acceso-titulo" className="card">
-          <h2 id="acceso-titulo">Entrar a LogiCode</h2>
-          <ul className="links">
-            <li>
-              <Link to="/ingresar">Iniciar sesión</Link> con tu cédula
-            </li>
-            <li>
-              <Link to="/registro/estudiante">Registrarme como estudiante</Link> (tu docente debe haber habilitado tu
-              cédula)
-            </li>
-            <li>
-              <Link to="/registro/docente">Solicitar cuenta de docente</Link>
-            </li>
-          </ul>
-          <p className="page__note">Sin cuenta puedes usar la biblioteca pública, los juegos y leer el foro.</p>
-        </section>
-      )}
-
-      <div className="home-grid">
-        <section aria-labelledby="mision-titulo" className="card">
-          <h2 id="mision-titulo">Misión</h2>
-          <p>
-            Acompañar a los estudiantes de primer semestre en el aprendizaje del pensamiento computacional, reuniendo
-            los temas, la práctica y la evaluación del curso con retroalimentación oportuna y siempre bajo el criterio
-            del docente.
+      <section className="page-head hero" aria-labelledby="inicio-titulo">
+        <div className="hero__text">
+          <p className="eyebrow">Plataforma de Pensamiento Computacional · Universidad de Pamplona</p>
+          <h1 id="inicio-titulo">LogiCode</h1>
+          <p className="hero__lead">
+            Contenidos, práctica, entregas, notas y foro del curso de primer semestre en un solo lugar, desde el
+            computador o el celular.
           </p>
-        </section>
-        <section aria-labelledby="vision-titulo" className="card">
-          <h2 id="vision-titulo">Visión</h2>
-          <p>
-            Ser el espacio donde los estudiantes de la Universidad de Pamplona aprenden y practican la lógica de
-            programación desde su primer semestre, y crecer a más cursos con evaluaciones claras y explicadas.
-          </p>
-        </section>
-      </div>
+          {account ? (
+            <p className="hero__cta">
+              Hola, {account.fullName.split(' ')[0]}.{' '}
+              <Link to="/cursos" className="button">
+                Ir a mis cursos
+              </Link>
+            </p>
+          ) : (
+            <section aria-labelledby="acceso-titulo">
+              <h2 id="acceso-titulo" className="visually-hidden">
+                Entrar a LogiCode
+              </h2>
+              <div className="hero__cta">
+                <Link to="/ingresar" className="button">
+                  Iniciar sesión
+                </Link>
+                <Link to="/registro/estudiante" className="button button--secondary">
+                  Registrarme como estudiante
+                </Link>
+              </div>
+              <p className="hero__aside">
+                Inicia sesión con tu cédula. Para registrarte, tu docente debe haber habilitado tu cédula. ¿Eres docente?{' '}
+                <Link to="/registro/docente">Solicitar cuenta de docente</Link>.
+                <br />
+                Sin cuenta puedes usar la biblioteca pública, los juegos y leer el foro.
+              </p>
+            </section>
+          )}
+        </div>
+        <div className="hero__art" aria-hidden="true">
+          <pre className="hero__arch">
+            <b>Algoritmo</b> promedio{'\n'}
+            {'  '}
+            <b>Definir</b> n1, n2 <b>Como</b> Real{'\n'}
+            {'  '}
+            <b>Leer</b> n1, n2{'\n'}
+            {'  '}
+            <b>Escribir</b> <i>"Nota: "</i>, (n1+n2)/2{'\n'}
+            <b>FinAlgoritmo</b>
+          </pre>
+          <div className="mascot">
+            <BrainMascot />
+          </div>
+        </div>
+      </section>
 
-      <section aria-labelledby="como-titulo" className="card">
+      <section aria-labelledby="como-titulo" className="home-section">
         <h2 id="como-titulo">Qué puedes hacer</h2>
         <dl className="home-features">
           <div>
+            <Icon name="biblioteca" />
             <dt>Aprender</dt>
             <dd>
               Temas de PSeInt, diagramas de flujo (DFD), Scratch y Arduino con guías, presentaciones y videos.{' '}
@@ -72,6 +77,7 @@ export default function HomePage() {
             </dd>
           </div>
           <div>
+            <Icon name="juegos" />
             <dt>Practicar</dt>
             <dd>
               Retos de bloques con secuencias, ciclos, condiciones, rutas y depuración, quizzes de repaso y un editor
@@ -79,6 +85,7 @@ export default function HomePage() {
             </dd>
           </div>
           <div>
+            <Icon name="notas" />
             <dt>Entregar y ver tus notas</dt>
             <dd>
               Cada actividad trae su rúbrica y se califica de 0,0 a 5,0. Los programas de PSeInt y los quizzes se
@@ -87,6 +94,7 @@ export default function HomePage() {
             </dd>
           </div>
           <div>
+            <Icon name="foro" />
             <dt>Preguntar</dt>
             <dd>
               Un foro por herramienta donde responden compañeros y docentes. <Link to="/foro">Ir al foro</Link>
@@ -96,9 +104,9 @@ export default function HomePage() {
       </section>
 
       {!account && (
-        <section aria-labelledby="empezar-titulo" className="card">
+        <section aria-labelledby="empezar-titulo" className="home-section">
           <h2 id="empezar-titulo">Cómo empezar si eres estudiante</h2>
-          <ol>
+          <ol className="home-steps">
             <li>Tu docente habilita tu cédula en el curso.</li>
             <li>Te registras con tu cédula, tu correo y una contraseña.</li>
             <li>Confirmas el correo con el enlace que te llega.</li>
@@ -107,7 +115,25 @@ export default function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="estado-titulo" className="card">
+      <div className="home-grid home-section">
+        <section aria-labelledby="mision-titulo">
+          <h2 id="mision-titulo">Misión</h2>
+          <p>
+            Acompañar a los estudiantes de primer semestre en el aprendizaje del pensamiento computacional, reuniendo
+            los temas, la práctica y la evaluación del curso con retroalimentación oportuna y siempre bajo el criterio
+            del docente.
+          </p>
+        </section>
+        <section aria-labelledby="vision-titulo">
+          <h2 id="vision-titulo">Visión</h2>
+          <p>
+            Ser el espacio donde los estudiantes de la Universidad de Pamplona aprenden y practican la lógica de
+            programación desde su primer semestre, y crecer a más cursos con evaluaciones claras y explicadas.
+          </p>
+        </section>
+      </div>
+
+      <section aria-labelledby="estado-titulo" className="home-status">
         <h2 id="estado-titulo">Estado de la plataforma</h2>
         <SystemStatus />
       </section>

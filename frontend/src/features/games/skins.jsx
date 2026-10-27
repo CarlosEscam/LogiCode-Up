@@ -34,6 +34,15 @@ export function RobotSkin({ skin, dir }) {
   return ARROWS[dir]
 }
 
+// El cerebro de pie, sin flecha de dirección: es la mascota de la página de inicio y de Iniciar sesión.
+export function BrainMascot() {
+  return (
+    <svg className="mascot__brain" viewBox="6 2 28 36" aria-hidden="true" focusable="false">
+      <Brain look={[0.6, 0]} />
+    </svg>
+  )
+}
+
 export function SkinPicker({ value, onChange }) {
   return (
     <fieldset className="skin-picker">

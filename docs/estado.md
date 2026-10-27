@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes) y juego nuevo "Caza el error" entregados**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" y rediseño visual con el Canva entregados**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -22,10 +22,30 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · retos de bloques (RF-12) | Implementada, pendiente de revisión | Carlos la pidió el 27 de octubre al aprobar la Etapa 10. Detalle abajo |
 | Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
 | Ampliación · juegos con más niveles y personajes del robot | Implementada; Carlos aprobó los 20 niveles y los personajes y pidió más niveles en todos los juegos (27 de octubre) | Detalle abajo |
+| Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
 
 ## Datos de demostración
 
 Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Rediseño visual con el Canva · detalle
+
+| Elemento | Estado | Notas |
+| --- | --- | --- |
+| Colores, letras y botones | Implementado | Fondo crema, franja lavanda bajo la barra superior, títulos con serifa (Fraunces), texto en DM Sans, código en JetBrains Mono y morado como color de acento, tomados del diseño de Canva "Página web educativa para estudiantes". Las tres fuentes van en `frontend/public/fonts/` (licencia OFL): la CSP solo permite archivos propios y el piloto puede no tener internet (T-82). Todo en `styles/global.css` |
+| Barra superior | Implementado | Logo, menú con iconos (`shared/ui/Icon.jsx`) y la opción actual en morado; agrega "Inicio". En el celular el menú es una fila que se desliza de lado y deja a la vista la opción actual. Los permisos de cada opción no cambian |
+| Encabezado de página | Implementado | La primera sección del curso, la biblioteca, el foro y los juegos es una franja lavanda de borde a borde (`page-head`). Las pestañas del curso cierran la franja; las de los juegos son pastillas |
+| Inicio | Implementado | Presentación con el título, los botones de ingreso y registro, un algoritmo de PSeInt en un arco y el cerebro del juego de bloques como mascota (`BrainMascot`). En lugar de la foto del Canva va el arco, porque no hay una foto con permiso de uso |
+| Iniciar sesión | Implementado | Tarjeta con un lado lavanda y la mascota; los campos y enlaces son los mismos |
+| Biblioteca y foro | Implementado | Los filtros van en una barra dentro de la franja. La biblioteca muestra cada material como tarjeta con su formato; el foro muestra las iniciales del autor y el número de respuestas a la derecha, y el formulario "Abrir un hilo" al lado de la lista en el computador |
+| Mis notas | Implementado | El avance parcial resalta en morado y la nota definitiva queda aparte |
+| Textos y campos | Sin cambios | Se conservaron los nombres de campos, botones y mensajes de LogiCode |
+
+### Verificación realizada (rediseño)
+
+- Interfaz: 65 pruebas, oxlint sin hallazgos y compilación de Vite.
+- Con backend y datos demo en una base limpia: axe sin hallazgos (WCAG 2.1 AA y buenas prácticas) en 24 pantallas (inicio, ingreso, registro, biblioteca, foro, hilo, juegos, Caza el error, mi cuenta, las seis pestañas del curso, Mis notas, PSeInt, una actividad, panel de administración, usuarios y auditoría) a 1366 px y a 390 px, sin desborde lateral. Capturas en `capturas-rediseno/`.
+- Solo se pudo ver la parte de arriba del diseño de Canva (está en otra cuenta); el resto de las pantallas siguen el mismo estilo.
 
 ## Excel y PDF (P-07 y P-08) · detalle
 

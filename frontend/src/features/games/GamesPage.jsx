@@ -29,7 +29,7 @@ export default function GamesPage() {
 
   return (
     <>
-      <section className="card card--wide" aria-labelledby="juegos-titulo">
+      <section className="card card--wide page-head" aria-labelledby="juegos-titulo">
         <h1 id="juegos-titulo">Juegos de lógica</h1>
         <p>Practica sin presión: no dan nota. Tu avance queda guardado en este navegador.</p>
         <div className="tabs" role="tablist" aria-label="Juegos">
