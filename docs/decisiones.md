@@ -140,6 +140,14 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-70 | Spring Boot 4.1.1 → 4.1.2 | La revisión de dependencias (R9-05) encontró vulnerabilidades publicadas en septiembre y octubre de 2026 en Tomcat 11.0.24 y Jackson 3.1.5 / 2.21.5; 4.1.2 trae las versiones corregidas. Las 116 pruebas siguen en verde |
 | T-71 | Versión 1.0.0 para el piloto | Marca la versión que se entrega; la página de inicio y `/api/v1/system/info` la muestran |
 
+## Decisiones técnicas de los retos de bloques (RF-12, después de la Etapa 10)
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-72 | El reto se guarda como JSON en `rubric_version.block_challenge` (migración `V8`), con el mismo formato de programa del juego | Queda versionado con la rúbrica (RN-20) como los casos de prueba: cambiar el reto crea una versión nueva y cada entrega conserva el reto con que se calificó. Una sola columna evita tablas para un dato que siempre se lee entero |
+| T-73 | Una actividad se califica con casos de prueba o con un reto de bloques, no con los dos; el reto exige entregas en texto | El programa de bloques viaja en la respuesta escrita (JSON), sin un tipo de entrega nuevo. Dos calificaciones automáticas sobre la misma entrega no tendrían una nota clara |
+| T-74 | Nota todo o nada: 5,0 si el robot llega a la meta y 0,0 si no. El servidor vuelve a ejecutar el programa (`BlockChallenge`, copia en Java del intérprete de `games/blocks.js`) y no confía en el resultado del navegador. Un programa con bloques no permitidos, con más bloques del máximo o que no es un programa va a Por revisar | Es la regla de los juegos (llegar o no llegar) y la que el docente puede explicar. Volver a ejecutar evita que una entrega armada a mano por la API se califique sola. Lo que la interfaz no deja armar no merece un 0 automático: lo mira el docente, como un programa de PSeInt que no corre (T-52) |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |

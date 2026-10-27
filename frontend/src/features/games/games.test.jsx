@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
-import { MAX_STEPS, countBlocks, runProgram } from './blocks.js'
+import { MAX_STEPS, boardProblem, countBlocks, programText, runProgram } from './blocks.js'
 import { BLOCK_LEVELS, DFD_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
 
 function respond(status, body) {
@@ -29,6 +29,21 @@ describe('Niveles de los juegos', () => {
     expect(spin.outcome).toBe('limit')
     expect(spin.trace.length).toBeLessThan(MAX_STEPS)
     expect(runProgram([{ id: 'v', type: 'mientras', body: [] }], level).outcome).toBe('limit')
+  })
+
+  it('muestra un programa entregado como texto y revisa el tablero de un reto (RF-12)', () => {
+    const program = [
+      { type: 'repetir', times: 2, body: [{ type: 'avanzar' }] },
+      { type: 'si', body: [{ type: 'avanzar' }], else: [{ type: 'derecha' }] },
+    ]
+    expect(programText(JSON.stringify(program))).toBe(
+      'Repetir 2 veces\n  Avanzar\nSi hay camino adelante\n  Avanzar\nSi no\n  Girar a la derecha',
+    )
+    expect(programText('prom <- (a+b)/2')).toBeNull()
+    expect(programText('[{"type":"saltar"}]')).toBeNull()
+    expect(boardProblem(['S.M'])).toBeNull()
+    expect(boardProblem(['S..', 'M'])).not.toBeNull()
+    expect(boardProblem(['S..'])).not.toBeNull()
   })
 
   it('las respuestas de los otros juegos están entre sus opciones', () => {

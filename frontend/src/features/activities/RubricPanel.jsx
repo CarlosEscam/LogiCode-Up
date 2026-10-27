@@ -3,6 +3,8 @@ import { apiPut } from '../../shared/api/httpClient.js'
 import { useQuery } from '../../shared/api/usePagedQuery.js'
 import { FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
+import BlocksGame from '../games/BlocksGame.jsx'
+import BlockChallengeFields from './BlockChallengeFields.jsx'
 
 // Rúbrica vigente (RN-20). Guardarla crea una versión nueva; las entregas ya enviadas conservan
 // la versión con la que se evalúan. El estudiante ve los criterios, no la respuesta esperada.
@@ -82,6 +84,13 @@ export function RubricTable({ rubric }) {
         </p>
       )}
       {rubric.testCases?.length > 0 && <TestCaseTable cases={rubric.testCases} />}
+      {rubric.blockChallenge && (
+        <p className="page__note">
+          Se califica sola con un reto de bloques de {rubric.blockChallenge.maxBlocks} bloques como máximo: 5,0 si el robot llega a la meta y 0,0 si no.
+        </p>
+      )}
+      {/* El docente prueba el reto aquí; el estudiante lo resuelve en su formulario de entrega. */}
+      {rubric.blockChallenge && rubric.testCases && <BlocksGame level={rubric.blockChallenge} />}
     </>
   )
 }
@@ -127,6 +136,7 @@ function RubricEditor({ activityId, rubric, onSaved }) {
     (rubric?.criteria ?? [{ name: '', description: '', maxPoints: 5 }]).map((criterion) => ({ ...criterion, key: nextKey++ })),
   )
   const [cases, setCases] = useState(() => (rubric?.testCases ?? []).map((testCase) => ({ ...testCase, key: nextKey++ })))
+  const [blockChallenge, setBlockChallenge] = useState(rubric?.blockChallenge ?? null)
 
   function updateCase(key, field, value) {
     setCases((current) => current.map((testCase) => (testCase.key === key ? { ...testCase, [field]: value } : testCase)))
@@ -146,6 +156,7 @@ function RubricEditor({ activityId, rubric, onSaved }) {
         maxPoints: maxPoints === '' ? null : Number(maxPoints),
       })),
       testCases: cases.map(({ input, expectedOutput }) => ({ input, expectedOutput })),
+      blockChallenge,
     })
     onSaved()
     return result
@@ -262,6 +273,7 @@ function RubricEditor({ activityId, rubric, onSaved }) {
           Agregar caso de prueba
         </button>
       </fieldset>
+      <BlockChallengeFields value={rubric?.blockChallenge ?? null} onChange={setBlockChallenge} />
       <button type="submit" className="button" disabled={save.pending}>
         Guardar rúbrica
       </button>

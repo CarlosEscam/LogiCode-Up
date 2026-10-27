@@ -63,7 +63,21 @@ La sección **Por revisar** del curso lista las entregas que esperan tu nota, co
 | --- | --- |
 | Quiz calificable | Al enviar el intento, por los puntos de cada pregunta (nota de 0 a 5) |
 | Taller de PSeInt con casos de prueba | En **Editar rúbrica**, "Casos de prueba de PSeInt": entradas y salida esperada de cada caso. Cada entrega con programa (texto o `.psc`) se ejecuta y la nota es 5 × casos aprobados / total. Si el programa no se puede ejecutar, va a Por revisar. En la entrega, **Ejecutar casos de prueba** muestra el detalle |
+| Reto de bloques | En **Editar rúbrica**, "Reto de bloques (opcional)" (ver abajo). Cada entrega se vuelve a ejecutar: 5,0 si el robot llega a la meta y 0,0 si choca o no llega, con la razón como retroalimentación |
 | Fotos y archivos con IA | Si la IA está activa (la enciende quien maneja el servidor), lee fotos PNG/JPG, texto y archivos `.psc`/`.ino` con la rúbrica. Publica sola solo si leyó bien y su confianza es de 80 % o más; si no, la entrega te llega con su propuesta. PDF, Word, PowerPoint y video van siempre a tu revisión. Un fallo técnico no pone nota: **Reintentar con IA** la vuelve a mandar |
+
+### Retos de bloques
+
+<img src="img/docente-reto-bloques.jpg" alt="Editor del reto de bloques en la rúbrica, con el tablero, los bloques permitidos y la vista previa" width="640">
+
+1. Crea la actividad con la forma de entrega **Texto** (y sin archivos ni fotos, que no se usan).
+2. En **Editar rúbrica**, marca "Calificar con un reto de bloques".
+3. Dibuja el **tablero**, una fila por línea: `#` muro, `.` libre, `S` salida del robot y `M` meta (hasta 12 × 12, todas las filas del mismo largo).
+4. Elige hacia dónde **empieza mirando** el robot, el **máximo de bloques** y los **bloques que puede usar**.
+5. Prueba el reto en la **vista previa**. Para un reto de depuración, arma ahí un programa con un error y marca "El estudiante empieza con el programa de la vista previa".
+6. Pon al menos un criterio (por ejemplo "El robot llega a la meta", 5 puntos), guarda y publica.
+
+El estudiante arma el programa en la misma actividad y lo envía. En la entrega ves el programa con sangría y, en la rúbrica, el tablero para probarlo. Un programa con bloques no permitidos o con más bloques del máximo te llega a Por revisar. Una actividad usa casos de prueba o reto de bloques, no los dos.
 
 A la IA se envían el nombre del estudiante, el archivo, el enunciado, la rúbrica y la escala; nunca la cédula ni el correo. La IA corre en el equipo servidor y no envía nada a Internet.
 
@@ -92,7 +106,7 @@ En **Foro** respondes como cualquier usuario y, como docente, moderas: dentro de
 ## 9. Otras herramientas
 
 - **PSeInt** (menú): el mismo intérprete que califica; útil para preparar los casos de prueba.
-- **Juegos** (menú): retos de bloques y de lógica para recomendar en clase; no dan nota.
+- **Juegos** (menú): retos de bloques y de lógica para recomendar en clase; no dan nota. Para un reto de bloques con nota, usa la rúbrica (sección 5).
 - **Biblioteca** (menú): los materiales públicos de todos los cursos.
 
 ## 10. Recomendaciones para el piloto

@@ -31,7 +31,9 @@ class GradingViews {
                         c.getMaxPoints())).toList(),
                 r.totalPoints(), withExpectedAnswer ? r.getTestCases().stream().map(t -> new RubricView.TestCase(
                         t.getInput(), t.getExpectedOutput())).toList() : null,
-                r.getTestCases().size(), r.getCreatedAt());
+                r.getTestCases().size(), r.getBlockChallenge() == null ? null
+                        : BlockChallengeData.read(r.getBlockChallenge()),
+                r.getCreatedAt());
     }
 
     /** Vistas de las notas; con {@code ownerOnly} se ocultan nota y retroalimentación aún no publicadas. */

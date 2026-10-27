@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 10 (piloto y entrega)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12) entregados; siguen Excel y PDF (P-07, P-08)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -18,11 +18,31 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 7 · Quizzes, PSeInt y juegos | Implementada y aprobada | Falta que Carlos revise niveles y notas automáticas de los datos demo |
 | 8 · Foro y operación docente | Implementada y aprobada | Carlos pidió la Etapa 9 el 27 de octubre |
 | 9 · Calidad y seguridad | Implementada y aprobada | Carlos pidió la Etapa 10 el 27 de octubre. R9-01, R9-02 y R9-05 se cerraron en la Etapa 10 |
-| 10 · Piloto y entrega | Preparada, pendiente de revisión y del piloto con el docente | Detalle abajo, en [piloto.md](piloto.md) y en los [manuales](manuales/) |
+| 10 · Piloto y entrega | Aprobada; pendiente el piloto con el docente | Detalle abajo, en [piloto.md](piloto.md) y en los [manuales](manuales/) |
+| Ampliación · retos de bloques (RF-12) | Implementada, pendiente de revisión | Carlos la pidió el 27 de octubre al aprobar la Etapa 10. Detalle abajo |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso un taller de PSeInt con casos de prueba y hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Retos de bloques que configura el docente (RF-12) · detalle
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| El docente configura un reto de bloques en la rúbrica | Implementado | "Editar rúbrica" → "Reto de bloques (opcional)": tablero de hasta 12 × 12 (`#` muro, `.` libre, `S` salida, `M` meta), hacia dónde mira el robot, máximo de bloques (1 a 40), bloques permitidos y, opcional, un programa inicial con un error (reto de depuración). Vista previa con el mismo juego que verá el estudiante. Se guarda en la rúbrica versionada (columna `rubric_version.block_challenge`, migración `V8`, T-72) |
+| El estudiante arma y envía el programa | Implementado | En la actividad, el juego de bloques reemplaza la respuesta escrita; el programa viaja como texto JSON. La actividad debe recibir entregas en texto y no puede tener a la vez casos de prueba (T-73) |
+| Calificación automática del reto | Implementado | El servidor vuelve a ejecutar el programa con las mismas reglas del juego (`BlockChallenge`): 5,0 si el robot llega a la meta y 0,0 si choca, termina antes o pasa de 400 pasos, publicada como "Automática" con la razón. Un programa con bloques no permitidos, con más bloques del máximo o que no es un programa va a Por revisar como "El programa no se pudo ejecutar" (T-74) |
+| El docente ve el programa entregado | Implementado | La entrega muestra el programa con sangría (Repetir 3 veces / Avanzar …) y la rúbrica con el tablero para probarlo |
+| Notas parciales por número de bloques o por pasos | Pendiente | No pedido: la nota es todo o nada (T-74) |
+
+### Verificación realizada (retos de bloques)
+
+- `BlockChallengeTest` (tablero, validación y ejecución, también con los niveles de `/juegos`) y `QuizAndPseintFlowsIT` (reto inválido o sin entregas en texto → 422, reto con casos de prueba → 422, programa que llega 5,0, que choca 0,0, con bloques no permitidos o texto suelto → Por revisar). Backend: 120 pruebas sin fallas ni omitidas. Interfaz: 44 pruebas, `oxlint` limpio y `vite build`.
+- Docker por HTTPS (modo piloto) sobre una base limpia con los datos demo: las tres entregas del reto quedaron en 5,0, 0,0 (choca) y 0,0 (termina antes). En el teléfono, un estudiante armó un programa equivocado (0,0) y en el segundo intento llegó a la meta (5,0). Capturas en `capturas-rf12/`. axe sin hallazgos en la actividad del estudiante (390 px) ni en el editor de la rúbrica (1280 px).
+
+### Punto de control
+
+Pendiente: revisión de Carlos (crear un reto propio con "Editar rúbrica" y resolverlo con una cuenta de estudiante).
 
 ## Etapa 10 · detalle
 
@@ -123,7 +143,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Tiempo total, envío automático e intentos (RN-13) | Implementado | El tiempo corre desde que empieza el intento; la página guarda las respuestas solas y lo envía al acabarse. Si el navegador se cierra, el servidor lo envía con lo guardado (revisión cada 30 s, margen de 30 s, T-56). Un intento por defecto; el docente da otro con "Plazo e intentos" |
 | Nota por aciertos y ranking (RN-14, RF-16) | Implementado | Nota = 5 × puntos obtenidos ÷ puntos totales, con un decimal; se publica como "Automática" y entra a la planilla como una entrega más. Ranking por nota y luego por menor tiempo; en el calificable cuenta el último intento y en el de repaso el mejor (T-57). La revisión del calificable se abre cuando cierra el quiz (T-58) |
 | Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (6 niveles, respuestas comprobadas con el intérprete), "Ordena el algoritmo" (4), "Completa el DFD" (4, diagrama dibujado en SVG) y "Bloques" (8 niveles: secuencia, ruta, ciclo, condición y depuración, con ejecución animada, paso a paso y límite de bloques). Avance guardado solo en el navegador (T-59) |
-| Niveles de bloques configurados por el docente (RF-12, "criterios de bloques") | Pendiente | Los niveles están fijos en el código (`frontend/src/features/games/levels.js`). Un editor de niveles para el docente no está en esta etapa |
+| Niveles de bloques configurados por el docente (RF-12, "criterios de bloques") | Implementado después de la Etapa 10 | Los niveles de `/juegos` siguen fijos en el código; el docente configura retos calificables en la rúbrica (ver "Retos de bloques" arriba) |
 | Instrucciones de PSeInt no cubiertas | Pendiente | `Para Cada` y el perfil estricto (declarar todo, `;` obligatorio). Un programa que las use va a revisión del docente, nunca recibe un 0 automático |
 
 ### Verificación realizada (Etapa 7)
@@ -286,6 +306,6 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | RF-28 | Implementado: usuarios, roles, aprobación docente, auditoría, biblioteca, moderación del foro y respaldos |
 | RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
 | RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
-| RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Falta que el docente configure niveles de bloques (RF-12) |
+| RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Retos de bloques que configura el docente: implementados después de la Etapa 10 (BD versión 8) |
 | RF-18, RF-20, RF-26, RF-27 | Implementados (Etapa 8): planilla con exportación CSV (Excel `.xlsx` pendiente de P-07), notas del estudiante y foro con moderación |
 | RF-23 | Implementado (Etapa 10): página de inicio con misión, visión y explicación de la plataforma. El texto de misión y visión es una propuesta a partir del propósito de la especificación |

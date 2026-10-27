@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import co.edu.unipamplona.logicode.activities.application.GradingGateway;
 import co.edu.unipamplona.logicode.grading.domain.AiGradingJob;
+import co.edu.unipamplona.logicode.grading.domain.BlockChallenge;
 import co.edu.unipamplona.logicode.grading.domain.Grade;
 import co.edu.unipamplona.logicode.grading.domain.GradeChange;
 import co.edu.unipamplona.logicode.grading.domain.GradeSource;
@@ -60,7 +61,9 @@ class GradingGatewayAdapter implements GradingGateway {
         RubricVersion current = current(activityId);
         Instant now = clock.instant();
         Optional<String> code = current.hasTestCases() ? content.pseintCode(submissionId) : Optional.empty();
-        if (code.isPresent()) {
+        if (current.getBlockChallenge() != null) {
+            gradeBlocks(submissionId, current, now);
+        } else if (code.isPresent()) {
             RunPrograms.TestReport report = programs.check(code.get(), current.getTestCases().stream()
                     .map(t -> new RunPrograms.TestCase(t.getInput(), t.getExpectedOutput())).toList());
             if (report.runnable()) {
@@ -76,6 +79,28 @@ class GradingGatewayAdapter implements GradingGateway {
             Grade grade = grades.save(Grade.forAi(submissionId, current.getId(), now));
             jobs.save(new AiGradingJob(grade.getId(), null, now));
         }
+    }
+
+    /** RF-12: se vuelve a ejecutar el programa entregado; si no se puede leer o rompe las reglas, pasa al docente. */
+    private void gradeBlocks(UUID submissionId, RubricVersion rubric, Instant now) {
+        BlockChallenge.Result result;
+        try {
+            BlockChallenge challenge = BlockChallengeData.read(rubric.getBlockChallenge()).toDomain();
+            result = challenge.run(BlockChallengeData.program(content.textAnswer(submissionId).orElse("")));
+        } catch (IllegalArgumentException e) {
+            grades.save(Grade.forReview(submissionId, rubric.getId(), ReviewReason.CODE_ERROR, now));
+            return;
+        }
+        publishAutomatic(submissionId, rubric, result.score(), feedback(result), now);
+    }
+
+    static String feedback(BlockChallenge.Result result) {
+        return switch (result.outcome()) {
+            case GOAL -> "Reto superado: el robot llegó a la meta con " + result.blocks() + " bloques.";
+            case CRASH -> "El robot chocó con un muro o con el borde del tablero.";
+            case ENDED -> "El programa terminó, pero el robot no llegó a la meta.";
+            case LIMIT -> "El robot dio más de " + BlockChallenge.MAX_STEPS + " pasos sin llegar: revisa los ciclos.";
+        };
     }
 
     @Override

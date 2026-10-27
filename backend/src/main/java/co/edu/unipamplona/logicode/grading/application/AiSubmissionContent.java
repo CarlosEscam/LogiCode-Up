@@ -68,6 +68,11 @@ class AiSubmissionContent {
     }
 
     /** Carga el contenido; vacío si la entrega ya no existe o trae algo que la IA no lee. */
+    /** Respuesta escrita de la entrega (el programa de un reto de bloques). */
+    Optional<String> textAnswer(UUID submissionId) {
+        return catalog.content(submissionId).map(ActivityCatalog.SubmissionContent::textAnswer);
+    }
+
     Optional<Loaded> load(UUID submissionId) {
         Optional<ActivityCatalog.SubmissionContent> found = catalog.content(submissionId);
         if (found.isEmpty()) {

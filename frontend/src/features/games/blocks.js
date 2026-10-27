@@ -1,6 +1,15 @@
 // Intérprete del juego de bloques: un robot en una cuadrícula ('#' muro, '.' libre, 'S' salida, 'M' meta).
 // Es puro (sin React) para probarlo y para el modo paso a paso: devuelve cada estado del robot.
 
+export const BLOCK_LABELS = {
+  avanzar: 'Avanzar',
+  izquierda: 'Girar a la izquierda',
+  derecha: 'Girar a la derecha',
+  repetir: 'Repetir',
+  si: 'Si hay camino adelante',
+  mientras: 'Mientras no llegue a la meta',
+}
+
 export const DIRECTIONS = ['N', 'E', 'S', 'O']
 const DELTA = { N: [-1, 0], E: [0, 1], S: [1, 0], O: [0, -1] }
 
@@ -95,4 +104,44 @@ export function runProgram(program, level) {
     if (error instanceof Stop) return { trace, outcome: error.outcome }
     throw error
   }
+}
+
+// Reto de bloques del docente (RF-12): mismas reglas del tablero que valida el servidor (BlockChallenge.java).
+export function boardProblem(rows) {
+  if (rows.length === 0 || rows.length > 12) return 'El tablero debe tener entre 1 y 12 filas.'
+  if (rows.some((row) => row.length !== rows[0].length || row.length > 12)) return 'Todas las filas deben tener el mismo largo (hasta 12 casillas).'
+  if (rows.some((row) => /[^#.SM]/.test(row))) return 'Usa solo # (muro), . (libre), S (salida) y M (meta).'
+  const text = rows.join('')
+  if (text.split('S').length !== 2 || text.split('M').length !== 2) return 'El tablero necesita exactamente una S y una M.'
+  return null
+}
+
+// Programa entregado en un reto (RF-12) como texto con sangría, o null si el texto no es un programa de bloques.
+export function programText(text) {
+  let program
+  try {
+    program = JSON.parse(text)
+  } catch {
+    return null
+  }
+  if (!Array.isArray(program)) return null
+  const lines = []
+  const write = (blocks, depth) => {
+    for (const block of blocks) {
+      if (!BLOCK_LABELS[block?.type]) throw new Error('bloque desconocido')
+      const pad = '  '.repeat(depth)
+      lines.push(pad + BLOCK_LABELS[block.type] + (block.type === 'repetir' ? ` ${block.times} veces` : ''))
+      write(block.body ?? [], depth + 1)
+      if (block.type === 'si') {
+        lines.push(`${pad}Si no`)
+        write(block.else ?? [], depth + 1)
+      }
+    }
+  }
+  try {
+    write(program, 0)
+  } catch {
+    return null
+  }
+  return lines.join('\n')
 }

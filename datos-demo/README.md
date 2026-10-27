@@ -174,6 +174,19 @@ Guion sugerido para presentar con estos datos, en el orden de los manuales:
 | Docente | Temas, nueva actividad con rúbrica, Por revisar, calificar, planilla y exportación | Laura (`1000000101`) |
 | Técnico / Administración | Aprobar al docente pendiente, panel, respaldo y restauración | Diana (`1000000103`) o una cuenta inicial; Jorge (`1000000102`) está por aprobar |
 
+### Retos de bloques que configura el docente (RF-12)
+
+Agrega **"Reto 1: la escalera del robot (bloques)"**, un taller publicado sin porcentaje, con 3 intentos y cierre en 7 días. La rúbrica tiene un reto de bloques: tablero de 4 × 5 en escalera, el robot empieza mirando a la derecha, máximo 6 bloques y solo Avanzar, girar y Repetir. La solución es Repetir 3 veces (Avanzar, Girar a la derecha, Avanzar, Girar a la izquierda) y un Avanzar al final.
+
+| Estudiante | Programa entregado | Nota automática |
+| --- | --- | --- |
+| Ana (`1000000201`) | La solución | 5,0 · "Reto superado: el robot llegó a la meta con 6 bloques." |
+| Bruno (`1000000202`) | Repetir 3 veces (Avanzar, Girar a la derecha, Avanzar) | 0,0 · choca con un muro |
+| Camila (`1000000203`) | La solución, pero con Repetir 2 veces | 0,0 · termina antes de la meta |
+| David, Elena y Felipe | Sin entregar | Para probar el reto en el celular |
+
+Para verlo: Laura abre la actividad (rúbrica con el tablero, "Editar rúbrica" con el reto, y en "Ver entrega" el programa de cada estudiante con sangría). David, Elena o Felipe arman el programa en "Mi entrega" y lo envían. Si ya tenías los datos de etapas anteriores, el script agrega solo este reto (la base debe estar en la versión 8).
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

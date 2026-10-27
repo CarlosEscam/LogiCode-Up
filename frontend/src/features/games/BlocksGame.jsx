@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Solved from './Solved.jsx'
-import { countBlocks, parseLevel, runProgram } from './blocks.js'
+import { BLOCK_LABELS, countBlocks, parseLevel, runProgram } from './blocks.js'
 
-const BLOCK_LABELS = {
-  avanzar: 'Avanzar',
-  izquierda: 'Girar a la izquierda',
-  derecha: 'Girar a la derecha',
-  repetir: 'Repetir',
-  si: 'Si hay camino adelante',
-  mientras: 'Mientras no llegue a la meta',
-}
 const CONTAINERS = new Set(['repetir', 'si', 'mientras'])
 const ARROWS = { N: '▲', E: '▶', S: '▼', O: '◀' }
 const DIRECTION_NAMES = { N: 'arriba', E: 'a la derecha', S: 'abajo', O: 'a la izquierda' }
@@ -59,7 +51,8 @@ function contains(blocks, id) {
   return blocks.some((item) => item.id === id || contains(item.body ?? [], id) || contains(item.else ?? [], id))
 }
 
-export default function BlocksGame({ level, onSolved, onNext }) {
+// También se usa en los retos de bloques de una actividad (RF-12): sin título, y avisando cada cambio del programa.
+export default function BlocksGame({ level, onSolved, onNext, onProgramChange }) {
   const [program, setProgram] = useState(() => copy(level.start ?? []))
   const [target, setTarget] = useState(null)
   const [run, setRun] = useState(null) // { result, step, playing }
@@ -77,12 +70,16 @@ export default function BlocksGame({ level, onSolved, onNext }) {
     return () => clearTimeout(timer)
   }, [run, finished])
 
+  useEffect(() => {
+    onProgramChange?.(program)
+  }, [program, onProgramChange])
+
   const won = finished && run.result.outcome === 'goal'
   const reported = useRef(false)
   useEffect(() => {
     if (won && !reported.current) {
       reported.current = true
-      onSolved()
+      onSolved?.()
     }
   }, [won, onSolved])
 
@@ -97,11 +94,13 @@ export default function BlocksGame({ level, onSolved, onNext }) {
   }
 
   return (
-    <section className="card card--wide" aria-labelledby="nivel-titulo">
-      <h2 id="nivel-titulo">
-        {level.topic}: {level.title}
-      </h2>
-      <p>{level.goal}</p>
+    <section className={level.title ? 'card card--wide' : undefined} aria-labelledby={level.title ? 'nivel-titulo' : undefined} aria-label={level.title ? undefined : 'Reto de bloques'}>
+      {level.title && (
+        <h2 id="nivel-titulo">
+          {level.topic}: {level.title}
+        </h2>
+      )}
+      {level.goal && <p>{level.goal}</p>}
       <div className="blocks-game">
         <div>
           <div className="robot-grid" style={{ gridTemplateColumns: `repeat(${grid[0].length}, 2.5rem)` }} role="img" aria-label={`Tablero de ${grid.length} por ${grid[0].length}`}>
@@ -177,7 +176,14 @@ export default function BlocksGame({ level, onSolved, onNext }) {
               Reiniciar
             </button>
           </div>
-          {finished && won && <Solved onNext={onNext}>¡El robot llegó a la meta con {used} bloques!</Solved>}
+          {finished && won &&
+            (level.title ? (
+              <Solved onNext={onNext}>¡El robot llegó a la meta con {used} bloques!</Solved>
+            ) : (
+              <p className="notice notice--ok" role="status">
+                ¡El robot llegó a la meta con {used} bloques!
+              </p>
+            ))}
           {finished && !won && (
             <p className="notice notice--error" role="status">
               {OUTCOME_TEXT[run.result.outcome]}

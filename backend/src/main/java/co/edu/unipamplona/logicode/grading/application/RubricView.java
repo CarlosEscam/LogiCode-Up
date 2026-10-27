@@ -7,11 +7,11 @@ import java.util.UUID;
 
 /**
  * Versión de rúbrica. {@code expectedAnswer} y {@code testCases} son nulos para quien no ve las entregas del curso
- * (el estudiante), que solo sabe cuántos casos de prueba hay.
+ * (el estudiante), que solo sabe cuántos casos de prueba hay. El reto de bloques lo ven todos: es el enunciado.
  */
 public record RubricView(UUID id, UUID activityId, int number, String statement, String expectedAnswer,
         List<Criterion> criteria, BigDecimal totalPoints, List<TestCase> testCases, int testCaseCount,
-        Instant createdAt) {
+        BlockChallengeData blockChallenge, Instant createdAt) {
 
     public record Criterion(String name, String description, BigDecimal maxPoints) {
     }

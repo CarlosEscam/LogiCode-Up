@@ -8,7 +8,7 @@ Para quien instala, opera y mantiene LogiCode, y para las cuentas Administrador.
 | --- | --- | --- |
 | Interfaz | React 19 (Vite), servida por Nginx, que además termina HTTPS y reenvía `/api` | `frontend/` |
 | API | Java 21, Spring Boot 4.1, REST JSON con prefijo `/api/v1`, monolito modular por capas | `backend/`, [arquitectura.md](../arquitectura.md), [api/README.md](../api/README.md) |
-| Base de datos | PostgreSQL 17 con migraciones Flyway (versión 7) | [modelo-de-datos.md](../modelo-de-datos.md) |
+| Base de datos | PostgreSQL 17 con migraciones Flyway (versión 8) | [modelo-de-datos.md](../modelo-de-datos.md) |
 | Archivos | Volumen local de Docker `file-storage` (P-05) | |
 | Respaldos | Servicio `backup` con copia diaria y prueba de restauración | [respaldos/README.md](../../respaldos/README.md) |
 | IA (opcional) | Ollama + Qwen2.5-VL 7B en Docker, perfil `ia` | README, "Calificación con IA" |

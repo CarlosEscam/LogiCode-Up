@@ -26,6 +26,7 @@
 | `V5__calificacion_con_ia.sql` | Etapa 6: estado `PROCESSING` y motivo de revisión en las notas, cola de evaluación con IA, evaluaciones de la IA con sus puntos por criterio |
 | `V6__quizzes_y_pseint.sql` | Etapa 7: tipos de actividad `QUIZ` y `PRACTICE_QUIZ`, casos de prueba en la rúbrica, notas `AUTOMATIC` y motivo `CODE_ERROR`, banco de preguntas, quizzes, intentos y sus respuestas |
 | `V7__foro.sql` | Etapa 8: hilos y respuestas del foro. La planilla y las estadísticas se calculan con las tablas existentes y los respaldos viven en el volumen `backups`, no en la base |
+| `V8__retos_de_bloques.sql` | Retos de bloques (RF-12): columna `block_challenge` en `rubric_version` con el reto en JSON (tablero, orientación, máximo de bloques, bloques permitidos y programa inicial), T-72 |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -206,6 +207,7 @@ erDiagram
         int number "UK con activity_id"
         text statement "copia del enunciado vigente"
         text expected_answer
+        text block_challenge "reto de bloques en JSON, V8"
     }
     grade {
         uuid id PK

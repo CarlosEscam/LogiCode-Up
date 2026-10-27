@@ -74,6 +74,16 @@ Algunos talleres se califican solos: LogiCode ejecuta tu programa con varias ent
 
 En el menú, **PSeInt** abre el mismo editor para practicar cuando quieras, con ejemplos.
 
+### Retos de bloques con nota
+
+<img src="img/estudiante-reto-bloques.jpg" alt="Reto de bloques en una actividad: el robot llegó a la meta con un ciclo Repetir" width="300">
+
+Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero del robot en lugar de la caja de respuesta.
+
+1. Agrega bloques con los botones. Para meter bloques dentro de **Repetir** o **Si**, pulsa primero "Hacer: agregar aquí"; "Volver al principal" regresa al programa principal. El reto dice cuántos bloques puedes usar.
+2. Pulsa **Ejecutar** (o **Paso a paso**) para ver al robot. Puedes probar todas las veces que quieras antes de enviar.
+3. Pulsa **Enviar entrega**. La nota sale sola: **5,0** si el robot llega a la meta y **0,0** si choca o no llega, con la razón. Si la actividad permite más intentos, puedes corregir y volver a enviar.
+
 ## 6. Quizzes
 
 - **Quiz calificable**: pulsa **Empezar el quiz**. El tiempo corre desde que empiezas y **no se detiene si cierras la página**; tus respuestas se guardan mientras avanzas y, si se acaba el tiempo, el intento se envía solo con lo que tengas. La nota sale al enviar.

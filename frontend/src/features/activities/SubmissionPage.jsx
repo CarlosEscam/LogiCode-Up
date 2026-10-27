@@ -4,6 +4,7 @@ import { Link } from '../../shared/router/Link.jsx'
 import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { formatSize } from '../content/labels.js'
+import { programText } from '../games/blocks.js'
 import { RubricTable } from './RubricPanel.jsx'
 import {
   AI_OUTCOME_LABELS,
@@ -41,6 +42,7 @@ export default function SubmissionPage({ id }) {
   }
 
   const data = submission.data
+  const program = data.textAnswer && programText(data.textAnswer)
   return (
     <>
       <section className="card card--wide" aria-labelledby="entrega-titulo">
@@ -57,7 +59,11 @@ export default function SubmissionPage({ id }) {
         {data.textAnswer && (
           <>
             <h2>Respuesta</h2>
-            <p className="statement">{data.textAnswer}</p>
+            {program ? (
+              <pre className="console" aria-label="Programa de bloques">{program}</pre>
+            ) : (
+              <p className="statement">{data.textAnswer}</p>
+            )}
           </>
         )}
         {data.files.length > 0 && (
@@ -218,7 +224,7 @@ function GradeSummary({ current, canGrade }) {
 
 const SOURCE_TEXT = {
   AI: 'Calificada automáticamente por la IA',
-  AUTOMATIC: 'Calificada automáticamente (casos de prueba o respuestas del quiz)',
+  AUTOMATIC: 'Calificada automáticamente (casos de prueba, reto de bloques o respuestas del quiz)',
 }
 
 // El docente vuelve a correr los casos de prueba con el programa entregado para ver caso por caso (RF-12).

@@ -7,6 +7,7 @@ import java.util.UUID;
 import co.edu.unipamplona.logicode.grading.application.BrowseGrades;
 import co.edu.unipamplona.logicode.grading.application.GradeDetail;
 import co.edu.unipamplona.logicode.grading.application.GradeSubmissions;
+import co.edu.unipamplona.logicode.grading.application.BlockChallengeData;
 import co.edu.unipamplona.logicode.grading.application.ManageRubrics;
 import co.edu.unipamplona.logicode.grading.application.RubricView;
 import co.edu.unipamplona.logicode.identity.application.Actor;
@@ -44,7 +45,7 @@ public class GradingController {
 
     public record RubricRequest(@Size(max = 20000) String expectedAnswer,
             @NotEmpty @Size(max = 20) List<@Valid CriterionRequest> criteria,
-            @Size(max = 20) List<@Valid TestCaseRequest> testCases) {
+            @Size(max = 20) List<@Valid TestCaseRequest> testCases, BlockChallengeData blockChallenge) {
     }
 
     public record GradeRequest(@NotNull @Digits(integer = 1, fraction = 1) BigDecimal score,
@@ -70,13 +71,15 @@ public class GradingController {
     }
 
     @PutMapping("/activities/{activityId}/rubric")
-    @Operation(summary = "Definir la rúbrica y, para PSeInt, sus casos de prueba: guarda una versión nueva")
+    @Operation(summary = "Definir la rúbrica y, si aplica, sus casos de prueba de PSeInt o su reto de bloques: guarda "
+            + "una versión nueva")
     public RubricView defineRubric(@CurrentActor Actor actor, @PathVariable UUID activityId,
             @Valid @RequestBody RubricRequest request) {
         return manageRubrics.define(actor, activityId, request.expectedAnswer(), request.criteria().stream()
                 .map(c -> new ManageRubrics.CriterionInput(c.name(), c.description(), c.maxPoints())).toList(),
                 request.testCases() == null ? List.of() : request.testCases().stream()
-                        .map(t -> new ManageRubrics.TestCaseInput(t.input(), t.expectedOutput())).toList());
+                        .map(t -> new ManageRubrics.TestCaseInput(t.input(), t.expectedOutput())).toList(),
+                request.blockChallenge());
     }
 
     @GetMapping("/activities/{activityId}/rubric/versions")

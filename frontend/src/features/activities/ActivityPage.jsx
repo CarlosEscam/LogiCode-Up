@@ -7,6 +7,7 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { ActivityFields } from './ActivityForm.jsx'
 import { activityBody } from './activityBody.js'
+import BlocksGame from '../games/BlocksGame.jsx'
 import PseintRunner from '../pseint/PseintRunner.jsx'
 import QuizPanel from '../quizzes/QuizPanel.jsx'
 import RubricPanel from './RubricPanel.jsx'
@@ -255,6 +256,9 @@ function SubmitForm({ activity, onSubmitted }) {
   const [code, setCode] = useState('')
   const rubric = useQuery(`/activities/${activity.id}/rubric`)
   const graded = rubric.data?.testCaseCount > 0
+  // RF-12: con reto de bloques, la respuesta escrita es el programa armado (JSON), que el servidor vuelve a ejecutar.
+  const challenge = rubric.data?.blockChallenge
+  const [program, setProgram] = useState([])
   const acceptsUploads = activity.acceptsFiles || activity.acceptsPhotos
   const send = useSubmit(async (event) => {
     const form = event.currentTarget
@@ -263,6 +267,7 @@ function SubmitForm({ activity, onSubmitted }) {
     data.delete('files')
     files.forEach((file) => data.append('files', file))
     if (files.length > MAX_FILES) throw new Error(`Puedes adjuntar hasta ${MAX_FILES} archivos.`)
+    if (challenge && program.length === 0) throw new Error('El programa está vacío: agrega bloques antes de enviar.')
     if (!(data.get('text') ?? '').trim() && files.length === 0) {
       throw new Error('La entrega está vacía: escribe tu respuesta o adjunta un archivo.')
     }
@@ -280,7 +285,16 @@ function SubmitForm({ activity, onSubmitted }) {
 
   return (
     <form onSubmit={send.submit} noValidate>
-      {activity.acceptsText && (
+      {challenge && (
+        <>
+          <p className="page__note">
+            Arma el programa, pruébalo con Ejecutar y envíalo. Se califica solo: 5,0 si el robot llega a la meta y 0,0 si no.
+          </p>
+          <BlocksGame level={challenge} onProgramChange={setProgram} />
+          <input type="hidden" name="text" value={JSON.stringify(program)} />
+        </>
+      )}
+      {activity.acceptsText && !challenge && (
         <div className="field">
           <label htmlFor="entrega-texto">{graded ? 'Respuesta (tu programa en PSeInt)' : 'Respuesta'}</label>
           <textarea

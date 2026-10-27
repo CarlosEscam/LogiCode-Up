@@ -727,6 +727,48 @@ async function stage8(teacher, students) {
   log('Panel de administración: /admin con la cuenta de Diana o una cuenta inicial; los respaldos los hace el servicio "backup"')
 }
 
+// ---------- RF-12 · retos de bloques que configura la docente ----------
+
+const BLOCKS_TITLE = 'Reto 1: la escalera del robot (bloques)'
+
+// Un reto de bloques calificable: el servidor vuelve a ejecutar el programa de cada entrega (5,0 si llega a la meta).
+async function stageBlocks(teacher, students, course) {
+  console.log('RF-12 · retos de bloques')
+  const challenge = await teacher.post(`/courses/${course.id}/activities`, {
+    title: BLOCKS_TITLE,
+    kind: 'WORKSHOP',
+    statement:
+      'Lleva al robot por la escalera hasta la meta usando como máximo 6 bloques. Pista: el mismo par de pasos se repite.',
+    acceptsText: true,
+    acceptsFiles: false,
+    acceptsPhotos: false,
+    fileGroups: [],
+    weightPercent: null,
+    maxAttempts: 3,
+    opensAt: at(-DAY),
+    closesAt: at(7 * DAY),
+  })
+  await teacher.put(`/activities/${challenge.id}/rubric`, {
+    expectedAnswer: 'Repetir 3 veces: Avanzar, Girar a la derecha, Avanzar, Girar a la izquierda. Al final, Avanzar.',
+    criteria: [{ name: 'El robot llega a la meta', maxPoints: 5, description: 'Se califica solo al ejecutar el programa' }],
+    blockChallenge: {
+      grid: ['S.###', '#..##', '##..#', '###.M'],
+      facing: 'E',
+      maxBlocks: 6,
+      allowed: ['avanzar', 'izquierda', 'derecha', 'repetir'],
+    },
+  })
+  await teacher.post(`/activities/${challenge.id}/publish`)
+  const b = (type, body) => (body ? { type, times: 3, body } : { type })
+  const step = [b('avanzar'), b('derecha'), b('avanzar'), b('izquierda')]
+  const submit = (student, program) =>
+    student.postForm(`/activities/${challenge.id}/submissions`, fileForm({ text: JSON.stringify(program) }))
+  await submit(students.ana, [b('repetir', step), b('avanzar')])
+  await submit(students.bruno, [b('repetir', [b('avanzar'), b('derecha'), b('avanzar')])])
+  await submit(students.camila, [{ ...b('repetir', step), times: 2 }, b('avanzar')])
+  log(`${BLOCKS_TITLE}: Ana 5,0; Bruno 0,0 (choca); Camila 0,0 (termina antes de la meta); los demás sin entregar`)
+}
+
 async function idOf(session) {
   return (await session.get('/me')).id
 }
@@ -780,6 +822,7 @@ async function main() {
   await stage6(teacher, students, course)
   await stage7(teacher, students, course)
   await stage8(teacher, students)
+  await stageBlocks(teacher, students, course)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -793,9 +836,10 @@ async function addMissingStages(teacher) {
   const threads = await teacher.get(`/forum/threads?q=${encodeURIComponent(STAGE8_TITLE)}`)
   threads.items.forEach((thread) => titles.add(thread.title))
   const missing = [
-    [6, STAGE6_TITLE, stage6],
-    [7, STAGE7_TITLE, stage7],
-    [8, STAGE8_TITLE, stage8],
+    ['la Etapa 6', STAGE6_TITLE, stage6],
+    ['la Etapa 7', STAGE7_TITLE, stage7],
+    ['la Etapa 8', STAGE8_TITLE, stage8],
+    ['los retos de bloques', BLOCKS_TITLE, stageBlocks],
   ].filter(([, title]) => !titles.has(title))
   if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')
@@ -804,7 +848,7 @@ async function addMissingStages(teacher) {
   const students = {}
   for (const [key, student] of Object.entries(STUDENTS)) students[key] = await Session.login(student.cedula, DEMO_PASSWORD)
   for (const [, , stage] of missing) await stage(teacher, students, course)
-  console.log(`\nListo: se agregaron los datos de la Etapa ${missing.map(([number]) => number).join(' y ')}.`)
+  console.log(`\nListo: se agregaron los datos de ${missing.map(([label]) => label).join(' y ')}.`)
 }
 
 main().catch((error) => {

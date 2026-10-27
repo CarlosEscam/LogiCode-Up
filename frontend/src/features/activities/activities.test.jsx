@@ -160,6 +160,54 @@ describe('Actividades y entregas', () => {
     expect(sent).toEqual([{ url: '/api/v1/activities/a1/submissions', text: 'prom <- (a+b+c)/3' }])
   })
 
+  it('envía como respuesta el programa de bloques armado en un reto (RF-12)', async () => {
+    window.history.replaceState(null, '', '/actividades/a1')
+    stubApi({
+      'GET /api/v1/me': respond(200, STUDENT),
+      'GET /api/v1/activities/a1': respond(200, { ...ACTIVITY, acceptsFiles: false, fileGroups: [] }),
+      'GET /api/v1/activities/a1/rubric': respond(200, {
+        id: 'r1',
+        number: 1,
+        statement: ACTIVITY.statement,
+        expectedAnswer: null,
+        criteria: [{ name: 'Llega a la meta', description: null, maxPoints: 5 }],
+        totalPoints: 5,
+        blockChallenge: { grid: ['S.M'], facing: 'E', maxBlocks: 3, allowed: ['avanzar', 'derecha'] },
+      }),
+      'GET /api/v1/courses/c1/grades/mine': respond(200, []),
+      'GET /api/v1/activities/a1/submissions/mine': respond(200, []),
+    })
+    const sent = []
+    vi.stubGlobal(
+      'XMLHttpRequest',
+      class {
+        upload = {}
+        open() {}
+        setRequestHeader() {}
+        send(body) {
+          sent.push(JSON.parse(body.get('text')).map(({ type }) => type))
+          this.status = 201
+          this.responseText = JSON.stringify({ id: 'e1', attempt: 1, late: false })
+          this.onload()
+        }
+      },
+    )
+
+    render(<App />)
+
+    const game = await screen.findByRole('region', { name: 'Reto de bloques' })
+    expect(screen.queryByLabelText('Respuesta')).not.toBeInTheDocument()
+    expect(within(game).queryByRole('button', { name: '+ Repetir' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar entrega' }))
+    expect(await screen.findByText('El programa está vacío: agrega bloques antes de enviar.')).toBeInTheDocument()
+
+    fireEvent.click(within(game).getByRole('button', { name: '+ Avanzar' }))
+    fireEvent.click(within(game).getByRole('button', { name: '+ Avanzar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar entrega' }))
+    expect(await screen.findByText('Entrega recibida (intento 1).')).toBeInTheDocument()
+    expect(sent).toEqual([['avanzar', 'avanzar']])
+  })
+
   it('permite al docente publicar la nota con coma decimal y muestra el historial', async () => {
     window.history.replaceState(null, '', '/entregas/e1')
     const pending = {

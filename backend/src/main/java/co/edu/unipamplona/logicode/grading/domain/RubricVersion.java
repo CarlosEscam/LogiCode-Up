@@ -53,6 +53,10 @@ public class RubricVersion {
     @OrderColumn(name = "position")
     private List<RubricTestCase> testCases = new ArrayList<>();
 
+    /** RF-12: reto de bloques en JSON (ver {@link BlockChallenge}); lo lee y valida la capa de aplicación. */
+    @Column(name = "block_challenge", updatable = false)
+    private String blockChallenge;
+
     @Column(name = "created_by", updatable = false)
     private UUID createdBy;
 
@@ -63,7 +67,8 @@ public class RubricVersion {
     }
 
     public RubricVersion(UUID activityId, int number, String statement, String expectedAnswer,
-            List<RubricCriterion> criteria, List<RubricTestCase> testCases, UUID createdBy, Instant now) {
+            List<RubricCriterion> criteria, List<RubricTestCase> testCases, String blockChallenge, UUID createdBy,
+            Instant now) {
         if (criteria.isEmpty() || criteria.size() > MAX_CRITERIA) {
             throw new IllegalArgumentException("La rúbrica necesita entre 1 y " + MAX_CRITERIA + " criterios");
         }
@@ -77,14 +82,15 @@ public class RubricVersion {
         this.expectedAnswer = expectedAnswer;
         this.criteria = new ArrayList<>(criteria);
         this.testCases = new ArrayList<>(testCases);
+        this.blockChallenge = blockChallenge;
         this.createdBy = createdBy;
         this.createdAt = now;
     }
 
     /** Versión siguiente con otro enunciado y los mismos criterios. */
     public RubricVersion withStatement(String newStatement, UUID changedBy, Instant now) {
-        return new RubricVersion(activityId, number + 1, newStatement, expectedAnswer, criteria, testCases, changedBy,
-                now);
+        return new RubricVersion(activityId, number + 1, newStatement, expectedAnswer, criteria, testCases,
+                blockChallenge, changedBy, now);
     }
 
     public BigDecimal totalPoints() {
@@ -121,6 +127,10 @@ public class RubricVersion {
 
     public boolean hasTestCases() {
         return !testCases.isEmpty();
+    }
+
+    public String getBlockChallenge() {
+        return blockChallenge;
     }
 
     public Instant getCreatedAt() {

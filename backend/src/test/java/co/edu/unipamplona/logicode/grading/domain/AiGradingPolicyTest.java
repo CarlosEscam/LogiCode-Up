@@ -16,7 +16,7 @@ class AiGradingPolicyTest {
     static final RubricVersion RUBRIC = new RubricVersion(UUID.randomUUID(), 1, "Enunciado", "Esperada",
             List.of(new RubricCriterion("Lectura", null, new BigDecimal("6")),
                     new RubricCriterion("Cálculo", null, new BigDecimal("4"))),
-            List.of(), UUID.randomUUID(), Instant.parse("2026-10-20T15:00:00Z"));
+            List.of(), null, UUID.randomUUID(), Instant.parse("2026-10-20T15:00:00Z"));
 
     @Test
     void legibleWithEightyPercentConfidencePublishes() {

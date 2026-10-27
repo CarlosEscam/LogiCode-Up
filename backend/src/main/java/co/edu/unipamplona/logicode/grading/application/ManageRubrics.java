@@ -45,12 +45,14 @@ public class ManageRubrics {
 
     @Transactional
     public RubricView define(Actor actor, UUID activityId, String expectedAnswer, List<CriterionInput> criteria,
-            List<TestCaseInput> testCases) {
+            List<TestCaseInput> testCases, BlockChallengeData blockChallenge) {
         ActivityCatalog.ActivityInfo activity = catalog.requireManageable(actor, activityId);
         if (activity.quiz()) {
             throw ApplicationException.businessRule("La rúbrica de un quiz se arma con sus preguntas.");
         }
-        return GradingViews.rubric(save(activity, expectedAnswer, validate(criteria), validateCases(testCases),
+        List<RubricTestCase> cases = validateCases(testCases);
+        String challenge = validateChallenge(blockChallenge, activity, !cases.isEmpty());
+        return GradingViews.rubric(save(activity, expectedAnswer, validate(criteria), cases, challenge,
                 actor.userId()), true);
     }
 
@@ -62,14 +64,14 @@ public class ManageRubrics {
     public void defineForQuiz(UUID activityId, String answerKey, List<CriterionInput> questions, UUID definedBy) {
         ActivityCatalog.ActivityInfo activity = catalog.activity(activityId)
                 .orElseThrow(() -> ApplicationException.notFound("La actividad no existe."));
-        save(activity, answerKey, validate(questions), List.of(), definedBy);
+        save(activity, answerKey, validate(questions), List.of(), null, definedBy);
     }
 
     private RubricVersion save(ActivityCatalog.ActivityInfo activity, String expectedAnswer,
-            List<RubricCriterion> criteria, List<RubricTestCase> testCases, UUID by) {
+            List<RubricCriterion> criteria, List<RubricTestCase> testCases, String blockChallenge, UUID by) {
         int number = rubrics.findCurrent(activity.id()).map(RubricVersion::getNumber).orElse(0) + 1;
         return rubrics.save(new RubricVersion(activity.id(), number, activity.statement(), clean(expectedAnswer),
-                criteria, testCases, by, clock.instant()));
+                criteria, testCases, blockChallenge, by, clock.instant()));
     }
 
     /** Rúbrica vigente. El estudiante ve los criterios, no la respuesta esperada. */
@@ -131,6 +133,27 @@ public class ManageRubrics {
             }
             return new RubricTestCase(input, expected.replace("\r", ""));
         }).toList();
+    }
+
+    /** RF-12: el reto se guarda validado y normalizado; se entrega como respuesta escrita, por eso exige texto. */
+    private static String validateChallenge(BlockChallengeData data, ActivityCatalog.ActivityInfo activity,
+            boolean hasTestCases) {
+        if (data == null) {
+            return null;
+        }
+        if (hasTestCases) {
+            throw ApplicationException.businessRule("Una actividad se califica con casos de prueba o con un reto de "
+                    + "bloques, no con los dos.");
+        }
+        if (!activity.acceptsText()) {
+            throw ApplicationException.businessRule("Para un reto de bloques, la actividad debe recibir entregas en "
+                    + "texto: el programa del estudiante se envía así.");
+        }
+        try {
+            return BlockChallengeData.toJson(data.toDomain());
+        } catch (IllegalArgumentException e) {
+            throw ApplicationException.businessRule(e.getMessage());
+        }
     }
 
     private static String clean(String value) {

@@ -454,6 +454,61 @@ class QuizAndPseintFlowsIT {
 
     @Test
     @Order(8)
+    void blockChallengeIsGradedByRunningTheStudentsProgram() throws Exception {
+        String challenge = "\"blockChallenge\":{\"grid\":[\"S..#\",\"##.#\",\"##.M\"],\"facing\":\"E\","
+                + "\"maxBlocks\":7,\"allowed\":[\"avanzar\",\"izquierda\",\"derecha\"],"
+                + "\"start\":[{\"type\":\"avanzar\"},{\"type\":\"izquierda\"}]}";
+        String rubric = "{\"criteria\":[{\"name\":\"Llega a la meta\",\"maxPoints\":5}]," + challenge + "}";
+        String photosOnly = id(mvc.perform(json(post("/api/v1/courses/" + courseId + "/activities").cookie(teacher),
+                        activity("Reto sin texto", "TASK", "null", 1).replace("\"acceptsText\":true",
+                                "\"acceptsText\":false").replace("\"acceptsPhotos\":false", "\"acceptsPhotos\":true")))
+                .andExpect(status().isCreated()));
+        mvc.perform(json(put("/api/v1/activities/" + photosOnly + "/rubric").cookie(teacher), rubric))
+                .andExpect(status().isUnprocessableEntity());
+
+        String activityId = id(mvc.perform(json(post("/api/v1/courses/" + courseId + "/activities").cookie(teacher),
+                        activity("Reto: doblar la esquina", "TASK", "null", 3)))
+                .andExpect(status().isCreated()));
+        mvc.perform(json(put("/api/v1/activities/" + activityId + "/rubric").cookie(teacher),
+                        rubric.replace("[\"S..#\",", "[\"S..#\",\"S...\",")))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("una salida")));
+        mvc.perform(json(put("/api/v1/activities/" + activityId + "/rubric").cookie(teacher),
+                        rubric.replace("]," + challenge, "],\"testCases\":[{\"expectedOutput\":\"x\"}]," + challenge)))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(json(put("/api/v1/activities/" + activityId + "/rubric").cookie(teacher), rubric))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/activities/" + activityId + "/publish").cookie(teacher).with(csrf()))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/activities/" + activityId + "/rubric").cookie(ana))
+                .andExpect(jsonPath("$.blockChallenge.grid[2]").value("##.M"))
+                .andExpect(jsonPath("$.blockChallenge.start[1].type").value("izquierda"));
+
+        String a = "{\"type\":\"avanzar\",\"id\":\"b1\"}";
+        String right = "{\"type\":\"derecha\"}";
+        String left = "{\"type\":\"izquierda\"}";
+        String solved = submit(activityId, ana, "[" + String.join(",", a, a, right, a, a, left, a) + "]");
+        mvc.perform(get("/api/v1/submissions/" + solved + "/grade").cookie(ana))
+                .andExpect(jsonPath("$.grade.score").value(5.0))
+                .andExpect(jsonPath("$.grade.source").value("AUTOMATIC"))
+                .andExpect(jsonPath("$.grade.feedback").value("Reto superado: el robot llegó a la meta con 7 bloques."));
+
+        String crashed = submit(activityId, beto, "[" + String.join(",", a, a, a) + "]");
+        mvc.perform(get("/api/v1/submissions/" + crashed + "/grade").cookie(beto))
+                .andExpect(jsonPath("$.grade.score").value(0.0))
+                .andExpect(jsonPath("$.grade.feedback").value(org.hamcrest.Matchers.startsWith("El robot chocó")));
+
+        String loop = submit(activityId, beto, "[{\"type\":\"repetir\",\"times\":4,\"body\":[" + a + "]}]");
+        mvc.perform(get("/api/v1/submissions/" + loop + "/grade").cookie(teacher))
+                .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
+                .andExpect(jsonPath("$.grade.reviewReason").value("CODE_ERROR"));
+        String text = submit(activityId, beto, "avanzo dos y giro");
+        mvc.perform(get("/api/v1/submissions/" + text + "/grade").cookie(teacher))
+                .andExpect(jsonPath("$.grade.reviewReason").value("CODE_ERROR"));
+    }
+
+    @Test
+    @Order(9)
     void editorRunsProgramsWithinLimitsAndNeedsASession() throws Exception {
         mvc.perform(json(post("/api/v1/pseint/runs").cookie(ana),
                         "{\"code\":\"Algoritmo A\\n Leer x\\n Escribir x * 2\\nFinAlgoritmo\",\"input\":\"21\"}"))
