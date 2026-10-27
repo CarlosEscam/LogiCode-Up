@@ -118,7 +118,7 @@ function GradeSection({ grade, submissionId }) {
       </section>
     )
   }
-  const { grade: current, rubric, history, aiEvaluations, canGrade, canRetryWithAi } = grade.data
+  const { grade: current, rubric, history, aiEvaluations, canGrade, canRetryWithAi, canRunTests } = grade.data
   const latest = aiEvaluations[0]
   const proposal = current.status === 'PENDING_REVIEW' && latest?.proposedScore != null ? latest : null
   return (
@@ -130,6 +130,7 @@ function GradeSection({ grade, submissionId }) {
         </div>
         <GradeSummary current={current} canGrade={canGrade} />
         {canRetryWithAi && <RetryWithAi submissionId={submissionId} onDone={grade.reload} />}
+        {canRunTests && <TestRun submissionId={submissionId} />}
         {canGrade && (
           <GradeForm
             key={latest?.id ?? 'sin-ia'}
@@ -190,7 +191,7 @@ function GradeSummary({ current, canGrade }) {
       <>
         <p className="score">{formatScore(current.score)}</p>
         <p className="page__note">
-          {current.source === 'AI' ? 'Calificada automáticamente por la IA' : `Calificada por ${current.gradedByName ?? 'el docente'}`} el{' '}
+          {SOURCE_TEXT[current.source] ?? `Calificada por ${current.gradedByName ?? 'el docente'}`} el{' '}
           {formatDateTime(current.gradedAt)}
         </p>
         {current.feedback && <p className="statement">{current.feedback}</p>}
@@ -212,6 +213,68 @@ function GradeSummary({ current, canGrade }) {
       {current.reviewReason && <strong>{REVIEW_REASON_LABELS[current.reviewReason]}. </strong>}
       {REVIEW_REASON_HELP[current.reviewReason] ?? 'Esta entrega espera tu calificación.'}
     </p>
+  )
+}
+
+const SOURCE_TEXT = {
+  AI: 'Calificada automáticamente por la IA',
+  AUTOMATIC: 'Calificada automáticamente (casos de prueba o respuestas del quiz)',
+}
+
+// El docente vuelve a correr los casos de prueba con el programa entregado para ver caso por caso (RF-12).
+function TestRun({ submissionId }) {
+  const run = useSubmit(() => apiPost(`/submissions/${submissionId}/test-run`))
+  const report = run.result
+  return (
+    <div className="subform">
+      <button type="button" className="button button--secondary" disabled={run.pending} onClick={() => run.submit()}>
+        {run.pending ? 'Ejecutando…' : 'Ejecutar casos de prueba'}
+      </button>
+      <FormStatus error={run.error} />
+      {report?.programError && (
+        <p className="notice notice--error" role="status">
+          El programa no se pudo ejecutar: {report.programError}
+        </p>
+      )}
+      {report?.cases.length > 0 && (
+        <div className="table-wrap" role="status">
+          <table>
+            <caption>
+              {report.passed} de {report.total} casos aprobados · nota {formatScore(report.score)}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Caso</th>
+                <th scope="col">Entradas</th>
+                <th scope="col">Esperado</th>
+                <th scope="col">Salida del programa</th>
+                <th scope="col">Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.cases.map((testCase) => (
+                <tr key={testCase.number}>
+                  <td>{testCase.number}</td>
+                  <td>
+                    <pre className="console">{testCase.input || '(ninguna)'}</pre>
+                  </td>
+                  <td>
+                    <pre className="console">{testCase.expectedOutput}</pre>
+                  </td>
+                  <td>
+                    <pre className="console">{testCase.output || '(sin salida)'}</pre>
+                    {testCase.error && <small className="field__error">{testCase.error}</small>}
+                  </td>
+                  <td>
+                    <span className={`badge badge--${testCase.passed ? 'ok' : 'danger'}`}>{testCase.passed ? 'Aprobado' : 'No aprobado'}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   )
 }
 

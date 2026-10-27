@@ -18,6 +18,9 @@ import LibraryPage from '../features/content/LibraryPage.jsx'
 import MaterialPage from '../features/content/MaterialPage.jsx'
 import CoursePage from '../features/courses/CoursePage.jsx'
 import CoursesPage from '../features/courses/CoursesPage.jsx'
+import GamesPage from '../features/games/GamesPage.jsx'
+import PseintPage from '../features/pseint/PseintPage.jsx'
+import QuizAttemptPage from '../features/quizzes/QuizAttemptPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import { Link } from '../shared/router/Link.jsx'
 import { navigate, useLocation } from '../shared/router/router.js'
@@ -41,6 +44,9 @@ const ROUTES = {
   '/cursos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <CoursePage key={id} id={id} /> },
   '/actividades/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <ActivityPage key={id} id={id} /> },
   '/entregas/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <SubmissionPage key={id} id={id} /> },
+  '/quiz-intentos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <QuizAttemptPage key={id} id={id} /> },
+  '/juegos': { access: 'public', render: () => <GamesPage /> },
+  '/pseint': { access: 'account', render: () => <PseintPage /> },
   '/admin/usuarios': { access: ['MANAGE_USERS', 'APPROVE_TEACHERS'], render: () => <UsersPage /> },
   '/admin/habilitaciones': { access: ['MANAGE_STUDENT_ENABLEMENTS'], render: () => <EnablementsPage /> },
   '/admin/auditoria': { access: ['VIEW_AUDIT'], render: () => <AuditPage /> },
@@ -75,8 +81,14 @@ function Layout() {
           <Link to="/biblioteca" aria-current={path === '/biblioteca' ? 'page' : undefined}>
             Biblioteca
           </Link>
+          <Link to="/juegos" aria-current={path === '/juegos' ? 'page' : undefined}>
+            Juegos
+          </Link>
           {session.account ? (
             <>
+              <Link to="/pseint" aria-current={path === '/pseint' ? 'page' : undefined}>
+                PSeInt
+              </Link>
               {NAV.filter((item) => item.access.some(session.can)).map((item) => (
                 <Link key={item.to} to={item.to} aria-current={path.startsWith(item.to) ? 'page' : undefined}>
                   {item.label}

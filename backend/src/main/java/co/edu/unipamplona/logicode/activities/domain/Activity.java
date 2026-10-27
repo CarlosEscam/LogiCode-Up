@@ -142,6 +142,14 @@ public class Activity {
         return status == ActivityStatus.PUBLISHED;
     }
 
+    public boolean isQuiz() {
+        return kind.isQuiz();
+    }
+
+    public boolean isPractice() {
+        return kind == ActivityKind.PRACTICE_QUIZ;
+    }
+
     public boolean isArchived() {
         return archivedAt != null;
     }
@@ -150,8 +158,11 @@ public class Activity {
         if (!d.closesAt().isAfter(d.opensAt())) {
             throw new IllegalArgumentException("El cierre debe ser posterior a la apertura");
         }
-        if (!(d.acceptsText() || d.acceptsFiles() || d.acceptsPhotos())) {
+        if (!d.kind().isQuiz() && !(d.acceptsText() || d.acceptsFiles() || d.acceptsPhotos())) {
             throw new IllegalArgumentException("La actividad debe aceptar alguna forma de entrega");
+        }
+        if (d.kind() == ActivityKind.PRACTICE_QUIZ && d.weightPercent() != null) {
+            throw new IllegalArgumentException("Un quiz de repaso no tiene porcentaje");
         }
         this.title = d.title();
         this.kind = d.kind();

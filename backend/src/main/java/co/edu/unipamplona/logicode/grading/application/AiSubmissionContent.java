@@ -51,6 +51,22 @@ class AiSubmissionContent {
                 .orElse(false);
     }
 
+    /** Código PSeInt de la entrega: el primer archivo {@code .psc} o, si no hay, la respuesta escrita. */
+    Optional<String> pseintCode(UUID submissionId) {
+        Optional<ActivityCatalog.SubmissionContent> found = catalog.content(submissionId);
+        if (found.isEmpty()) {
+            return Optional.empty();
+        }
+        Map<UUID, StoredFileInfo> described = files.describe(found.get().fileIds());
+        for (UUID fileId : found.get().fileIds()) {
+            StoredFileInfo info = described.get(fileId);
+            if (info != null && info.format().equals("PSC") && info.sizeBytes() <= MAX_TEXT_BYTES) {
+                return Optional.of(decode(read(fileId, info.sizeBytes())));
+            }
+        }
+        return Optional.ofNullable(found.get().textAnswer());
+    }
+
     /** Carga el contenido; vacío si la entrega ya no existe o trae algo que la IA no lee. */
     Optional<Loaded> load(UUID submissionId) {
         Optional<ActivityCatalog.SubmissionContent> found = catalog.content(submissionId);

@@ -1,5 +1,6 @@
 package co.edu.unipamplona.logicode.activities.application;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.activities.domain.Activity;
@@ -21,6 +22,11 @@ class ActivityAccess {
     ActivityAccess(ActivityRepository activities, CourseAccess courseAccess) {
         this.activities = activities;
         this.courseAccess = courseAccess;
+    }
+
+    /** Incluye las archivadas: un intento ya empezado se registra aunque el docente archive el quiz. */
+    Optional<Activity> find(UUID activityId) {
+        return activities.findById(activityId);
     }
 
     Activity requireVisible(Actor actor, UUID activityId) {

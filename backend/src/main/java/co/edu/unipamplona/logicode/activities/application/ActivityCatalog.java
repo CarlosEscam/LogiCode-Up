@@ -13,6 +13,7 @@ import co.edu.unipamplona.logicode.activities.domain.Activity;
 import co.edu.unipamplona.logicode.activities.domain.Submission;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.application.UserDirectory;
+import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class ActivityCatalog {
 
     public record ActivityInfo(UUID id, UUID courseId, String title, String statement, Instant closesAt,
-            boolean published) {
+            boolean published, boolean quiz) {
+    }
+
+    /**
+     * Un quiz tal como lo ve el actor, para el módulo quizzes. {@code progress} solo existe para un estudiante
+     * inscrito: plazo (con su excepción), intentos usados (los terminados) y permitidos.
+     */
+    public record QuizActivity(UUID id, UUID courseId, String title, boolean practice, boolean published,
+            Instant opensAt, Instant closesAt, boolean canManage, boolean canViewWork,
+            ActivityView.StudentProgress progress) {
     }
 
     public record SubmissionInfo(UUID id, UUID activityId, String activityTitle, UUID courseId, UUID studentId,
@@ -38,14 +48,28 @@ public class ActivityCatalog {
     private final ActivityRepository activities;
     private final SubmissionRepository submissions;
     private final ActivityAccess access;
+    private final ActivityViews views;
     private final UserDirectory directory;
 
     public ActivityCatalog(ActivityRepository activities, SubmissionRepository submissions, ActivityAccess access,
-            UserDirectory directory) {
+            ActivityViews views, UserDirectory directory) {
         this.activities = activities;
         this.submissions = submissions;
         this.access = access;
+        this.views = views;
         this.directory = directory;
+    }
+
+    /** El quiz, si el actor puede verlo (404 si no o si la actividad no es un quiz). */
+    @Transactional(readOnly = true)
+    public QuizActivity requireQuiz(Actor actor, UUID activityId) {
+        Activity a = access.requireVisible(actor, activityId);
+        if (!a.isQuiz()) {
+            throw ApplicationException.notFound("El quiz no existe.");
+        }
+        ActivityView view = views.view(actor, a);
+        return new QuizActivity(a.getId(), a.getCourseId(), a.getTitle(), a.isPractice(), a.isPublished(),
+                a.getOpensAt(), a.getClosesAt(), view.canManage(), view.canViewSubmissions(), view.progress());
     }
 
     @Transactional(readOnly = true)
@@ -111,6 +135,6 @@ public class ActivityCatalog {
 
     private static ActivityInfo info(Activity a) {
         return new ActivityInfo(a.getId(), a.getCourseId(), a.getTitle(), a.getStatement(), a.getClosesAt(),
-                a.isPublished());
+                a.isPublished(), a.isQuiz());
     }
 }

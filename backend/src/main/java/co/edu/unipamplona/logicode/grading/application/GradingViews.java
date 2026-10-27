@@ -29,7 +29,9 @@ class GradingViews {
                 withExpectedAnswer ? r.getExpectedAnswer() : null,
                 r.getCriteria().stream().map(c -> new RubricView.Criterion(c.getName(), c.getDescription(),
                         c.getMaxPoints())).toList(),
-                r.totalPoints(), r.getCreatedAt());
+                r.totalPoints(), withExpectedAnswer ? r.getTestCases().stream().map(t -> new RubricView.TestCase(
+                        t.getInput(), t.getExpectedOutput())).toList() : null,
+                r.getTestCases().size(), r.getCreatedAt());
     }
 
     /** Vistas de las notas; con {@code ownerOnly} se ocultan nota y retroalimentación aún no publicadas. */

@@ -21,9 +21,10 @@ public record ActivityView(UUID id, UUID courseId, String title, ActivityKind ki
 
     /**
      * Situación del estudiante: {@code NOT_OPEN} (aún no abre), {@code OPEN} (puede entregar), {@code SUBMITTED}
-     * (ya entregó), {@code OVERDUE} (venció sin entrega: cuenta como 0,0, RN-05).
+     * (ya entregó), {@code OVERDUE} (venció sin entrega: cuenta como 0,0, RN-05), {@code CLOSED} (un quiz de repaso
+     * que ya cerró: no tiene nota).
      */
-    public enum State { NOT_OPEN, OPEN, SUBMITTED, OVERDUE }
+    public enum State { NOT_OPEN, OPEN, SUBMITTED, OVERDUE, CLOSED }
 
     public record StudentProgress(State state, int attemptsUsed, int attemptsAllowed, Instant deadline,
             boolean canSubmit, UUID lastSubmissionId, boolean hasException) {

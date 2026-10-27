@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 6 (calificación con IA) implementada, pendiente de revisión y de las pruebas de aceptación en el equipo de referencia.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4) y actividades, entregas y calificación manual (Etapa 5), las entregas escritas, en foto o en `.psc`/`.ino` se califican en segundo plano con Ollama + Qwen2.5-VL 7B: con contenido legible y confianza de 80 % o más la nota se publica sola; si no, espera la confirmación docente. La IA viene apagada por defecto. Calificación determinista, quizzes, juegos, foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 7 (quizzes, PSeInt y juegos) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5) y la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia), ya hay editor de PSeInt con intérprete aislado, actividades que se califican solas con casos de prueba, banco de preguntas, quizzes calificables y de repaso con tiempo total, envío automático y ranking, y juegos de bloques, salida, orden y DFD. Foro y planilla están pendientes. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -168,16 +168,18 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   ├── courses/                 Etapa 4: cursos e inscripción por cédula
 │   │   ├── content/                 Etapa 4: temas, materiales, biblioteca, vista previa y descarga
 │   │   ├── activities/              Etapa 5: actividades, entregas y excepciones de plazo
-│   │   ├── grading/                 Etapas 5-6: rúbricas versionadas, notas, Por revisar, historial y calificación con IA
-│   │   └── quizzes/ games/ forum/ administration/   Módulos pendientes (solo descripción)
+│   │   ├── grading/                 Etapas 5-7: rúbricas versionadas, notas, Por revisar, historial, calificación con IA y con casos de prueba
+│   │   ├── pseint/                  Etapa 7: intérprete de PSeInt con límites
+│   │   ├── quizzes/                 Etapa 7: banco de preguntas, quizzes, intentos y ranking
+│   │   └── forum/ administration/   Módulos pendientes (solo descripción)
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA, V6 quizzes y PSeInt)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
 │   ├── src/app                      Rutas y navegación según permisos
-│   ├── src/features                 auth, account, admin, courses, content, activities, system
+│   ├── src/features                 auth, account, admin, courses, content, activities, quizzes, pseint, games, system
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
 │   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
 │   └── Dockerfile
@@ -199,4 +201,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 6 en [docs/estado.md](docs/estado.md) y ejecutar las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)). Siguen abiertas P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 7 · Quizzes, PSeInt y juegos**, que incluye la calificación determinista con casos de prueba (T-48).
+Revisar la Etapa 7 en [docs/estado.md](docs/estado.md): los niveles de `/juegos` y las notas automáticas de los quizzes y del taller de PSeInt de los datos de demostración. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 8 · Foro y operación docente**.

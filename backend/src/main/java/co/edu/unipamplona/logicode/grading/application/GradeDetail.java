@@ -11,7 +11,7 @@ import co.edu.unipamplona.logicode.grading.domain.GradeSource;
  * reciente a la más antigua) y la respuesta esperada solo los ve quien consulta las entregas del curso.
  */
 public record GradeDetail(GradeView grade, RubricView rubric, List<Change> history,
-        List<AiEvaluationView> aiEvaluations, boolean canGrade, boolean canRetryWithAi) {
+        List<AiEvaluationView> aiEvaluations, boolean canGrade, boolean canRetryWithAi, boolean canRunTests) {
 
     public record Change(BigDecimal previousScore, BigDecimal newScore, String feedback, GradeSource source,
             String changedByName, Instant changedAt) {

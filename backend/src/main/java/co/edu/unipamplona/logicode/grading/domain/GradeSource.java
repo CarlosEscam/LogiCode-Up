@@ -1,7 +1,8 @@
 package co.edu.unipamplona.logicode.grading.domain;
 
-/** Quién puso la nota. La IA llega en la Etapa 6. */
+/** Quién puso la nota. {@code AUTOMATIC}: calificación determinista de quizzes y casos de prueba (RF-16). */
 public enum GradeSource {
     TEACHER,
-    AI
+    AI,
+    AUTOMATIC
 }

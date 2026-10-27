@@ -16,6 +16,7 @@ import co.edu.unipamplona.logicode.grading.domain.GradeSource;
 import co.edu.unipamplona.logicode.grading.domain.GradeStatus;
 import co.edu.unipamplona.logicode.grading.domain.RubricVersion;
 import co.edu.unipamplona.logicode.identity.application.Actor;
+import co.edu.unipamplona.logicode.pseint.application.RunPrograms;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,11 +38,14 @@ public class GradeSubmissions {
     private final AiGradingSettings aiSettings;
     private final GradingAccess access;
     private final GradingViews views;
+    private final RunPrograms programs;
     private final Clock clock;
 
     public GradeSubmissions(GradeRepository grades, GradeChangeRepository changes, RubricRepository rubrics,
             AiEvaluationRepository evaluations, AiGradingJobRepository jobs, AiSubmissionContent content,
-            AiGradingSettings aiSettings, GradingAccess access, GradingViews views, Clock clock) {
+            AiGradingSettings aiSettings, GradingAccess access, GradingViews views, RunPrograms programs,
+            Clock clock) {
+        this.programs = programs;
         this.grades = grades;
         this.changes = changes;
         this.rubrics = rubrics;
@@ -90,6 +94,23 @@ public class GradeSubmissions {
         return detail(actor, submission, grade);
     }
 
+    /** RF-17: el docente vuelve a ejecutar los casos de prueba y ve, caso por caso, la salida esperada y la obtenida. */
+    @Transactional(readOnly = true)
+    public RunPrograms.TestReport testRun(Actor actor, UUID submissionId) {
+        ActivityCatalog.SubmissionInfo submission = access.requireReadable(actor, submissionId);
+        if (!access.canViewCourseWork(actor, submission.courseId())) {
+            throw ApplicationException.forbidden("Solo el docente del curso o un Administrador ejecuta los casos.");
+        }
+        RubricVersion rubric = rubrics.findById(requireGrade(submissionId).getRubricVersionId()).orElseThrow();
+        if (!rubric.hasTestCases()) {
+            throw ApplicationException.businessRule("La rúbrica de esta entrega no tiene casos de prueba.");
+        }
+        String code = content.pseintCode(submissionId).orElseThrow(() -> ApplicationException.businessRule(
+                "La entrega no trae código PSeInt (respuesta escrita o archivo .psc)."));
+        return programs.check(code, rubric.getTestCases().stream()
+                .map(t -> new RunPrograms.TestCase(t.getInput(), t.getExpectedOutput())).toList());
+    }
+
     @Transactional(readOnly = true)
     public GradeDetail get(Actor actor, UUID submissionId) {
         ActivityCatalog.SubmissionInfo submission = access.requireReadable(actor, submissionId);
@@ -113,7 +134,7 @@ public class GradeSubmissions {
         boolean canRetry = canGrade && aiSettings.enabled() && grade.getStatus() == GradeStatus.PENDING_REVIEW
                 && content.isReadable(submission.id());
         return new GradeDetail(views.grade(grade, !staff), GradingViews.rubric(rubric, staff), history,
-                aiEvaluations, canGrade, canRetry);
+                aiEvaluations, canGrade, canRetry, staff && rubric.hasTestCases());
     }
 
     private Grade requireGrade(UUID submissionId) {

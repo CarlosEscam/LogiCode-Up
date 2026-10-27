@@ -24,6 +24,7 @@
 | `V3__cursos_temas_y_biblioteca.sql` | Etapa 4: cursos, inscripciones, archivos cargados, temas y materiales |
 | `V4__actividades_y_entregas.sql` | Etapa 5: actividades, entregas y sus archivos, excepciones de plazo, versiones de rúbrica con criterios, notas e historial de notas |
 | `V5__calificacion_con_ia.sql` | Etapa 6: estado `PROCESSING` y motivo de revisión en las notas, cola de evaluación con IA, evaluaciones de la IA con sus puntos por criterio |
+| `V6__quizzes_y_pseint.sql` | Etapa 7: tipos de actividad `QUIZ` y `PRACTICE_QUIZ`, casos de prueba en la rúbrica, notas `AUTOMATIC` y motivo `CODE_ERROR`, banco de preguntas, quizzes, intentos y sus respuestas |
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -275,3 +276,70 @@ erDiagram
 - **RF-17**: cada evaluación de la IA queda guardada, incluidas las fallidas, aunque el docente califique antes o después (T-43).
 - **RN-11**: un fallo técnico no deja nota: `ai_evaluation_failed_ck` exige `proposed_score` nulo y un `error`.
 - La nota publicada sigue viviendo en `grade` con `source = AI` o `TEACHER`; confirmar la propuesta registra la nota del docente y su historial.
+
+## Quizzes y casos de prueba (Etapa 7, implementado)
+
+```mermaid
+erDiagram
+    course ||--o{ quiz_question : "banco"
+    quiz_question ||--o{ quiz_question_option : opciones
+    quiz_question ||--o{ quiz_question_answer : "respuestas aceptadas"
+    activity ||--o| quiz : "si es QUIZ o PRACTICE_QUIZ"
+    quiz ||--o{ quiz_item : "preguntas en orden"
+    quiz_item }o--|| quiz_question : usa
+    activity ||--o{ quiz_attempt : intentos
+    quiz_attempt ||--o{ quiz_attempt_answer : respuestas
+    quiz_attempt |o--o| submission : "calificable terminado"
+    rubric_version ||--o{ rubric_test_case : "casos de prueba"
+
+    quiz_question {
+        uuid id PK
+        uuid course_id FK
+        varchar kind "SINGLE | MULTIPLE | TRUE_FALSE | SHORT"
+        text prompt
+        int points "1 a 10"
+        text explanation
+        timestamptz archived_at
+    }
+    quiz {
+        uuid activity_id PK
+        int time_limit_minutes "1 a 300"
+    }
+    quiz_attempt {
+        uuid id PK
+        uuid activity_id FK
+        uuid student_id FK
+        int number
+        boolean practice
+        varchar status "IN_PROGRESS | FINISHED"
+        timestamptz started_at
+        timestamptz deadline "tiempo total o cierre, lo primero"
+        timestamptz finished_at
+        int correct_count
+        int points
+        int max_points
+        numeric score "0,0 a 5,0"
+        uuid submission_id FK "solo el calificable"
+    }
+    quiz_attempt_answer {
+        uuid attempt_id PK
+        int position PK
+        uuid question_id FK
+        varchar choices "posiciones, p. ej. 0,2"
+        varchar text_answer
+        boolean correct
+    }
+    rubric_test_case {
+        uuid rubric_version_id PK
+        int position PK
+        text input_data
+        text expected_output
+    }
+```
+
+- **RN-13**: `quiz_attempt_open_uk` deja un solo intento en curso por estudiante y quiz; `quiz_attempt_deadline_ix` permite encontrar rápido los vencidos para enviarlos (T-56).
+- **RN-14**: `score` se calcula al terminar a partir de `points` y `max_points`; un intento terminado siempre tiene nota (`quiz_attempt_finished_ck`).
+- **RN-20**: los casos de prueba y la clave del quiz quedan en la versión de rúbrica; una entrega se califica con la versión vigente cuando llegó (T-54).
+- El calificable terminado crea una fila en `submission` (con el resumen como texto) y su `grade` con `source = AUTOMATIC`; así entra al historial y a la planilla igual que las demás actividades (T-53). El de repaso no crea entrega ni nota.
+- `quiz_item` y `quiz_attempt_answer` no borran preguntas en cascada: una pregunta usada solo se archiva (T-55).
+

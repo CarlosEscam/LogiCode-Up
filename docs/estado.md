@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 20 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 6 (calificación con IA)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 7 (quizzes, PSeInt y juegos)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -14,12 +14,42 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06) y carga desde Excel (P-07) |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
-| 6 · Calificación determinista e IA | Implementada, pendiente de revisión y de las pruebas de aceptación en el equipo de presentación | Detalle abajo. La parte determinista (PSeInt y quizzes, RF-16) pasa a la Etapa 7 (T-48) |
-| 7 a 10 | Pendientes | Quizzes, PSeInt, juegos, foro, planilla y demás aún no existen |
+| 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
+| 7 · Quizzes, PSeInt y juegos | Implementada, pendiente de revisión | Detalle abajo |
+| 8 a 10 | Pendientes | Foro, planilla, notificaciones y demás aún no existen |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 6 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones y un taller con fotos, texto, `.psc` y PDF para la IA). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base con los datos de la Etapa 5; volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 7 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso y un taller de PSeInt con casos de prueba). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 7); volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Etapa 7 · detalle
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Editor e intérprete de PSeInt con aislamiento (RNF-05) | Implementado | Módulo `pseint`: intérprete propio en Java (perfil flexible) que no tiene instrucciones de archivos, red ni sistema, así que un programa no puede tocar el equipo (T-49). Límites por ejecución: 2 s, 1 000 000 de pasos, 20 000 caracteres de código y de salida, 10 000 de entrada, 10 000 posiciones de arreglos, textos de 1 000 caracteres y 200 llamadas anidadas; a lo sumo 4 ejecuciones a la vez (T-50). Página `/pseint` con ejemplos y `POST /pseint/runs` (con sesión) |
+| Casos de prueba por actividad (RF-12) | Implementado | Hasta 20 casos (entradas y salida esperada) en la rúbrica versionada (RN-20). Cada línea esperada debe aparecer en la salida, en orden y como palabra completa, sin importar mayúsculas ni espacios de más (T-51) |
+| Calificación determinista de PSeInt (RF-16) | Implementado | Al recibir una entrega con código (respuesta escrita o primer `.psc`) en una actividad con casos: nota = 5 × casos aprobados ÷ total, publicada como "Automática" con el detalle por caso. Error de sintaxis o instrucción no disponible → Por revisar como "El programa no se pudo ejecutar" (T-52). El docente puede volver a correr los casos en la entrega |
+| Banco de preguntas (RF-10) | Implementado | Sección "Banco de preguntas" del curso: selección única, múltiple, falso o verdadero y respuesta corta (hasta 5 respuestas aceptadas; sin importar mayúsculas, tildes ni espacios). Una pregunta ya respondida no se edita (T-55) |
+| Quizzes calificables y de repaso (RF-10, RF-21) | Implementado | Tipos de actividad "Quiz calificable" y "Quiz de repaso" (T-53): mismas fechas, publicación, excepciones y planilla que las demás actividades. Las preguntas elegidas y su clave quedan como la rúbrica versionada del quiz (T-54). El de repaso no da nota, se repite libremente y muestra la revisión al terminar |
+| Tiempo total, envío automático e intentos (RN-13) | Implementado | El tiempo corre desde que empieza el intento; la página guarda las respuestas solas y lo envía al acabarse. Si el navegador se cierra, el servidor lo envía con lo guardado (revisión cada 30 s, margen de 30 s, T-56). Un intento por defecto; el docente da otro con "Plazo e intentos" |
+| Nota por aciertos y ranking (RN-14, RF-16) | Implementado | Nota = 5 × puntos obtenidos ÷ puntos totales, con un decimal; se publica como "Automática" y entra a la planilla como una entrega más. Ranking por nota y luego por menor tiempo; en el calificable cuenta el último intento y en el de repaso el mejor (T-57). La revisión del calificable se abre cuando cierra el quiz (T-58) |
+| Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (6 niveles, respuestas comprobadas con el intérprete), "Ordena el algoritmo" (4), "Completa el DFD" (4, diagrama dibujado en SVG) y "Bloques" (8 niveles: secuencia, ruta, ciclo, condición y depuración, con ejecución animada, paso a paso y límite de bloques). Avance guardado solo en el navegador (T-59) |
+| Niveles de bloques configurados por el docente (RF-12, "criterios de bloques") | Pendiente | Los niveles están fijos en el código (`frontend/src/features/games/levels.js`). Un editor de niveles para el docente no está en esta etapa |
+| Instrucciones de PSeInt no cubiertas | Pendiente | `Para Cada` y el perfil estricto (declarar todo, `;` obligatorio). Un programa que las use va a revisión del docente, nunca recibe un 0 automático |
+
+### Verificación realizada (Etapa 7)
+
+- Backend: `./mvnw verify` → 101 pruebas en verde (64 unitarias y 37 de integración). `PseintTest` cubre el lenguaje (ciclos, Segun, subprocesos por referencia, arreglos, funciones, errores con línea) y los límites (ciclo infinito, recursión sin fin, salida y arreglos enormes). `QuizAndPseintFlowsIT` usa PostgreSQL real con reloj controlado: banco y permisos, quiz que no se publica sin preguntas ni recibe archivos, intento con nota automática sin que el estudiante vea la clave, intento abandonado que el servidor envía al vencer y segundo intento habilitado por el docente, ranking, revisión al cerrar, quiz de repaso, taller de PSeInt con nota automática, nota parcial, error de sintaxis a revisión, "ejecutar casos" y los límites y la sesión del editor.
+- Frontend: `npm run lint`, `npm test` (35 pruebas) y `npm run build` en verde. Las pruebas cubren que cada nivel de bloques se resuelve dentro de su límite, que los de depuración empiezan fallando, el choque y el tope de pasos, los juegos sin sesión y sin almacenamiento, el intento con guardado automático y el armado del quiz.
+- Docker Compose sobre una base limpia (migraciones hasta la versión 6) con los datos de demostración de las Etapas 3 a 7, y un recorrido en Chromium: un estudiante responde el quiz con el plazo ampliado, recarga la página sin perder respuestas y ve su nota; el editor de PSeInt ejecuta un programa y corta un ciclo infinito; los juegos se juegan sin sesión, también en pantalla de teléfono.
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Ninguna ejecución accede al equipo ni excede límites | El lenguaje no tiene instrucciones de archivos, red ni sistema (T-49); `PseintTest` y `QuizAndPseintFlowsIT` prueban el corte por pasos, salida, tamaño de arreglos, anidamiento y recursión. El tope de 2 s está en el código pero no tiene prueba propia: el de pasos se alcanza antes |
+| Calificaciones aceptadas por el docente | **Pendiente: revisión de Carlos.** Datos de demostración: Quiz 1 (cerrado), Repaso de tipos de datos y Taller 4 con casos de prueba |
+| Niveles aceptados por el docente | **Pendiente: revisión de Carlos** en `/juegos`. Los niveles se cambian en `frontend/src/features/games/levels.js` |
 
 ## Etapa 6 · detalle
 
@@ -32,7 +62,7 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 | Trabajo en segundo plano con estado visible (RNF-08) | Implementado | Estado "Calificando con IA" en la bandeja, la entrega y la vista del estudiante; se actualiza solo |
 | Resultado de la IA e historial para el docente (RF-17) | Implementado | Lectura del modelo, legibilidad, confianza, puntos y comentario por criterio, retroalimentación propuesta, duración y evaluaciones anteriores. El estudiante no ve nada de esto |
 | Scratch y Arduino (RN-10) | Parcial | `.ino` se evalúa como texto. `.sb3`, PDF, Word, PowerPoint y video pasan al docente ("Formato que la IA no lee"); ver P-08 |
-| Calificación determinista de PSeInt y quizzes (RF-16) | Pendiente (Etapa 7) | Requiere los casos de prueba y las claves que crea la Etapa 7 (T-48) |
+| Calificación determinista de PSeInt y quizzes (RF-16) | Implementado en la Etapa 7 | Ver la sección de la Etapa 7 |
 | Pruebas de aceptación con Qwen2.5-VL 7B en el equipo Ryzen 7 5700U | **Pendiente: las ejecuta Carlos** | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md). El modelo no se puede descargar en el entorno de desarrollo de Claude, así que no hay resultados de Qwen todavía; no se inventan |
 
 ### Verificación realizada (Etapa 6)
@@ -167,5 +197,5 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 | RF-28 | Parcial: usuarios, roles, aprobación docente, auditoría y publicación de la biblioteca implementados; foro y respaldos llegan con sus etapas |
 | RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
 | RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
-| RF-16 | Pendiente (Etapa 7, T-48) |
-| RF-12, RF-18, RF-20 a RF-23, RF-26, RF-27 | Pendientes |
+| RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Falta que el docente configure niveles de bloques (RF-12) |
+| RF-18, RF-20, RF-23, RF-26, RF-27 | Pendientes |

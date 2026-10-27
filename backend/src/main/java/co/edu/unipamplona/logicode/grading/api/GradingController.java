@@ -11,6 +11,7 @@ import co.edu.unipamplona.logicode.grading.application.ManageRubrics;
 import co.edu.unipamplona.logicode.grading.application.RubricView;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.application.CurrentActor;
+import co.edu.unipamplona.logicode.pseint.application.RunPrograms;
 import co.edu.unipamplona.logicode.shared.api.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,8 +39,12 @@ public class GradingController {
             @NotNull @Digits(integer = 4, fraction = 2) BigDecimal maxPoints) {
     }
 
+    public record TestCaseRequest(@Size(max = 5000) String input, @NotBlank @Size(max = 5000) String expectedOutput) {
+    }
+
     public record RubricRequest(@Size(max = 20000) String expectedAnswer,
-            @NotEmpty @Size(max = 20) List<@Valid CriterionRequest> criteria) {
+            @NotEmpty @Size(max = 20) List<@Valid CriterionRequest> criteria,
+            @Size(max = 20) List<@Valid TestCaseRequest> testCases) {
     }
 
     public record GradeRequest(@NotNull @Digits(integer = 1, fraction = 1) BigDecimal score,
@@ -65,11 +70,13 @@ public class GradingController {
     }
 
     @PutMapping("/activities/{activityId}/rubric")
-    @Operation(summary = "Definir la rúbrica: guarda una versión nueva")
+    @Operation(summary = "Definir la rúbrica y, para PSeInt, sus casos de prueba: guarda una versión nueva")
     public RubricView defineRubric(@CurrentActor Actor actor, @PathVariable UUID activityId,
             @Valid @RequestBody RubricRequest request) {
         return manageRubrics.define(actor, activityId, request.expectedAnswer(), request.criteria().stream()
-                .map(c -> new ManageRubrics.CriterionInput(c.name(), c.description(), c.maxPoints())).toList());
+                .map(c -> new ManageRubrics.CriterionInput(c.name(), c.description(), c.maxPoints())).toList(),
+                request.testCases() == null ? List.of() : request.testCases().stream()
+                        .map(t -> new ManageRubrics.TestCaseInput(t.input(), t.expectedOutput())).toList());
     }
 
     @GetMapping("/activities/{activityId}/rubric/versions")
@@ -107,6 +114,12 @@ public class GradingController {
     public GradeDetail publishGrade(@CurrentActor Actor actor, @PathVariable UUID submissionId,
             @Valid @RequestBody GradeRequest request) {
         return gradeSubmissions.grade(actor, submissionId, request.score(), request.feedback());
+    }
+
+    @PostMapping("/submissions/{submissionId}/test-run")
+    @Operation(summary = "Ejecutar de nuevo los casos de prueba con el código entregado (docente y Administradores)")
+    public RunPrograms.TestReport testRun(@CurrentActor Actor actor, @PathVariable UUID submissionId) {
+        return gradeSubmissions.testRun(actor, submissionId);
     }
 
     @PostMapping("/submissions/{submissionId}/grade/ai-retry")

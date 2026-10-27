@@ -1,6 +1,14 @@
 // Textos y formatos de actividades, entregas y notas. Los valores vienen de la API.
 
-export const ACTIVITY_KIND_LABELS = { TASK: 'Tarea', WORKSHOP: 'Taller', EXAM: 'Evaluación' }
+export const ACTIVITY_KIND_LABELS = {
+  TASK: 'Tarea',
+  WORKSHOP: 'Taller',
+  EXAM: 'Evaluación',
+  QUIZ: 'Quiz calificable',
+  PRACTICE_QUIZ: 'Quiz de repaso',
+}
+
+export const isQuizKind = (kind) => kind === 'QUIZ' || kind === 'PRACTICE_QUIZ'
 
 export const FILE_GROUP_LABELS = {
   DOCUMENTS: 'Documentos (PDF, Word)',
@@ -38,6 +46,7 @@ export const REVIEW_REASON_LABELS = {
   ILLEGIBLE: 'Foto ilegible',
   LOW_CONFIDENCE: 'Confianza menor al 80 %',
   AI_FAILED: 'Falló la IA',
+  CODE_ERROR: 'El programa no se pudo ejecutar',
 }
 
 export const REVIEW_REASON_HELP = {
@@ -47,6 +56,8 @@ export const REVIEW_REASON_HELP = {
   ILLEGIBLE: 'La IA indicó que no puede leer la entrega con seguridad. Revísala y pon la nota.',
   LOW_CONFIDENCE: 'La IA propuso una nota, pero su confianza quedó por debajo del 80 %. Revísala y confírmala o ajústala.',
   AI_FAILED: 'La IA no pudo procesar la entrega después de varios intentos. No se asignó nota; puedes reintentar o calificar tú.',
+  CODE_ERROR:
+    'El programa tiene un error de sintaxis o usa algo que el intérprete de LogiCode aún no ejecuta, así que no se corrieron los casos de prueba. Revísalo y pon la nota.',
 }
 
 export const AI_OUTCOME_LABELS = {
@@ -58,7 +69,7 @@ export const AI_OUTCOME_LABELS = {
 
 export const AI_OUTCOME_TONES = { PUBLISHED: 'ok', ILLEGIBLE: 'warning', LOW_CONFIDENCE: 'warning', FAILED: 'danger' }
 
-export const GRADE_SOURCE_LABELS = { TEACHER: 'Docente', AI: 'IA' }
+export const GRADE_SOURCE_LABELS = { TEACHER: 'Docente', AI: 'IA', AUTOMATIC: 'Automática' }
 
 // Situación del estudiante combinada con su nota (RF-19).
 export function studentSituation(progress, grade) {
@@ -70,6 +81,7 @@ export function studentSituation(progress, grade) {
   }
   if (progress.state === 'OVERDUE') return { label: 'Vencida sin entrega: 0,0', tone: 'danger' }
   if (progress.state === 'NOT_OPEN') return { label: 'Aún no abre', tone: 'muted' }
+  if (progress.state === 'CLOSED') return { label: 'Cerrado', tone: 'muted' }
   return { label: 'Pendiente', tone: 'warning' }
 }
 
@@ -85,6 +97,10 @@ export function formatDuration(ms) {
   if (ms == null) return '—'
   const seconds = Math.round(ms / 1000)
   return seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)} min ${seconds % 60} s`
+}
+
+export function formatSeconds(seconds) {
+  return seconds == null ? '—' : formatDuration(seconds * 1000)
 }
 
 export function formatPercent(value) {

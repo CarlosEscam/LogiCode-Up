@@ -6,6 +6,7 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
 import ActivitiesPanel from '../activities/ActivitiesPanel.jsx'
 import ReviewPanel from '../activities/ReviewPanel.jsx'
+import QuestionBankPanel from '../quizzes/QuestionBankPanel.jsx'
 import StudentsPanel from './StudentsPanel.jsx'
 import TopicsPanel from './TopicsPanel.jsx'
 
@@ -33,6 +34,7 @@ export default function CoursePage({ id }) {
     ['temas', 'Temas'],
     ['actividades', 'Actividades'],
     data.canViewCourseWork && ['revisar', 'Por revisar'],
+    data.canViewCourseWork && ['preguntas', 'Banco de preguntas'],
     data.canManageEnrollments && ['estudiantes', 'Estudiantes'],
   ].filter(Boolean)
   // La sección va en la dirección (?seccion=actividades) para volver a ella desde otras páginas.
@@ -61,6 +63,7 @@ export default function CoursePage({ id }) {
       {tab === 'temas' && <TopicsPanel courseId={id} canManage={data.canManageContent} />}
       {tab === 'actividades' && <ActivitiesPanel course={data} />}
       {tab === 'revisar' && <ReviewPanel courseId={id} canGrade={data.canGrade} />}
+      {tab === 'preguntas' && <QuestionBankPanel courseId={id} canManage={data.canManageContent} />}
       {tab === 'estudiantes' && <StudentsPanel courseId={id} onChange={course.reload} />}
     </>
   )

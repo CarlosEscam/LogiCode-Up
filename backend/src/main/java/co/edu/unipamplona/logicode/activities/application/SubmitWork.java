@@ -1,6 +1,7 @@
 package co.edu.unipamplona.logicode.activities.application;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.activities.domain.Activity;
+import co.edu.unipamplona.logicode.activities.domain.ActivityKind;
 import co.edu.unipamplona.logicode.activities.domain.DeadlineException;
 import co.edu.unipamplona.logicode.activities.domain.FileGroup;
 import co.edu.unipamplona.logicode.activities.domain.Submission;
@@ -55,6 +57,9 @@ public class SubmitWork {
     public SubmissionView submit(Actor actor, UUID activityId, String text, List<Upload> uploads) {
         actor.require(Permission.ANSWER_ACTIVITIES);
         Activity activity = access.requireVisible(actor, activityId);
+        if (activity.isQuiz()) {
+            throw ApplicationException.businessRule("Este quiz se responde desde su página.");
+        }
         if (!access.isEnrolled(actor, activity.getCourseId())) {
             throw ApplicationException.forbidden("Solo los estudiantes inscritos en el curso pueden entregar.");
         }
@@ -96,6 +101,24 @@ public class SubmitWork {
                 fileIds, activity.isClosedAt(now), now));
         grading.submissionReceived(saved.getId(), activityId);
         return views.view(saved, activity);
+    }
+
+    /**
+     * Registra el intento terminado de un quiz calificable como una entrega más (cuenta en intentos, Por revisar y
+     * notas) con la nota que calculó el módulo quizzes. Ese módulo ya verificó, al iniciar el intento, que el
+     * estudiante podía responder; {@code finishedAt} es el fin real del intento, que puede ser anterior a ahora si el
+     * tiempo se agotó sin que el navegador lo enviara (RN-13).
+     */
+    @Transactional
+    public UUID recordQuizAttempt(UUID activityId, UUID studentId, String summary, Instant finishedAt,
+            BigDecimal score, String feedback) {
+        Activity activity = access.find(activityId).filter(a -> a.getKind() == ActivityKind.QUIZ)
+                .orElseThrow(() -> new IllegalStateException("No es un quiz calificable: " + activityId));
+        int attempt = submissions.findByActivityAndStudent(activityId, studentId).size() + 1;
+        Submission saved = submissions.save(new Submission(activityId, studentId, attempt, summary, List.of(),
+                activity.isClosedAt(finishedAt), finishedAt));
+        grading.submissionScored(saved.getId(), activityId, score, feedback);
+        return saved.getId();
     }
 
     /** Las fotos son imágenes; los archivos, los grupos que eligió el docente. */

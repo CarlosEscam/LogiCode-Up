@@ -11,5 +11,7 @@ public enum ReviewReason {
     /** La confianza reportada por el modelo quedó por debajo del 80 %. */
     LOW_CONFIDENCE,
     /** Falló el procesamiento técnico después de los reintentos; no hay nota. */
-    AI_FAILED
+    AI_FAILED,
+    /** La actividad tiene casos de prueba, pero el programa PSeInt no se pudo leer para ejecutarlo. */
+    CODE_ERROR
 }

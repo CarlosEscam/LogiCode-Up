@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import co.edu.unipamplona.logicode.activities.application.ActivityCatalog;
 import co.edu.unipamplona.logicode.grading.domain.RubricCriterion;
+import co.edu.unipamplona.logicode.grading.domain.RubricTestCase;
 import co.edu.unipamplona.logicode.grading.domain.RubricVersion;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
@@ -24,7 +25,11 @@ public class ManageRubrics {
     public record CriterionInput(String name, String description, BigDecimal maxPoints) {
     }
 
+    public record TestCaseInput(String input, String expectedOutput) {
+    }
+
     private static final BigDecimal MAX_POINTS = new BigDecimal("1000");
+    private static final int MAX_CASE_CHARS = 5000;
 
     private final RubricRepository rubrics;
     private final ActivityCatalog catalog;
@@ -39,13 +44,32 @@ public class ManageRubrics {
     }
 
     @Transactional
-    public RubricView define(Actor actor, UUID activityId, String expectedAnswer, List<CriterionInput> criteria) {
+    public RubricView define(Actor actor, UUID activityId, String expectedAnswer, List<CriterionInput> criteria,
+            List<TestCaseInput> testCases) {
         ActivityCatalog.ActivityInfo activity = catalog.requireManageable(actor, activityId);
-        List<RubricCriterion> valid = validate(criteria);
-        int number = rubrics.findCurrent(activityId).map(RubricVersion::getNumber).orElse(0) + 1;
-        RubricVersion saved = rubrics.save(new RubricVersion(activityId, number, activity.statement(),
-                clean(expectedAnswer), valid, actor.userId(), clock.instant()));
-        return GradingViews.rubric(saved, true);
+        if (activity.quiz()) {
+            throw ApplicationException.businessRule("La rúbrica de un quiz se arma con sus preguntas.");
+        }
+        return GradingViews.rubric(save(activity, expectedAnswer, validate(criteria), validateCases(testCases),
+                actor.userId()), true);
+    }
+
+    /**
+     * RN-20 para quizzes: el módulo quizzes guarda como rúbrica las preguntas (un criterio por pregunta) y la clave
+     * de respuestas, después de verificar que el actor administra el quiz.
+     */
+    @Transactional
+    public void defineForQuiz(UUID activityId, String answerKey, List<CriterionInput> questions, UUID definedBy) {
+        ActivityCatalog.ActivityInfo activity = catalog.activity(activityId)
+                .orElseThrow(() -> ApplicationException.notFound("La actividad no existe."));
+        save(activity, answerKey, validate(questions), List.of(), definedBy);
+    }
+
+    private RubricVersion save(ActivityCatalog.ActivityInfo activity, String expectedAnswer,
+            List<RubricCriterion> criteria, List<RubricTestCase> testCases, UUID by) {
+        int number = rubrics.findCurrent(activity.id()).map(RubricVersion::getNumber).orElse(0) + 1;
+        return rubrics.save(new RubricVersion(activity.id(), number, activity.statement(), clean(expectedAnswer),
+                criteria, testCases, by, clock.instant()));
     }
 
     /** Rúbrica vigente. El estudiante ve los criterios, no la respuesta esperada. */
@@ -84,6 +108,28 @@ public class ManageRubrics {
                         + "» debe ser mayor que 0 y como máximo 1000, con hasta dos decimales.");
             }
             return new RubricCriterion(name, clean(c.description()), points);
+        }).toList();
+    }
+
+    private static List<RubricTestCase> validateCases(List<TestCaseInput> cases) {
+        if (cases == null) {
+            return List.of();
+        }
+        if (cases.size() > RubricVersion.MAX_TEST_CASES) {
+            throw ApplicationException.businessRule("La rúbrica admite hasta " + RubricVersion.MAX_TEST_CASES
+                    + " casos de prueba.");
+        }
+        return cases.stream().map(c -> {
+            String expected = clean(c.expectedOutput());
+            String input = c.input() == null ? "" : c.input().replace("\r", "");
+            if (expected == null) {
+                throw ApplicationException.businessRule("Cada caso de prueba necesita la salida esperada.");
+            }
+            if (expected.length() > MAX_CASE_CHARS || input.length() > MAX_CASE_CHARS) {
+                throw ApplicationException.businessRule("Las entradas y salidas de un caso admiten hasta "
+                        + MAX_CASE_CHARS + " caracteres.");
+            }
+            return new RubricTestCase(input, expected.replace("\r", ""));
         }).toList();
     }
 

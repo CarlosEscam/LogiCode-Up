@@ -628,3 +628,288 @@ progress {
   border-radius: 8px;
   background: var(--color-bg);
 }
+
+/* Etapa 7: PSeInt, quizzes y juegos */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.code,
+.field textarea.code,
+.console {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  tab-size: 4;
+}
+
+.console {
+  margin: 0.25rem 0;
+  padding: 0.6rem 0.75rem;
+  background: #111827;
+  color: #e5e7eb;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+td .console {
+  max-width: 18rem;
+}
+
+.pseint-runner {
+  margin: 0.75rem 0 1rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+}
+
+.quiz-questions {
+  padding-left: 1.25rem;
+}
+
+.quiz-questions > li {
+  margin-bottom: 1rem;
+}
+
+/* En el intento, el número va en la leyenda de cada pregunta. */
+.quiz-questions--answer {
+  list-style: none;
+  padding-left: 0;
+}
+
+.quiz-questions--answer > li {
+  padding-top: 0.5rem;
+}
+
+.page__note .button {
+  margin-left: 0.5rem;
+}
+
+.options {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.4rem 0;
+}
+
+.option {
+  padding: 0.25rem 0.5rem;
+  border-left: 3px solid var(--color-border);
+  margin-bottom: 0.2rem;
+}
+
+.option--correct {
+  border-left-color: var(--color-ok);
+  font-weight: 600;
+}
+
+.option--correct::before {
+  content: '✓ ';
+  color: var(--color-ok);
+}
+
+.quiz-timer {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.row--mine {
+  background: #eff6ff;
+}
+
+.levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.level {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.level--current {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+}
+
+.blocks-game {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .blocks-game {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.robot-grid {
+  display: grid;
+  gap: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.robot-cell {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 1.3rem;
+  background: #f3f4f6;
+  color: var(--color-primary);
+}
+
+.robot-cell--wall {
+  background: #374151;
+}
+
+.robot-cell--goal {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.robot-cell--visited {
+  background: #dbeafe;
+}
+
+.robot-cell--crash {
+  background: #fee2e2;
+  color: var(--color-error);
+}
+
+.block-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.4rem 0;
+}
+
+.block {
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border-left: 5px solid var(--color-primary);
+  background: #eff6ff;
+}
+
+.block--repetir,
+.block--mientras {
+  border-left-color: #b45309;
+  background: #fffbeb;
+}
+
+.block--si {
+  border-left-color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.block--active {
+  outline: 3px solid var(--color-ok);
+}
+
+.block__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.block__row span {
+  flex: 1;
+  font-weight: 600;
+}
+
+.block__branch {
+  margin: 0.35rem 0 0 1rem;
+  padding-left: 0.5rem;
+  border-left: 2px dotted var(--color-border);
+}
+
+.block__branch--target {
+  border-left: 2px solid var(--color-ok);
+}
+
+.order-lines {
+  list-style: none;
+  padding-left: 0;
+}
+
+.order-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.order-line__code {
+  flex: 1;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.order-line--fixed {
+  background: #f3f4f6;
+  color: var(--color-muted);
+}
+
+.dfd {
+  width: 100%;
+  max-width: 440px;
+  display: block;
+  margin: 0.5rem auto 1rem;
+}
+
+.dfd__shape {
+  fill: var(--color-surface);
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.dfd__shape--blank {
+  fill: #eff6ff;
+  stroke: var(--color-primary);
+  stroke-dasharray: 5 4;
+}
+
+.dfd__text {
+  font-size: 12px;
+  fill: var(--color-text);
+}
+
+.dfd__branch {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--color-muted);
+}
+
+.dfd__line {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.dfd__head {
+  fill: var(--color-text);
+}

@@ -25,6 +25,7 @@ import jakarta.persistence.Table;
 public class RubricVersion {
 
     public static final int MAX_CRITERIA = 20;
+    public static final int MAX_TEST_CASES = 20;
 
     @Id
     private UUID id;
@@ -46,6 +47,12 @@ public class RubricVersion {
     @OrderColumn(name = "position")
     private List<RubricCriterion> criteria = new ArrayList<>();
 
+    /** RF-16: con casos de prueba, las entregas con código PSeInt se califican ejecutándolo. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "rubric_test_case", joinColumns = @JoinColumn(name = "rubric_version_id"))
+    @OrderColumn(name = "position")
+    private List<RubricTestCase> testCases = new ArrayList<>();
+
     @Column(name = "created_by", updatable = false)
     private UUID createdBy;
 
@@ -56,9 +63,12 @@ public class RubricVersion {
     }
 
     public RubricVersion(UUID activityId, int number, String statement, String expectedAnswer,
-            List<RubricCriterion> criteria, UUID createdBy, Instant now) {
+            List<RubricCriterion> criteria, List<RubricTestCase> testCases, UUID createdBy, Instant now) {
         if (criteria.isEmpty() || criteria.size() > MAX_CRITERIA) {
             throw new IllegalArgumentException("La rúbrica necesita entre 1 y " + MAX_CRITERIA + " criterios");
+        }
+        if (testCases.size() > MAX_TEST_CASES) {
+            throw new IllegalArgumentException("La rúbrica admite hasta " + MAX_TEST_CASES + " casos de prueba");
         }
         this.id = UUID.randomUUID();
         this.activityId = activityId;
@@ -66,13 +76,15 @@ public class RubricVersion {
         this.statement = statement;
         this.expectedAnswer = expectedAnswer;
         this.criteria = new ArrayList<>(criteria);
+        this.testCases = new ArrayList<>(testCases);
         this.createdBy = createdBy;
         this.createdAt = now;
     }
 
     /** Versión siguiente con otro enunciado y los mismos criterios. */
     public RubricVersion withStatement(String newStatement, UUID changedBy, Instant now) {
-        return new RubricVersion(activityId, number + 1, newStatement, expectedAnswer, criteria, changedBy, now);
+        return new RubricVersion(activityId, number + 1, newStatement, expectedAnswer, criteria, testCases, changedBy,
+                now);
     }
 
     public BigDecimal totalPoints() {
@@ -101,6 +113,14 @@ public class RubricVersion {
 
     public List<RubricCriterion> getCriteria() {
         return List.copyOf(criteria);
+    }
+
+    public List<RubricTestCase> getTestCases() {
+        return List.copyOf(testCases);
+    }
+
+    public boolean hasTestCases() {
+        return !testCases.isEmpty();
     }
 
     public Instant getCreatedAt() {

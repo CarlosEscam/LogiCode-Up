@@ -140,6 +140,27 @@ No hay rutas nuevas para consultar: la IA trabaja sobre la nota de la entrega.
 | `POST /api/v1/submissions/{id}/grade/ai-retry` | Volver a enviar a la IA una entrega sin nota publicada (docente del curso). `200` con el detalle y la nota en `PROCESSING`; `409` si ya está publicada o en proceso; `422` si la IA está apagada o el formato no lo lee |
 | `POST /api/v1/submissions/{id}/grade` | Sin cambios: confirmar la propuesta de la IA es calificar con `{score, feedback}`; también funciona mientras la IA trabaja (T-43) |
 
+### Implementados (Etapa 7 · Quizzes, PSeInt y juegos)
+
+Todas requieren sesión. Los juegos no usan la API (T-59).
+
+| Método y ruta | Uso |
+| --- | --- |
+| `POST /api/v1/pseint/runs` | Ejecutar un programa `{code, input}` (hasta 20 000 y 10 000 caracteres) con los límites de T-50. Responde `{output, completed, errorKind, error, steps, durationMs}`; `errorKind` es `SYNTAX`, `UNSUPPORTED`, `RUNTIME` o `LIMIT`. `429` si el intérprete está ocupado |
+| `PUT /api/v1/activities/{id}/rubric` | Acepta además `testCases: [{input, expectedOutput}]` (hasta 20). La respuesta trae `testCases` (solo para docente y Administradores) y `testCaseCount`. En un quiz responde `422`: su rúbrica sale de las preguntas |
+| `POST /api/v1/submissions/{id}/test-run` | Volver a correr los casos con el programa entregado (docente y Administradores): `{cases: [{number, input, expectedOutput, output, passed, error}], programError, passed, total, score}` |
+| `GET /api/v1/submissions/{id}/grade` | `source` puede ser `AUTOMATIC` (casos de prueba o quiz) y `reviewReason` puede ser `CODE_ERROR`; trae `canRunTests` |
+| `POST /api/v1/courses/{id}/activities` | `kind` acepta `QUIZ` y `PRACTICE_QUIZ`: sin formas de entrega; el de repaso sin `weightPercent`. `progress.state` puede ser `CLOSED` (repaso cerrado). Un quiz no recibe entregas por `POST /activities/{id}/submissions` (`422`) |
+| `GET/POST /api/v1/courses/{id}/questions` | Banco de preguntas con su clave (ver: docente y Administradores; crear: docente del curso). Pregunta `{kind: SINGLE\|MULTIPLE\|TRUE_FALSE\|SHORT, prompt, points (1 a 10), explanation, options: [{text, correct}], acceptedAnswers}`; cada una trae `locked` |
+| `PUT/DELETE /api/v1/questions/{id}` | Editar o archivar (docente del curso); `409` si ya se respondió o si un quiz la usa (T-55) |
+| `GET/PUT /api/v1/activities/{id}/quiz` | Tiempo y preguntas del quiz (`204` si no tiene; el estudiante recibe cuántas son, no cuáles) · armarlo `{timeLimitMinutes (1 a 300), questionIds}` en orden; `409` si ya tiene intentos |
+| `POST /api/v1/activities/{id}/quiz/attempts` | Empezar un intento o continuar el que está en curso (estudiante inscrito); `422` fuera de fechas o sin intentos |
+| `GET /api/v1/activities/{id}/quiz/attempts/mine` | Mis intentos, sin preguntas |
+| `GET /api/v1/activities/{id}/quiz/ranking` | `[{position, studentName, score, correctCount, questionCount, durationSeconds, mine, attemptId}]`; `attemptId` solo para docente y Administradores |
+| `GET /api/v1/quiz-attempts/{id}` | El intento con sus preguntas (autor, docente, Administradores). `correct`, `correctChoices`, `acceptedAnswers` y `explanation` solo con `reviewAvailable` (T-58) |
+| `PUT /api/v1/quiz-attempts/{id}/answers` | Guardar `{answers: [{questionId, choices, text}]}` (`choices`: posiciones desde 0); `204`; `409` si ya se envió o se acabó el tiempo |
+| `POST /api/v1/quiz-attempts/{id}/finish` | Enviar (con las últimas respuestas opcionales) y recibir el resultado |
+
 ### Etapas siguientes (de la especificación, pendientes)
 
 | Recurso | Operaciones |

@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.activities.domain.Activity;
+import co.edu.unipamplona.logicode.activities.domain.ActivityKind;
 import co.edu.unipamplona.logicode.courses.application.CourseAccess;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
@@ -52,6 +54,10 @@ public class ManageActivities {
     public ActivityView update(Actor actor, UUID activityId, Activity.Definition definition) {
         Activity activity = access.requireManageable(actor, activityId);
         Activity.Definition valid = validate(definition);
+        if (activity.isQuiz() != valid.kind().isQuiz()) {
+            throw ApplicationException.businessRule("Una actividad no se puede convertir en quiz ni un quiz en "
+                    + "actividad; crea una nueva.");
+        }
         requireWeightFits(activity.getCourseId(), activity.getId(), valid.weightPercent());
         boolean statementChanged = !Objects.equals(activity.getStatement(), valid.statement());
         activity.update(valid, clock.instant());
@@ -62,12 +68,14 @@ public class ManageActivities {
         return views.view(actor, activity);
     }
 
-    /** RN-20: se publica con la rúbrica definida. */
+    /** RN-20: se publica con la rúbrica definida; la de un quiz se arma al guardar sus preguntas. */
     @Transactional
     public ActivityView publish(Actor actor, UUID activityId) {
         Activity activity = access.requireManageable(actor, activityId);
         if (!grading.hasRubric(activityId)) {
-            throw ApplicationException.businessRule("Define la rúbrica de la actividad antes de publicarla.");
+            throw ApplicationException.businessRule(activity.isQuiz()
+                    ? "Elige las preguntas del quiz antes de publicarlo."
+                    : "Define la rúbrica de la actividad antes de publicarla.");
         }
         activity.publish(clock.instant());
         return views.view(actor, activities.save(activity));
@@ -108,12 +116,32 @@ public class ManageActivities {
         if (d.kind() == null) {
             throw ApplicationException.businessRule("Elige el tipo de actividad.");
         }
+        if (d.kind().isQuiz()) {
+            return validateQuiz(title, statement, d);
+        }
         if (!(d.acceptsText() || d.acceptsFiles() || d.acceptsPhotos())) {
             throw ApplicationException.businessRule("Elige por lo menos una forma de entrega: texto, archivo o foto.");
         }
         if (d.acceptsFiles() && (d.fileGroups() == null || d.fileGroups().isEmpty())) {
             throw ApplicationException.businessRule("Elige qué tipos de archivo se aceptan.");
         }
+        validateSchedule(d);
+        return new Activity.Definition(title, d.kind(), statement, d.acceptsText(), d.acceptsFiles(),
+                d.acceptsPhotos(), d.fileGroups(), d.weightPercent(), d.opensAt(), d.closesAt(), d.maxAttempts());
+    }
+
+    /** Un quiz no recibe texto ni archivos: se responde en su página. El de repaso no tiene porcentaje (RF-21). */
+    private static Activity.Definition validateQuiz(String title, String statement, Activity.Definition d) {
+        validateSchedule(d);
+        boolean practice = d.kind() == ActivityKind.PRACTICE_QUIZ;
+        if (practice && d.weightPercent() != null) {
+            throw ApplicationException.businessRule("Un quiz de repaso no tiene nota, así que no lleva porcentaje.");
+        }
+        return new Activity.Definition(title, d.kind(), statement, false, false, false, Set.of(), d.weightPercent(),
+                d.opensAt(), d.closesAt(), practice ? 1 : d.maxAttempts());
+    }
+
+    private static void validateSchedule(Activity.Definition d) {
         if (d.opensAt() == null || d.closesAt() == null) {
             throw ApplicationException.businessRule("Indica la apertura y el cierre.");
         }
@@ -127,8 +155,6 @@ public class ManageActivities {
         if (weight != null && (weight.signum() <= 0 || weight.compareTo(HUNDRED) > 0 || weight.scale() > 2)) {
             throw ApplicationException.businessRule("El porcentaje debe estar entre 0,01 y 100.");
         }
-        return new Activity.Definition(title, d.kind(), statement, d.acceptsText(), d.acceptsFiles(),
-                d.acceptsPhotos(), d.fileGroups(), weight, d.opensAt(), d.closesAt(), d.maxAttempts());
     }
 
     /** RN-07: la suma de los porcentajes explícitos del curso no puede superar 100 %. */

@@ -7,6 +7,8 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { ActivityFields } from './ActivityForm.jsx'
 import { activityBody } from './activityBody.js'
+import PseintRunner from '../pseint/PseintRunner.jsx'
+import QuizPanel from '../quizzes/QuizPanel.jsx'
 import RubricPanel from './RubricPanel.jsx'
 import {
   ACTIVITY_KIND_LABELS,
@@ -17,6 +19,7 @@ import {
   formatPercent,
   formatScore,
   fromBogotaInput,
+  isQuizKind,
   studentSituation,
   toBogotaInput,
 } from './labels.js'
@@ -45,6 +48,7 @@ export default function ActivityPage({ id }) {
 
   const data = activity.data
   const reload = () => activity.reload()
+  const quiz = isQuizKind(data.kind)
   return (
     <>
       <section className="card card--wide" aria-labelledby="actividad-titulo">
@@ -71,12 +75,14 @@ export default function ActivityPage({ id }) {
           </div>
           <div>
             <dt>Intentos</dt>
-            <dd>{data.maxAttempts}</dd>
+            <dd>{data.kind === 'PRACTICE_QUIZ' ? 'Libres' : data.maxAttempts}</dd>
           </div>
-          <div>
-            <dt>Se entrega como</dt>
-            <dd>{deliveryModes(data)}</dd>
-          </div>
+          {!quiz && (
+            <div>
+              <dt>Se entrega como</dt>
+              <dd>{deliveryModes(data)}</dd>
+            </div>
+          )}
         </dl>
         <p className="statement">{data.statement}</p>
         {data.progress && <StudentStatus activity={data} />}
@@ -84,10 +90,10 @@ export default function ActivityPage({ id }) {
         <FormStatus error={notice?.error} success={notice?.success} />
       </section>
 
-      <RubricPanel activity={data} />
+      {quiz ? <QuizPanel activity={data} onChanged={reload} /> : <RubricPanel activity={data} />}
 
-      {data.progress && <StudentWork activity={data} onSubmitted={reload} />}
-      {data.canViewSubmissions && <Roster activity={data} />}
+      {data.progress && !quiz && <StudentWork activity={data} onSubmitted={reload} />}
+      {data.canViewSubmissions && data.kind !== 'PRACTICE_QUIZ' && <Roster activity={data} />}
     </>
   )
 }
@@ -101,7 +107,8 @@ function deliveryModes(activity) {
 }
 
 function StudentStatus({ activity }) {
-  const grades = useQuery(`/courses/${activity.courseId}/grades/mine`)
+  const practice = activity.kind === 'PRACTICE_QUIZ'
+  const grades = useQuery(practice ? null : `/courses/${activity.courseId}/grades/mine`)
   const grade = grades.data?.find((item) => item.activityId === activity.id)
   useRefreshWhile(grade?.status === 'PROCESSING', grades.reload)
   const situation = studentSituation(activity.progress, grade)
@@ -111,11 +118,15 @@ function StudentStatus({ activity }) {
       <p>
         <span className={`badge badge--${situation.tone}`}>{situation.label}</span>
       </p>
-      <p className="page__note">
-        Intentos usados: {progress.attemptsUsed} de {progress.attemptsAllowed} · Plazo para entregar:{' '}
-        {formatDateTime(progress.deadline)}
-        {progress.hasException && ' · Ajustado por tu docente'}
-      </p>
+      {practice ? (
+        <p className="page__note">Quiz de repaso: no da nota y puedes repetirlo hasta {formatDateTime(activity.closesAt)}.</p>
+      ) : (
+        <p className="page__note">
+          Intentos usados: {progress.attemptsUsed} de {progress.attemptsAllowed} · Plazo para entregar:{' '}
+          {formatDateTime(progress.deadline)}
+          {progress.hasException && ' · Ajustado por tu docente'}
+        </p>
+      )}
       {grade?.status === 'PUBLISHED' && grade.feedback && (
         <p>
           <strong>Retroalimentación:</strong> {grade.feedback}
@@ -241,6 +252,9 @@ function closedReason(progress) {
 
 function SubmitForm({ activity, onSubmitted }) {
   const [progress, setProgress] = useState(null)
+  const [code, setCode] = useState('')
+  const rubric = useQuery(`/activities/${activity.id}/rubric`)
+  const graded = rubric.data?.testCaseCount > 0
   const acceptsUploads = activity.acceptsFiles || activity.acceptsPhotos
   const send = useSubmit(async (event) => {
     const form = event.currentTarget
@@ -256,6 +270,7 @@ function SubmitForm({ activity, onSubmitted }) {
     try {
       const result = await apiSendForm(`/activities/${activity.id}/submissions`, data, { onProgress: setProgress })
       form.reset()
+      setCode('')
       onSubmitted(result)
       return result
     } finally {
@@ -267,10 +282,27 @@ function SubmitForm({ activity, onSubmitted }) {
     <form onSubmit={send.submit} noValidate>
       {activity.acceptsText && (
         <div className="field">
-          <label htmlFor="entrega-texto">Respuesta</label>
-          <textarea id="entrega-texto" name="text" rows={6} maxLength={50000} />
+          <label htmlFor="entrega-texto">{graded ? 'Respuesta (tu programa en PSeInt)' : 'Respuesta'}</label>
+          <textarea
+            id="entrega-texto"
+            name="text"
+            rows={graded ? 14 : 6}
+            maxLength={50000}
+            spellCheck={graded ? false : undefined}
+            className={graded ? 'code' : undefined}
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            aria-describedby={graded ? 'entrega-texto-ayuda' : undefined}
+          />
+          {graded && (
+            <small id="entrega-texto-ayuda" className="field__hint">
+              Se califica sola con {rubric.data.testCaseCount} casos de prueba: cada caso da unas entradas y revisa que tu programa
+              muestre lo esperado. También puedes adjuntar tu archivo .psc.
+            </small>
+          )}
         </div>
       )}
+      {activity.acceptsText && graded && <PseintRunner code={code} idPrefix="entrega" />}
       {acceptsUploads && (
         <div className="field">
           <label htmlFor="entrega-archivos">{activity.acceptsPhotos && !activity.acceptsFiles ? 'Fotos' : 'Archivos'}</label>

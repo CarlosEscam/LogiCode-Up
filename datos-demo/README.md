@@ -84,6 +84,39 @@ Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, 
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo el Taller 3.
 - `ia-pruebas/` usa a Laura y a Felipe en un curso aparte, "Pruebas de aceptación IA", para no mezclar las pruebas con esta demostración.
 
+### Etapa 7 · Quizzes, PSeInt y juegos
+
+**Banco de preguntas** del curso: 9 preguntas de los cuatro tipos (selección única, múltiple, falso o verdadero y respuesta corta), con explicación para la revisión.
+
+**Quiz 1: ciclos y condiciones** (calificable, 6 preguntas, 7 puntos, 15 minutos, un intento, sin porcentaje porque el curso ya suma 100 %). Se responde abierto y luego el script lo cierra, así que ya se ven la revisión y el ranking.
+
+| Estudiante | Qué hizo | Resultado |
+| --- | --- | --- |
+| Ana | Todo correcto | 5,0 automática |
+| Bruno | Falla la de selección múltiple (le falta Repetir); escribe "escribir" en minúscula, que cuenta | 3,6 |
+| Camila | Falla la de MOD y la de asignación | 3,6; en el ranking desempata el menor tiempo |
+| David | Empieza, guarda dos respuestas y abandona | El servidor envía el intento solo cuando se acaban sus 15 minutos: 1,4 |
+| Elena | No lo responde | Vencida: 0,0 |
+| Felipe | No lo ha respondido | Tiene el plazo ampliado 2 días (excepción con motivo): puede entrar y responderlo |
+
+**Repaso: tipos de datos** (quiz de repaso, 4 preguntas, 5 minutos, abierto una semana): Ana lo hizo dos veces (2 de 4 y luego 4 de 4) y Bruno una (3 de 4). El ranking cuenta el mejor intento de cada uno. No da nota.
+
+**Taller 4: suma de 1 a n (casos de prueba)**, sin porcentaje, 2 intentos. Tres casos: n = 5 → 15, n = 10 → 55 y n = 0 → 0. Se califica al recibir la entrega, sin IA:
+
+| Estudiante | Entrega | Resultado |
+| --- | --- | --- |
+| Ana | Respuesta escrita con `Para` y mensaje "La suma es" | 5,0 automática (el mensaje no estorba) |
+| Bruno | `Repetir`, que corre una vez aunque n = 0 | 3,3: falla el caso n = 0 |
+| Camila | Le falta `FinPara` | Por revisar como "El programa no se pudo ejecutar" |
+| David | Archivo `suma.psc` con la fórmula n × (n + 1) / 2 | 5,0 automática |
+
+En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar casos de prueba" para ver caso por caso. El editor está en **PSeInt** del menú (con sesión).
+
+**Juegos** (`/juegos`, sin sesión): no cargan datos en el servidor; el avance se guarda en el navegador de cada quien.
+
+- Si las etapas anteriores ya estaban cargadas, el script agrega solo lo de la Etapa 7 (y lo de la 6 si faltaba).
+- Los tiempos de los intentos que hace el script son de un segundo o menos, así que el desempate por tiempo del ranking se ve mejor cuando los estudiantes responden en vivo.
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

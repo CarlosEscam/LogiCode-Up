@@ -85,7 +85,7 @@ class ActivityViews {
         } else if (!activity.isOpenAt(now)) {
             state = ActivityView.State.NOT_OPEN;
         } else if (now.isAfter(deadline)) {
-            state = ActivityView.State.OVERDUE;
+            state = activity.isPractice() ? ActivityView.State.CLOSED : ActivityView.State.OVERDUE;
         } else {
             state = ActivityView.State.OPEN;
         }

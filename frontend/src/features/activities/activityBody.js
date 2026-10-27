@@ -12,7 +12,7 @@ export function activityBody(form) {
     acceptsFiles: data.has('acceptsFiles'),
     acceptsPhotos: data.has('acceptsPhotos'),
     fileGroups: data.has('acceptsFiles') ? data.getAll('fileGroups') : [],
-    weightPercent: weight === '' ? null : Number(weight),
+    weightPercent: weight == null || weight === '' ? null : Number(weight),
     opensAt: fromBogotaInput(data.get('opensAt')),
     closesAt: fromBogotaInput(data.get('closesAt')),
     maxAttempts: Number(data.get('maxAttempts')),

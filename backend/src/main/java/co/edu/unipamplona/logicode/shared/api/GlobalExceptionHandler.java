@@ -7,6 +7,7 @@ import java.util.Map;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -50,6 +51,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus status = STATUS.get(ex.kind());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problem.setTitle(TITLES.get(status));
+        return problem;
+    }
+
+    /** Dos personas (o el navegador y el servidor) cambiaron lo mismo a la vez; gana la primera. */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ProblemDetail handleConcurrentChange(OptimisticLockingFailureException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "Estos datos cambiaron mientras tanto. Recarga la página e intenta de nuevo.");
+        problem.setTitle(TITLES.get(HttpStatus.CONFLICT));
         return problem;
     }
 

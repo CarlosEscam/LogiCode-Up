@@ -515,6 +515,172 @@ async function stage6(teacher, students, course) {
   }
 }
 
+// ---------- Etapa 7 · Quizzes, PSeInt y juegos ----------
+
+const STAGE7_TITLE = 'Taller 4: suma de 1 a n (casos de prueba)'
+
+// Banco de preguntas, un quiz calificable ya cerrado (con revisión y ranking), uno de repaso abierto
+// y una actividad de PSeInt que se califica sola con casos de prueba. Los juegos no guardan datos en el servidor.
+async function stage7(teacher, students, course) {
+  console.log('Etapa 7 · quizzes, PSeInt y juegos')
+  const question = (kind, prompt, { points = 1, options = [], accepted = [], explanation = null }) =>
+    teacher.post(`/courses/${course.id}/questions`, {
+      kind,
+      prompt,
+      points,
+      explanation,
+      options: options.map(([text, correct]) => ({ text, correct })),
+      acceptedAnswers: accepted,
+    })
+  const q = {
+    ciclo: await question('SINGLE', '¿Qué ciclo revisa su condición al final, de modo que se ejecuta al menos una vez?', {
+      options: [['Mientras', false], ['Repetir … Hasta Que', true], ['Para', false], ['Según', false]],
+      explanation: 'Repetir ejecuta el cuerpo y luego revisa la condición.',
+    }),
+    mod: await question('SINGLE', 'Si x <- 7, ¿qué muestra Escribir x MOD 2?', {
+      options: [['3', false], ['1', true], ['0', false], ['3.5', false]],
+      explanation: 'MOD da el residuo de la división: 7 = 2 × 3 + 1.',
+    }),
+    repetitivas: await question('MULTIPLE', '¿Cuáles son estructuras repetitivas?', {
+      points: 2,
+      options: [['Para', true], ['Mientras', true], ['Si … Entonces', false], ['Repetir … Hasta Que', true]],
+      explanation: 'Si es una estructura de decisión, no repite nada.',
+    }),
+    finito: await question('TRUE_FALSE', 'Un algoritmo debe terminar después de un número finito de pasos.', {
+      options: [['Verdadero', true], ['Falso', false]],
+    }),
+    asignar: await question('TRUE_FALSE', 'En PSeInt, ni = ni <- sirven para asignar un valor a una variable.', {
+      options: [['Verdadero', false], ['Falso', true]],
+      explanation: 'Las dos formas asignan en el perfil flexible; <- es la más clara.',
+    }),
+    mostrar: await question('SHORT', '¿Qué instrucción de PSeInt muestra datos en pantalla?', { accepted: ['Escribir', 'Imprimir', 'Mostrar'] }),
+    logico: await question('SINGLE', '¿Qué tipo de dato guarda Verdadero o Falso?', {
+      options: [['Entero', false], ['Real', false], ['Lógico', true], ['Caracter', false]],
+    }),
+    nombre: await question('SHORT', '¿Qué tipo de dato usarías para guardar un nombre?', { accepted: ['Caracter', 'Texto', 'Cadena'] }),
+    real: await question('SINGLE', '¿De qué tipo es el valor 3.5?', {
+      options: [['Entero', false], ['Real', true], ['Lógico', false], ['Caracter', false]],
+    }),
+  }
+  log('Banco de preguntas: 9 preguntas de los cuatro tipos')
+
+  // Respuestas por texto de opción: { clave: ['Para', 'Mientras'] } o { clave: 'Escribir' } en las cortas.
+  const answersFor = (attempt, picks) => ({
+    answers: Object.entries(picks).map(([key, pick]) => {
+      const item = attempt.questions.find((x) => x.id === q[key].id)
+      if (item.kind === 'SHORT') return { questionId: item.id, choices: [], text: pick }
+      const texts = [pick].flat()
+      return { questionId: item.id, choices: texts.map((text) => item.options.indexOf(text)), text: null }
+    }),
+  })
+  const take = async (student, activityId, picks, { finish = true } = {}) => {
+    const attempt = await student.post(`/activities/${activityId}/quiz/attempts`)
+    if (!finish) return student.put(`/quiz-attempts/${attempt.id}/answers`, answersFor(attempt, picks))
+    return student.post(`/quiz-attempts/${attempt.id}/finish`, answersFor(attempt, picks))
+  }
+  const allRight = {
+    ciclo: 'Repetir … Hasta Que',
+    mod: '1',
+    repetitivas: ['Para', 'Mientras', 'Repetir … Hasta Que'],
+    finito: 'Verdadero',
+    asignar: 'Falso',
+    mostrar: 'Escribir',
+  }
+
+  // 1. Quiz calificable: se responde abierto y luego se cierra para ver la revisión y el ranking.
+  const quizFields = {
+    title: 'Quiz 1: ciclos y condiciones',
+    kind: 'QUIZ',
+    statement: 'Seis preguntas sobre ciclos, condiciones y PSeInt. Tienes 15 minutos y un intento.',
+    acceptsText: false,
+    acceptsFiles: false,
+    acceptsPhotos: false,
+    fileGroups: [],
+    weightPercent: null,
+    maxAttempts: 1,
+    opensAt: at(-2 * DAY),
+    closesAt: at(2 * DAY),
+  }
+  const quiz = await teacher.post(`/courses/${course.id}/activities`, quizFields)
+  await teacher.put(`/activities/${quiz.id}/quiz`, {
+    timeLimitMinutes: 15,
+    questionIds: ['ciclo', 'mod', 'repetitivas', 'finito', 'asignar', 'mostrar'].map((key) => q[key].id),
+  })
+  await teacher.post(`/activities/${quiz.id}/publish`)
+  await take(students.ana, quiz.id, allRight)
+  await take(students.bruno, quiz.id, { ...allRight, repetitivas: ['Para', 'Mientras'], mostrar: 'escribir' })
+  await take(students.camila, quiz.id, { ...allRight, mod: '0', asignar: 'Verdadero' })
+  // David deja el intento abierto con dos respuestas: el servidor lo envía solo al acabarse sus 15 minutos.
+  await take(students.david, quiz.id, { ciclo: 'Repetir … Hasta Que', finito: 'Verdadero' }, { finish: false })
+  await teacher.put(`/activities/${quiz.id}`, { ...quizFields, closesAt: at(-HOUR) })
+  await teacher.put(`/activities/${quiz.id}/exceptions/${await idOf(students.felipe)}`, {
+    extendedUntil: at(2 * DAY),
+    extraAttempts: 0,
+    reason: 'Estuvo en una salida académica el día del quiz.',
+  })
+  log('Quiz 1 (cerrado, con revisión): Ana 5,0; Bruno y Camila 3,6 (en el ranking desempata el tiempo); David se envía solo; Elena 0,0; Felipe con plazo ampliado')
+
+  // 2. Quiz de repaso abierto: sin nota, se repite; el ranking cuenta el mejor intento.
+  const practice = await teacher.post(`/courses/${course.id}/activities`, {
+    ...quizFields,
+    title: 'Repaso: tipos de datos',
+    kind: 'PRACTICE_QUIZ',
+    statement: 'Practica cuantas veces quieras. No da nota y al terminar ves las respuestas correctas.',
+    opensAt: at(-DAY),
+    closesAt: at(7 * DAY),
+  })
+  await teacher.put(`/activities/${practice.id}/quiz`, {
+    timeLimitMinutes: 5,
+    questionIds: ['logico', 'nombre', 'real', 'finito'].map((key) => q[key].id),
+  })
+  await teacher.post(`/activities/${practice.id}/publish`)
+  const practiceRight = { logico: 'Lógico', nombre: 'Caracter', real: 'Real', finito: 'Verdadero' }
+  await take(students.ana, practice.id, { ...practiceRight, logico: 'Entero', real: 'Entero' })
+  await take(students.ana, practice.id, practiceRight)
+  await take(students.bruno, practice.id, { ...practiceRight, nombre: 'Número' })
+  log('Repaso: tipos de datos (abierto): Ana con dos intentos, Bruno con uno')
+
+  // 3. PSeInt con casos de prueba: se califica sola al recibir la entrega (RF-12, RF-16).
+  const sum = await teacher.post(`/courses/${course.id}/activities`, {
+    title: STAGE7_TITLE,
+    kind: 'WORKSHOP',
+    statement:
+      'Escribe un algoritmo en PSeInt que lea un número entero n (0 o más) y muestre la suma 1 + 2 + … + n.\nEscribe el programa en la respuesta o adjunta tu archivo .psc. Se califica solo con casos de prueba.',
+    acceptsText: true,
+    acceptsFiles: true,
+    acceptsPhotos: false,
+    fileGroups: ['TOOL_FILES'],
+    weightPercent: null,
+    maxAttempts: 2,
+    opensAt: at(-DAY),
+    closesAt: at(5 * DAY),
+  })
+  await teacher.put(`/activities/${sum.id}/rubric`, {
+    expectedAnswer: 'Algoritmo Suma\n  Leer n\n  s <- 0\n  Para i <- 1 Hasta n Hacer\n    s <- s + i\n  FinPara\n  Escribir s\nFinAlgoritmo',
+    criteria: [{ name: 'Casos de prueba aprobados', maxPoints: 5, description: 'Cada caso da un n y revisa la suma que se muestra' }],
+    testCases: [
+      { input: '5', expectedOutput: '15' },
+      { input: '10', expectedOutput: '55' },
+      { input: '0', expectedOutput: '0' },
+    ],
+  })
+  await teacher.post(`/activities/${sum.id}/publish`)
+  const submitCode = (student, text, files = []) =>
+    student.postForm(`/activities/${sum.id}/submissions`, fileForm({ text }, files.map((file) => ({ field: 'files', ...file }))))
+  await submitCode(
+    students.ana,
+    'Algoritmo Suma\n  Definir n, i, s Como Entero\n  Leer n\n  s <- 0\n  Para i <- 1 Hasta n Hacer\n    s <- s + i\n  FinPara\n  Escribir "La suma es ", s\nFinAlgoritmo',
+  )
+  // Repetir corre al menos una vez: con n = 0 muestra 1 y falla ese caso.
+  await submitCode(students.bruno, 'Algoritmo Suma\n  Leer n\n  s <- 0\n  i <- 1\n  Repetir\n    s <- s + i\n    i <- i + 1\n  Hasta Que i > n\n  Escribir s\nFinAlgoritmo')
+  await submitCode(students.camila, 'Algoritmo Suma\n  Leer n\n  s <- 0\n  Para i <- 1 Hasta n Hacer\n    s <- s + i\n  Escribir s\nFinAlgoritmo')
+  await submitCode(students.david, null, [
+    { name: 'suma.psc', type: 'text/plain', content: Buffer.from('Proceso Suma\r\n\tLeer n\r\n\tEscribir n * (n + 1) / 2\r\nFinProceso\r\n', 'latin1') },
+  ])
+  log(`${STAGE7_TITLE}: Ana 5,0 y David 5,0 (archivo .psc), Bruno 3,3 (falla n = 0); Camila con error de sintaxis, en Por revisar`)
+  log('Juegos: abre /juegos (sin sesión). El avance se guarda en el navegador; no hay datos que cargar.')
+}
+
 async function idOf(session) {
   return (await session.get('/me')).id
 }
@@ -549,6 +715,7 @@ async function main() {
   const students = await stage3Students(admin, teacher)
   await stage5(teacher, students, course)
   await stage6(teacher, students, course)
+  await stage7(teacher, students, course)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -558,15 +725,19 @@ async function addMissingStages(teacher) {
   const courses = await teacher.get('/courses?size=50')
   const course = (courses.items ?? courses).find((c) => c.name === 'Pensamiento Computacional · Grupo A')
   if (!course) throw new Error('La docente de demostración existe, pero no se encontró su curso. Empieza de cero (ver README).')
-  const activities = await teacher.get(`/courses/${course.id}/activities`)
-  if (activities.some((a) => a.title === STAGE6_TITLE)) {
+  const titles = new Set((await teacher.get(`/courses/${course.id}/activities`)).map((a) => a.title))
+  const missing = [
+    [6, STAGE6_TITLE, stage6],
+    [7, STAGE7_TITLE, stage7],
+  ].filter(([, title]) => !titles.has(title))
+  if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')
     return
   }
   const students = {}
   for (const [key, student] of Object.entries(STUDENTS)) students[key] = await Session.login(student.cedula, DEMO_PASSWORD)
-  await stage6(teacher, students, course)
-  console.log('\nListo: se agregaron los datos de la Etapa 6.')
+  for (const [, , stage] of missing) await stage(teacher, students, course)
+  console.log(`\nListo: se agregaron los datos de la Etapa ${missing.map(([number]) => number).join(' y ')}.`)
 }
 
 main().catch((error) => {
