@@ -24,7 +24,7 @@ export default function EnablementsPage() {
   const bulk = useSubmit(async (event) => {
     const form = event.currentTarget
     const file = new FormData(form).get('file')
-    if (!file || !file.name) throw new Error('Selecciona un archivo .csv.')
+    if (!file || !file.name) throw new Error('Selecciona un archivo .xlsx o .csv.')
     const result = await apiUpload('/student-enablements/import', file)
     form.reset()
     enablements.reload()
@@ -46,13 +46,14 @@ export default function EnablementsPage() {
       </section>
 
       <section className="card" aria-labelledby="importar-titulo">
-        <h2 id="importar-titulo">Importar desde CSV</h2>
+        <h2 id="importar-titulo">Importar desde Excel o CSV</h2>
         <p className="page__note">
-          Una fila por estudiante: <code>cedula</code> o <code>cedula,nombre</code> (también con punto y coma). Puede
-          tener encabezado. Máximo 2000 filas y 1 MB. Para Excel, guarda la hoja como CSV.
+          Una fila por estudiante. En Excel (<code>.xlsx</code>, primera hoja): la cédula en la columna A y el nombre,
+          opcional, en la B. En CSV: <code>cedula</code> o <code>cedula,nombre</code> (también con punto y coma). Puede
+          tener encabezado. Máximo 2000 filas y 1 MB.
         </p>
         <form onSubmit={bulk.submit} className="form-row">
-          <input type="file" name="file" accept=".csv,text/csv" aria-label="Archivo CSV" />
+          <input type="file" name="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Archivo de Excel o CSV" />
           <button type="submit" className="button" disabled={bulk.pending}>
             {bulk.pending ? 'Importando…' : 'Importar'}
           </button>

@@ -2,7 +2,6 @@ package co.edu.unipamplona.logicode.courses.api;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.courses.application.CourseView;
@@ -38,7 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Cursos", description = "Cursos e inscripción de estudiantes")
 public class CourseController {
 
-    static final long MAX_CSV_BYTES = 1024 * 1024;
+    static final long MAX_LIST_BYTES = 1024 * 1024;
 
     public record CourseRequest(@NotBlank @Size(max = 150) String name, @NotBlank @Size(max = 20) String period,
             @Size(max = 2000) String description) {
@@ -98,17 +97,16 @@ public class CourseController {
     }
 
     @PostMapping(path = "/{courseId}/enrollments/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Inscribir estudiantes desde un archivo CSV (cedula[,nombre])")
-    public EnrollStudents.ImportResult importCsv(@CurrentActor Actor actor, @PathVariable UUID courseId,
+    @Operation(summary = "Inscribir estudiantes desde un archivo CSV o Excel .xlsx (cedula[,nombre])")
+    public EnrollStudents.ImportResult importList(@CurrentActor Actor actor, @PathVariable UUID courseId,
             @RequestPart("file") MultipartFile file) throws IOException {
-        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
-        if (file.isEmpty() || !name.endsWith(".csv")) {
-            throw ApplicationException.businessRule("Sube un archivo .csv con una cédula por fila.");
+        if (file.isEmpty()) {
+            throw ApplicationException.businessRule("Sube un archivo .csv o .xlsx con una cédula por fila.");
         }
-        if (file.getSize() > MAX_CSV_BYTES) {
-            throw ApplicationException.businessRule("El archivo CSV no puede superar 1 MB.");
+        if (file.getSize() > MAX_LIST_BYTES) {
+            throw ApplicationException.businessRule("El archivo no puede superar 1 MB.");
         }
-        return enrollStudents.importCsv(actor, courseId, file.getInputStream());
+        return enrollStudents.importFile(actor, courseId, file.getInputStream(), file.getOriginalFilename());
     }
 
     @DeleteMapping("/{courseId}/enrollments/{cedula}")

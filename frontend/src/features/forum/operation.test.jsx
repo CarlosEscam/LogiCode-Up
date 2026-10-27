@@ -187,10 +187,11 @@ describe('Planilla', () => {
     expect(ana.getByRole('link', { name: '4,0' })).toHaveAttribute('href', '/entregas/e1')
     expect(ana.getByTitle('Vencida sin entrega')).toHaveTextContent('0,0*')
     expect(within(table.getByRole('row', { name: /Beto Estudiante/ })).getByText('En revisión')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Exportar a Excel (CSV)' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Exportar a Excel (.xlsx)' })).toHaveAttribute(
       'href',
-      '/api/v1/courses/c1/gradebook/export',
+      '/api/v1/courses/c1/gradebook/export/xlsx',
     )
+    expect(screen.getByRole('link', { name: 'Exportar a CSV' })).toHaveAttribute('href', '/api/v1/courses/c1/gradebook/export')
   })
 
   it('el estudiante ve solo sus notas, con la definitiva aparte del avance parcial', async () => {
@@ -207,7 +208,7 @@ describe('Planilla', () => {
     expect(await screen.findByRole('heading', { name: 'Mis notas' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Mis notas' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('Aparece cuando todas las actividades tengan resultado.')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Exportar a Excel (CSV)' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Exportar/ })).not.toBeInTheDocument()
   })
 })
 

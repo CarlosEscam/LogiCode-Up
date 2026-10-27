@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * RF-05, RN-01: el docente habilita cédulas de estudiantes, de forma individual o con un archivo CSV.
+ * RF-05, RN-01: el docente habilita cédulas de estudiantes, de forma individual o con un archivo CSV o Excel.
  * <p>
- * Formato CSV: ver {@link StudentCsvReader}. La carga desde Excel queda pendiente (decisión P-07).
+ * Formato del archivo: ver {@link StudentListReader}.
  */
 @Service
 public class EnableStudents {
@@ -55,12 +55,12 @@ public class EnableStudents {
     }
 
     @Transactional
-    public ImportResult importCsv(Actor actor, InputStream csv) {
+    public ImportResult importFile(Actor actor, InputStream in, String fileName) {
         actor.require(Permission.MANAGE_STUDENT_ENABLEMENTS);
-        StudentCsvReader.Result parsed = StudentCsvReader.read(csv);
+        StudentListReader.Result parsed = StudentListReader.read(in, fileName);
         int enabled = 0;
         int already = parsed.duplicates();
-        for (StudentCsvReader.Row row : parsed.rows()) {
+        for (StudentListReader.Row row : parsed.rows()) {
             if (enablements.existsByCedula(row.cedula())) {
                 already++;
                 continue;

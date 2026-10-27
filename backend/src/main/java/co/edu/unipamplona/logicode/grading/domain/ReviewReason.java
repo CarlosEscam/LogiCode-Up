@@ -4,7 +4,7 @@ package co.edu.unipamplona.logicode.grading.domain;
 public enum ReviewReason {
     /** La calificación con IA estaba desactivada cuando llegó la entrega. */
     AI_DISABLED,
-    /** La entrega trae un formato que la IA no lee todavía (PDF, Word, video, Scratch...). */
+    /** La entrega trae un formato que la IA no lee (Word, video, Scratch, un PDF dañado o largo...). */
     UNSUPPORTED,
     /** El modelo indicó que la foto o el contenido no se puede leer. */
     ILLEGIBLE,

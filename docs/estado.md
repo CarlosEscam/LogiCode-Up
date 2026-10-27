@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12) entregados; siguen Excel y PDF (P-07, P-08)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12) y Excel y PDF (P-07, P-08) entregados**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -11,7 +11,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
 | 1 · Análisis y diseño | Diseño técnico mínimo hecho | Pendientes de la etapa completa: casos de uso, historias con criterios de aceptación, maquetas, rúbricas y prueba de lectura manuscrita |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
-| 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06) y carga desde Excel (P-07) |
+| 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06). La carga desde Excel llegó con P-07 |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
@@ -20,10 +20,31 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 9 · Calidad y seguridad | Implementada y aprobada | Carlos pidió la Etapa 10 el 27 de octubre. R9-01, R9-02 y R9-05 se cerraron en la Etapa 10 |
 | 10 · Piloto y entrega | Aprobada; pendiente el piloto con el docente | Detalle abajo, en [piloto.md](piloto.md) y en los [manuales](manuales/) |
 | Ampliación · retos de bloques (RF-12) | Implementada, pendiente de revisión | Carlos la pidió el 27 de octubre al aprobar la Etapa 10. Detalle abajo |
+| Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
 
 ## Datos de demostración
 
 Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Excel y PDF (P-07 y P-08) · detalle
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Importar estudiantes desde Excel (RF-05, P-07) | Implementado | "Importar lista" en la pestaña Estudiantes del curso y en "Habilitar estudiantes": `.xlsx` (primera hoja, cédula en A y nombre en B) o `.csv`, con las mismas reglas (T-75). `StudentListReader` |
+| Exportar la planilla a Excel (RF-18, P-07) | Implementado | "Exportar a Excel (.xlsx)" en la Planilla: notas y porcentajes como números (T-76). "Exportar a CSV" sigue |
+| La IA lee entregas en PDF (P-08) | Implementado | Texto del PDF y cada página como imagen, hasta 5 páginas (T-77). `PdfContent` |
+| La IA lee Word y PowerPoint | Pendiente | No aprobado: siguen con el docente como "Formato que la IA no lee" |
+| Pruebas de aceptación de la IA con PDF en el equipo de referencia | Pendiente | El modelo no corre en el entorno de Claude; la prueba de integración usa un proveedor simulado y comprueba lo que recibe el modelo |
+
+### Verificación realizada (Excel y PDF)
+
+- `StudentListReaderTest` (CSV, `.xlsx` con cédulas como número y como texto, encabezado, repetidas, filas con error, archivo dañado o `.xls`), `PdfContentTest` (texto y una imagen por página, más de 5 páginas, PDF dañado, escaneo sin texto, página gigante), `ContentFlowsIT` (inscripción con `.xlsx`), `ForumAndOperationFlowsIT` (cada cifra del `.xlsx` contra la pantalla; el estudiante recibe `403`) y `AiGradingFlowsIT` (un PDF llega al modelo con su texto y su página; uno dañado pasa al docente sin llamar al modelo; un `.docx` sigue yendo directo al docente). Backend: 126 pruebas sin fallas.
+- Revisión de dependencias (R9-05) con POI, PDFBox y sus dependencias contra la base OSV de Maven: 0 avisos.
+- Docker por HTTPS (modo piloto) sobre una base limpia con los datos demo, con la IA encendida y un servidor que imita a Ollama (el modelo real no corre en el entorno de Claude): la entrega en PDF de Felipe llegó al "modelo" con su texto y la imagen de su página, dibujada dentro del contenedor del backend; un segundo intento en PDF enviado desde el teléfono quedó calificado. La lista de Excel inscribió a Iván y Juliana desde la interfaz y la planilla se descargó en `.xlsx` con las cifras de la pantalla. Capturas en `capturas-excel-pdf/` (las de la nota de la IA dicen "modelo simulado").
+
+### Punto de control
+
+Pendiente: revisión de Carlos (importar `datos-demo/muestras/lista-estudiantes.xlsx`, abrir la planilla exportada en Excel) y una prueba con PDF real en el equipo de referencia con la IA encendida.
 
 ## Retos de bloques que configura el docente (RF-12) · detalle
 
@@ -109,7 +130,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Foro por herramienta (RF-26) | Implementado | Módulo `forum`. Página pública `/foro` con hilos de PSeInt, DFD, Scratch, Arduino y General, filtro por herramienta y búsqueda por título o texto; los fijados van primero y luego los de actividad más reciente. Leer no pide sesión; abrir un hilo o responder pide sesión (`PARTICIPATE_FORUM`). Se muestra el nombre del autor, nunca su cédula ni su correo (T-66) |
 | Moderación del foro (RF-27, RN-15) | Implementado | Docente y cuentas Administrador (`MODERATE_FORUM`) fijan, cierran o reabren un hilo y eliminan hilos o respuestas. Eliminar oculta y deja quién y cuándo (T-65). Un hilo cerrado no recibe respuestas (`409`) |
 | Planilla del curso (RF-18, RN-07) | Implementado | Pestaña "Planilla" del curso: una columna por actividad calificable publicada (sin quizzes de repaso ni borradores, T-60) con su porcentaje, el reparto de lo que falta y el estado de cada nota (calificada, vencida sin entrega = 0,0, en revisión o pendiente). Avance parcial y nota definitiva por separado (T-61). Avisa cuando los porcentajes no permiten cerrar la definitiva |
-| Exportación a Excel (RF-18) | Implementado como CSV (P-07) | "Exportar a Excel (CSV)": UTF-8 con BOM, `;` y coma decimal para que Excel en español lo abra directo; la exportación usa el mismo cálculo que la pantalla (T-64) |
+| Exportación a Excel (RF-18) | Implementado como CSV y, desde P-07, como `.xlsx` | "Exportar a Excel (CSV)" (hoy "Exportar a CSV"): UTF-8 con BOM, `;` y coma decimal para que Excel en español lo abra directo; la exportación usa el mismo cálculo que la pantalla (T-64) |
 | Notas del estudiante (RF-20) | Implementado | El estudiante inscrito ve en "Mis notas" solo su fila: nota por actividad, avance parcial y definitiva. La retroalimentación sigue en cada entrega (Etapa 5) |
 | Estadísticas básicas | Implementado | Por actividad: entregas, calificadas, en revisión, vencidas, promedio, mínima, máxima y aprobados (≥ 3,0). Por curso: estudiantes con avance o definitiva, promedios y aprobados. Panel de administración con cifras de toda la plataforma (T-62) |
 | Biblioteca administrable (RF-28) | Implementado | En `/biblioteca`, las cuentas Administrador cambian la visibilidad y archivan materiales desde la misma página; el docente sigue publicando lo suyo desde el curso |
@@ -170,7 +191,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Fallo técnico sin nota y con reintento (RF-15, RNF-06, RNF-07) | Implementado | 3 intentos automáticos con espera creciente; después, "Falló la IA" en Por revisar. Botón "Reintentar con IA" y calificación manual siempre disponibles. La entrega nunca se bloquea ni se pierde |
 | Trabajo en segundo plano con estado visible (RNF-08) | Implementado | Estado "Calificando con IA" en la bandeja, la entrega y la vista del estudiante; se actualiza solo |
 | Resultado de la IA e historial para el docente (RF-17) | Implementado | Lectura del modelo, legibilidad, confianza, puntos y comentario por criterio, retroalimentación propuesta, duración y evaluaciones anteriores. El estudiante no ve nada de esto |
-| Scratch y Arduino (RN-10) | Parcial | `.ino` se evalúa como texto. `.sb3`, PDF, Word, PowerPoint y video pasan al docente ("Formato que la IA no lee"); ver P-08 |
+| Scratch y Arduino (RN-10) | Parcial | `.ino` se evalúa como texto. `.sb3`, Word, PowerPoint y video pasan al docente ("Formato que la IA no lee"). PDF: lo lee desde P-08 (T-77) |
 | Calificación determinista de PSeInt y quizzes (RF-16) | Implementado en la Etapa 7 | Ver la sección de la Etapa 7 |
 | Pruebas de aceptación con Qwen2.5-VL 7B en el equipo Ryzen 7 5700U | **Pendiente: las ejecuta Carlos** | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md). El modelo no se puede descargar en el entorno de desarrollo de Claude, así que no hay resultados de Qwen todavía; no se inventan |
 
@@ -224,7 +245,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Entregable de la especificación | Estado | Dónde |
 | --- | --- | --- |
 | Curso con docente responsable | Implementado | `GET/POST /courses`, `GET/PUT /courses/{id}`; pantallas `/cursos` y `/cursos/{id}`. Quien crea el curso queda como docente responsable |
-| Inscripción de estudiantes al curso (RN-03) | Implementado | Por cédula, individual o CSV: `/courses/{id}/enrollments` y `/import`; pestaña Estudiantes. Inscribir también habilita la cédula. El primer curso inscribe las cédulas ya habilitadas (T-25) |
+| Inscripción de estudiantes al curso (RN-03) | Implementado | Por cédula, individual o con lista CSV (y `.xlsx` desde P-07): `/courses/{id}/enrollments` y `/import`; pestaña Estudiantes. Inscribir también habilita la cédula. El primer curso inscribe las cédulas ya habilitadas (T-25) |
 | Temas con herramienta y orden (RF-06) | Implementado | PSeInt, DFD, Scratch, Arduino o General; crear, editar, reordenar, archivar |
 | Próxima clase (RF-09) | Implementado | `PUT /courses/{id}/next-class`; un solo tema por curso (índice único) |
 | Materiales: guías, documentos, presentaciones, imágenes, videos, archivos de herramienta y enlaces (RF-07) | Implementado | `POST /topics/{id}/materials` (multipart, con avance de carga en la interfaz) |
@@ -260,7 +281,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Recuperación de contraseña (RF-04, RN-23) | Implementado | Solo correo verificado, token de LogiCode de un uso y 60 min, respuesta genérica, 2 por día en Colombia, cierra todas las sesiones; `/recuperar-contrasena`, `/restablecer-contrasena` |
 | Cambio asistido de correo (RF-30, RN-25) | Implementado | Último correo + contraseña actual o anterior; el correo nuevo se verifica antes de reemplazar; 2 por día con contador propio (D-04); `/recuperar-correo` |
 | Cambio de contraseña con cierre de sesiones (RNF-02) | Implementado | `POST /me/password`; solo se guardan el hash actual y el anterior (BCrypt, D-02) |
-| Habilitación de estudiantes individual y por lista (RF-05) | Implementado para CSV | `POST /student-enablements` y `/import` (CSV hasta 2000 filas); pantalla `/admin/habilitaciones`. **Excel pendiente** (P-07) |
+| Habilitación de estudiantes individual y por lista (RF-05) | Implementado | `POST /student-enablements` y `/import` (CSV o `.xlsx` desde P-07, hasta 2000 filas); pantalla `/admin/habilitaciones` |
 | Roles y autorización (RF-28, RN-04, RN-15, RN-22) | Implementado | `AccessPolicy` + verificación en cada caso de uso; matriz en [permisos.md](permisos.md) |
 | Privilegio completo solo para las 2 cuentas iniciales (D-03, RN-16) | Implementado | Se crean desde `INITIAL_ADMIN_*` en `.env`; nadie más puede tenerlo; no se puede quedar la plataforma sin una activa |
 | Auditoría de acceso | Implementado | Tabla `audit_event`; `GET /admin/audit-events`; pantalla `/admin/auditoria` |
@@ -301,11 +322,11 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Requerimientos | Estado |
 | --- | --- |
 | RF-01, RF-02, RF-03, RF-04, RF-29, RF-30 | Implementados |
-| RF-05 | Implementado con CSV; Excel pendiente (P-07) |
+| RF-05 | Implementado con CSV y Excel `.xlsx` (P-07) |
 | RF-06, RF-07, RF-08, RF-09, RF-24, RF-25 | Implementados (Etapa 4) |
 | RF-28 | Implementado: usuarios, roles, aprobación docente, auditoría, biblioteca, moderación del foro y respaldos |
 | RF-10, RF-11, RF-13, RF-19 | Implementados (Etapa 5) |
 | RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
 | RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Retos de bloques que configura el docente: implementados después de la Etapa 10 (BD versión 8) |
-| RF-18, RF-20, RF-26, RF-27 | Implementados (Etapa 8): planilla con exportación CSV (Excel `.xlsx` pendiente de P-07), notas del estudiante y foro con moderación |
+| RF-18, RF-20, RF-26, RF-27 | Implementados (Etapa 8): planilla con exportación CSV y, desde P-07, `.xlsx`, notas del estudiante y foro con moderación |
 | RF-23 | Implementado (Etapa 10): página de inicio con misión, visión y explicación de la plataforma. El texto de misión y visión es una propuesta a partir del propósito de la especificación |

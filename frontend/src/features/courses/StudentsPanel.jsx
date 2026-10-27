@@ -30,7 +30,7 @@ export default function StudentsPanel({ courseId, onChange }) {
   const bulk = useSubmit(async (event) => {
     const form = event.currentTarget
     const file = new FormData(form).get('file')
-    if (!file || !file.name) throw new Error('Selecciona un archivo .csv.')
+    if (!file || !file.name) throw new Error('Selecciona un archivo .xlsx o .csv.')
     const result = await apiUpload(`/courses/${courseId}/enrollments/import`, file)
     form.reset()
     changed()
@@ -63,13 +63,14 @@ export default function StudentsPanel({ courseId, onChange }) {
         <FormStatus error={single.error} success={single.result && `Cédula ${single.result.cedula} inscrita.`} />
 
         <form onSubmit={bulk.submit} className="form-row">
-          <input type="file" name="file" accept=".csv,text/csv" aria-label="Archivo CSV de estudiantes" />
+          <input type="file" name="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Archivo de estudiantes (Excel o CSV)" />
           <button type="submit" className="button" disabled={bulk.pending}>
-            {bulk.pending ? 'Importando…' : 'Importar CSV'}
+            {bulk.pending ? 'Importando…' : 'Importar lista'}
           </button>
         </form>
         <p className="page__note">
-          Una fila por estudiante: <code>cedula</code> o <code>cedula,nombre</code>. Máximo 2000 filas y 1 MB.
+          Excel (<code>.xlsx</code>) con la cédula en la columna A y el nombre, opcional, en la B; o CSV con{' '}
+          <code>cedula</code> o <code>cedula,nombre</code>. Máximo 2000 filas y 1 MB.
         </p>
         <FormStatus
           error={bulk.error}

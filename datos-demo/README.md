@@ -44,6 +44,8 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 | 1000000206 | Felipe Ortiz Cano | Estudiante del curso | Tarea 1 vencida pero con plazo ampliado: puede entregar |
 | 1000000207 | Gabriela Ruiz Peña | Inscrita sin registrarse | Aparece como "Aún no se registra" |
 | 1000000208 | Hugo Lara Medina | Estudiante fuera del curso | Solo ve la biblioteca pública |
+| 1000000209 | Iván Castro Rueda | Inscrito sin registrarse | Llegó con la lista de Excel (P-07) |
+| 1000000210 | Juliana Mora Díaz | Inscrita sin registrarse | Llegó con la lista de Excel (P-07) |
 
 ## Contenido por etapa
 
@@ -51,7 +53,7 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 Las cuentas de la tabla: docente aprobada, solicitud pendiente, administradora ordinaria (cambio de rol hecho por la cuenta inicial), estudiantes registrados, una cédula inscrita sin cuenta y un estudiante habilitado fuera del curso.
 
 ### Etapa 4 · Curso, temas y biblioteca
-- Curso **Pensamiento Computacional · Grupo A** (2026-2), de Laura, con 7 inscritos.
+- Curso **Pensamiento Computacional · Grupo A** (2026-2), de Laura, con 7 inscritos (9 después de importar la lista de Excel, P-07).
 - Temas: PSeInt (próxima clase), DFD, Scratch y Arduino.
 - Materiales públicos (biblioteca abierta): Guía 1 en PDF, enlace de descarga de PSeInt y editor de Scratch.
 - Materiales privados del curso: ejemplo `promedio.psc`, diagrama PNG y `led.ino`.
@@ -75,12 +77,12 @@ Las cuentas de la tabla: docente aprobada, solicitud pendiente, administradora o
 | David | Foto borrosa y oscura | Ilegible: pasa al docente sin nota |
 | Camila | Respuesta escrita | Correcta con `>=` |
 | Elena | Archivo `.psc` guardado en Windows (latin-1) | Incompleta: no muestra el mayor cuando `b > a` |
-| Felipe | PDF | La IA no lee PDF (P-08): va directo a Por revisar como "Formato que la IA no lee" |
+| Felipe | PDF exportado de PSeInt | Desde P-08 la IA lee el texto y la página del PDF: incompleto, no muestra el mayor cuando `b > a` |
 
 Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, no un resultado medido.
 
-- **Con la IA apagada** (por defecto), las seis quedan en Por revisar como "Calificación manual". Al encenderla, "Reintentar con IA" en cada entrega las manda a la cola (la de Felipe no, porque es PDF).
-- **Con la IA encendida al cargar**, cinco entran a la cola y se procesan de a una; en el equipo de referencia cada foto puede tardar varios minutos.
+- **Con la IA apagada** (por defecto), las seis quedan en Por revisar como "Calificación manual". Al encenderla, "Reintentar con IA" en cada entrega las manda a la cola (desde P-08 también la de Felipe, en PDF).
+- **Con la IA encendida al cargar**, las seis entran a la cola (antes de P-08 eran cinco: el PDF iba al docente) y se procesan de a una; en el equipo de referencia cada foto puede tardar varios minutos.
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo el Taller 3.
 - `ia-pruebas/` usa a Laura y a Felipe en un curso aparte, "Pruebas de aceptación IA", para no mezclar las pruebas con esta demostración.
 
@@ -186,6 +188,13 @@ Agrega **"Reto 1: la escalera del robot (bloques)"**, un taller publicado sin po
 | David, Elena y Felipe | Sin entregar | Para probar el reto en el celular |
 
 Para verlo: Laura abre la actividad (rúbrica con el tablero, "Editar rúbrica" con el reto, y en "Ver entrega" el programa de cada estudiante con sangría). David, Elena o Felipe arman el programa en "Mi entrega" y lo envían. Si ya tenías los datos de etapas anteriores, el script agrega solo este reto (la base debe estar en la versión 8).
+
+### Excel y PDF (P-07 y P-08)
+
+- **Lista en Excel:** el script importa [`muestras/lista-estudiantes.xlsx`](muestras/lista-estudiantes.xlsx) al curso, como lo haría Laura en **Estudiantes → Importar lista**. Inscribe a Iván (`1000000209`, cédula escrita como número) y a Juliana (`1000000210`, escrita como texto), cuenta a Ana como "ya estaba" y reporta la fila 5 (`10000-002x`) como error. Sirve también como plantilla: cédula en la columna A y nombre en la B.
+- **Planilla en Excel:** en la pestaña **Planilla**, "Exportar a Excel (.xlsx)" descarga la hoja con las notas y los porcentajes como números. "Exportar a CSV" sigue disponible.
+- **PDF con IA:** la entrega de Felipe en el Taller 3 ya no va directo al docente: con la IA encendida, el modelo recibe el texto del PDF y la imagen de su página.
+- Si ya tenías los datos anteriores, el script agrega solo la lista de Excel.
 
 ## Para las etapas siguientes
 

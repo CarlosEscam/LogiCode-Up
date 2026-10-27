@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,6 +26,8 @@ import co.edu.unipamplona.logicode.identity.application.EmailMessage;
 import co.edu.unipamplona.logicode.identity.application.EmailSender;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -327,8 +330,22 @@ class ContentFlowsIT {
                 .andExpect(jsonPath("$.enrolled").value(1))
                 .andExpect(jsonPath("$.alreadyEnrolled").value(1))
                 .andExpect(jsonPath("$.errors.length()").value(1));
+        // P-07: la misma lista desde Excel (.xlsx), con la cédula escrita como número.
+        ByteArrayOutputStream xlsx = new ByteArrayOutputStream();
+        try (XSSFWorkbook book = new XSSFWorkbook()) {
+            Row row = book.createSheet().createRow(0);
+            row.createCell(0).setCellValue(600011d);
+            row.createCell(1).setCellValue("Desde Excel");
+            book.write(xlsx);
+        }
+        mvc.perform(multipart("/api/v1/courses/" + courseId + "/enrollments/import").cookie(teacher).with(csrf())
+                        .file(new MockMultipartFile("file", "curso.xlsx",
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                xlsx.toByteArray())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enrolled").value(1));
         mvc.perform(get("/api/v1/courses/" + courseId + "/enrollments").cookie(teacher))
-                .andExpect(jsonPath("$.totalItems").value(3))
+                .andExpect(jsonPath("$.totalItems").value(4))
                 .andExpect(jsonPath("$.items[?(@.cedula == '600001')].registered").value(true));
         // Una cuenta Administrador también puede inscribir.
         mvc.perform(get("/api/v1/courses/" + courseId + "/enrollments").cookie(ordinaryAdmin))

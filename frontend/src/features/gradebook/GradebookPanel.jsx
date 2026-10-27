@@ -50,9 +50,12 @@ function FullGradebook({ data, courseId }) {
         </p>
       )}
       {data.columns.length > 0 && (
-        <p>
+        <p className="toolbar">
+          <a className="button button--secondary" href={`${API_BASE}/courses/${courseId}/gradebook/export/xlsx`} download>
+            Exportar a Excel (.xlsx)
+          </a>
           <a className="button button--secondary" href={`${API_BASE}/courses/${courseId}/gradebook/export`} download>
-            Exportar a Excel (CSV)
+            Exportar a CSV
           </a>
         </p>
       )}

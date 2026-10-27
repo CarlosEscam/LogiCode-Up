@@ -21,9 +21,10 @@ import co.edu.unipamplona.logicode.files.application.StoredFileInfo;
 import org.springframework.stereotype.Component;
 
 /**
- * Qué puede leer la IA y cómo se le entrega. Lee respuestas escritas, fotos PNG/JPG y archivos de texto de PSeInt y
- * Arduino. PDF, Word, PowerPoint, videos y Scratch pasan al docente hasta que se apruebe cómo procesarlos (P-08). Si
- * una entrega trae algún archivo que la IA no lee, no se califica a medias: va completa al docente.
+ * Qué puede leer la IA y cómo se le entrega. Lee respuestas escritas, fotos PNG/JPG, archivos de texto de PSeInt y
+ * Arduino y PDF de hasta {@value PdfContent#MAX_PAGES} páginas (texto y páginas como imágenes, P-08). Word,
+ * PowerPoint, videos y Scratch pasan al docente. Si una entrega trae algún archivo que la IA no lee, no se califica a
+ * medias: va completa al docente.
  */
 @Component
 class AiSubmissionContent {
@@ -33,6 +34,9 @@ class AiSubmissionContent {
     /** Fotos más grandes no se cargan en memoria para el modelo. */
     static final long MAX_IMAGE_BYTES = 25L * 1024 * 1024;
     static final long MAX_TEXT_BYTES = 256L * 1024;
+    static final long MAX_PDF_BYTES = 25L * 1024 * 1024;
+    /** Imágenes por entrega (fotos más páginas de PDF); en CPU cada una tarda minutos. */
+    static final int MAX_IMAGES = 10;
 
     /** Contenido listo para el proveedor. */
     record Loaded(String textAnswer, List<GradingProvider.TextFile> textFiles, List<GradingProvider.Image> images) {
@@ -67,12 +71,12 @@ class AiSubmissionContent {
         return Optional.ofNullable(found.get().textAnswer());
     }
 
-    /** Carga el contenido; vacío si la entrega ya no existe o trae algo que la IA no lee. */
     /** Respuesta escrita de la entrega (el programa de un reto de bloques). */
     Optional<String> textAnswer(UUID submissionId) {
         return catalog.content(submissionId).map(ActivityCatalog.SubmissionContent::textAnswer);
     }
 
+    /** Carga el contenido; vacío si la entrega ya no existe o trae algo que la IA no lee. */
     Optional<Loaded> load(UUID submissionId) {
         Optional<ActivityCatalog.SubmissionContent> found = catalog.content(submissionId);
         if (found.isEmpty()) {
@@ -92,16 +96,31 @@ class AiSubmissionContent {
             byte[] bytes = read(fileId, info.sizeBytes());
             if (IMAGE_FORMATS.contains(info.format())) {
                 images.add(new GradingProvider.Image("Imagen " + (images.size() + 1), bytes));
+            } else if (info.format().equals("PDF")) {
+                Optional<PdfContent.Pages> pdf = PdfContent.read(bytes);
+                if (pdf.isEmpty()) {
+                    return Optional.empty();
+                }
+                if (!pdf.get().text().isEmpty()) {
+                    texts.add(new GradingProvider.TextFile("Archivo " + position, "PDF, texto extraído",
+                            pdf.get().text()));
+                }
+                pdf.get().images().forEach(page -> images.add(
+                        new GradingProvider.Image("Imagen " + (images.size() + 1), page)));
             } else {
                 texts.add(new GradingProvider.TextFile("Archivo " + position, info.format(), decode(bytes)));
             }
+        }
+        if (images.size() > MAX_IMAGES) {
+            return Optional.empty();
         }
         return Optional.of(new Loaded(content.textAnswer(), texts, images));
     }
 
     private static boolean readable(Map<UUID, StoredFileInfo> described, ActivityCatalog.SubmissionContent content) {
         return described.size() == content.fileIds().size() && described.values().stream().allMatch(f -> IMAGE_FORMATS.contains(f.format()) && f.sizeBytes() <= MAX_IMAGE_BYTES
-                || TEXT_FORMATS.contains(f.format()) && f.sizeBytes() <= MAX_TEXT_BYTES);
+                || TEXT_FORMATS.contains(f.format()) && f.sizeBytes() <= MAX_TEXT_BYTES
+                || f.format().equals("PDF") && f.sizeBytes() <= MAX_PDF_BYTES);
     }
 
     private byte[] read(UUID fileId, long size) {

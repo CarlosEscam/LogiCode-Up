@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -25,6 +26,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import co.edu.unipamplona.logicode.grading.application.GradingProvider;
 import co.edu.unipamplona.logicode.grading.application.RunAiGrading;
@@ -32,6 +35,11 @@ import co.edu.unipamplona.logicode.identity.application.EmailMessage;
 import co.edu.unipamplona.logicode.identity.application.EmailSender;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -374,9 +382,8 @@ class AiGradingFlowsIT {
     @Test
     @Order(6)
     void formatsTheModelCannotReadGoStraightToTheTeacher() throws Exception {
-        String submission = submit(ana, multipart(submissions())
-                .file(new MockMultipartFile("files", "solucion.pdf", "application/pdf",
-                        "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n".getBytes())));
+        String submission = submit(ana, multipart(submissions()).file(new MockMultipartFile("files", "solucion.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", docx())));
         assertThat(worker.processNext()).isFalse();
         mvc.perform(get(grade(submission)).cookie(teacher))
                 .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
@@ -384,6 +391,30 @@ class AiGradingFlowsIT {
                 .andExpect(jsonPath("$.canRetryWithAi").value(false));
         mvc.perform(post(grade(submission) + "/ai-retry").cookie(teacher).with(csrf()))
                 .andExpect(status().isUnprocessableContent());
+
+        // P-08: un PDF dañado se intenta leer y, al no poder, pasa al docente sin llamar al modelo.
+        String broken = submit(ana, multipart(submissions()).file(new MockMultipartFile("files", "solucion.pdf",
+                "application/pdf", "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n".getBytes())));
+        int calls = PROVIDER.received.size();
+        assertThat(worker.processNext()).isTrue();
+        assertThat(PROVIDER.received).hasSize(calls);
+        mvc.perform(get(grade(broken)).cookie(teacher))
+                .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
+                .andExpect(jsonPath("$.grade.reviewReason").value("UNSUPPORTED"));
+
+        // P-08: un PDF llega al modelo con su texto y con cada página como imagen.
+        String pdf = submit(ana, multipart(submissions()).file(new MockMultipartFile("files", "solucion.pdf",
+                "application/pdf", pdf("Leer n1, n2", "prom <- (n1 + n2) / 2"))));
+        PROVIDER.answer(true, 90, "6", "4");
+        assertThat(worker.processNext()).isTrue();
+        GradingProvider.Request fromPdf = PROVIDER.received.getLast();
+        assertThat(fromPdf.textFiles()).singleElement().satisfies(file -> {
+            assertThat(file.label()).isEqualTo("Archivo 1");
+            assertThat(file.format()).isEqualTo("PDF, texto extraído");
+            assertThat(file.content()).contains("Leer n1, n2").contains("prom <- (n1 + n2) / 2");
+        });
+        assertThat(fromPdf.images()).hasSize(1);
+        mvc.perform(get(grade(pdf)).cookie(ana)).andExpect(jsonPath("$.grade.score").value(5.0));
 
         String pseint = submit(ana, multipart(submissions()).file(new MockMultipartFile("files", "promedio.psc",
                 "text/plain", "Algoritmo promedio\n  Leer n1, n2\nFinAlgoritmo\n".getBytes())));
@@ -396,6 +427,37 @@ class AiGradingFlowsIT {
             assertThat(file.content()).contains("Leer n1, n2");
         });
         mvc.perform(get(grade(pseint)).cookie(ana)).andExpect(jsonPath("$.grade.score").value(5.0));
+    }
+
+    /** PDF de una página con el texto dado, como lo exporta un procesador de texto. */
+    static byte[] pdf(String... lines) throws IOException {
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+            try (PDPageContentStream text = new PDPageContentStream(document, page)) {
+                text.beginText();
+                text.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 14);
+                text.newLineAtOffset(72, 700);
+                for (String line : lines) {
+                    text.showText(line);
+                    text.newLineAtOffset(0, -20);
+                }
+                text.endText();
+            }
+            document.save(out);
+            return out.toByteArray();
+        }
+    }
+
+    private static byte[] docx() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            zip.putNextEntry(new ZipEntry("[Content_Types].xml"));
+            zip.write("<Types/>".getBytes());
+            zip.putNextEntry(new ZipEntry("word/document.xml"));
+            zip.write("<w:document/>".getBytes());
+        }
+        return out.toByteArray();
     }
 
     private MockMultipartHttpServletRequestBuilder photo() {

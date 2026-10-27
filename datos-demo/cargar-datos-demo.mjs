@@ -458,7 +458,7 @@ const STAGE6_TITLE = 'Taller 3: mayor de dos números (foto o archivo)'
 const sampleFile = (name) => readFileSync(new URL(`./muestras/${name}`, import.meta.url))
 
 // Entregas variadas para ver cada camino de la IA: foto legible, foto con un error, foto ilegible, texto,
-// archivo de PSeInt y un PDF que la IA no lee. Las evalúa el modelo real si la IA está activada; si no,
+// archivo de PSeInt y un PDF (desde P-08 la IA lee su texto y su página). Las evalúa el modelo real si la IA está activada; si no,
 // quedan en Por revisar como calificación manual y la docente puede usar "Reintentar con IA" después.
 async function stage6(teacher, students, course) {
   console.log('Etapa 6 · calificación con IA')
@@ -510,7 +510,7 @@ async function stage6(teacher, students, course) {
   const processing = states.filter((detail) => detail.grade.status === 'PROCESSING').length
   log(`${STAGE6_TITLE}: 6 entregas (3 fotos, texto, archivo .psc y un PDF)`)
   if (processing > 0) {
-    log(`${processing} entregas en la cola de la IA; el PDF pasó directo a Por revisar. Mira el avance en la bandeja Por revisar.`)
+    log(`${processing} entregas en la cola de la IA. Mira el avance en la bandeja Por revisar.`)
   } else {
     log('La IA está desactivada: las entregas quedaron en Por revisar. Al activarla, usa "Reintentar con IA" en cada una.')
   }
@@ -723,7 +723,7 @@ async function stage8(teacher, students) {
   await diana.request('DELETE', `/forum/threads/${spam.id}`, { expect: [204] })
 
   log(`Foro: 5 hilos (bienvenida fijada, PSeInt, DFD, Scratch y Arduino cerrado) con respuestas; uno eliminado por ${ORDINARY_ADMIN.fullName}`)
-  log('Planilla: pestaña "Planilla" del curso (docente y Administradores) y "Mis notas" (estudiantes); exportación a CSV desde ahí')
+  log('Planilla: pestaña "Planilla" del curso (docente y Administradores) y "Mis notas" (estudiantes); exportación a Excel (.xlsx) o CSV desde ahí')
   log('Panel de administración: /admin con la cuenta de Diana o una cuenta inicial; los respaldos los hace el servicio "backup"')
 }
 
@@ -767,6 +767,21 @@ async function stageBlocks(teacher, students, course) {
   await submit(students.bruno, [b('repetir', [b('avanzar'), b('derecha'), b('avanzar')])])
   await submit(students.camila, [{ ...b('repetir', step), times: 2 }, b('avanzar')])
   log(`${BLOCKS_TITLE}: Ana 5,0; Bruno 0,0 (choca); Camila 0,0 (termina antes de la meta); los demás sin entregar`)
+}
+
+// ---------- P-07 · lista de estudiantes en Excel ----------
+
+const EXCEL_LIST = 'lista-estudiantes.xlsx'
+const EXCEL_STUDENTS = ['1000000209', '1000000210']
+
+// Inscribe al curso desde muestras/lista-estudiantes.xlsx: dos estudiantes nuevos (sin registrarse), una cédula que ya
+// estaba y una fila con error. La planilla se exporta a .xlsx desde la pestaña "Planilla"; no hay datos que cargar.
+async function stageExcel(teacher, students, course) {
+  console.log('P-07 y P-08 · Excel y PDF')
+  const xlsx = { field: 'file', name: EXCEL_LIST, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', content: sampleFile(EXCEL_LIST) }
+  const result = await teacher.postForm(`/courses/${course.id}/enrollments/import`, fileForm({}, [xlsx]))
+  log(`${EXCEL_LIST}: ${result.enrolled} inscritos (Iván y Juliana, sin registrarse), ${result.alreadyEnrolled} ya estaba y ${result.errors.length} fila con error`)
+  log('Planilla: "Exportar a Excel (.xlsx)" en la pestaña Planilla. PDF con IA: la entrega de Felipe en el Taller 3')
 }
 
 async function idOf(session) {
@@ -823,6 +838,7 @@ async function main() {
   await stage7(teacher, students, course)
   await stage8(teacher, students)
   await stageBlocks(teacher, students, course)
+  await stageExcel(teacher, students, course)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -835,11 +851,14 @@ async function addMissingStages(teacher) {
   const titles = new Set((await teacher.get(`/courses/${course.id}/activities`)).map((a) => a.title))
   const threads = await teacher.get(`/forum/threads?q=${encodeURIComponent(STAGE8_TITLE)}`)
   threads.items.forEach((thread) => titles.add(thread.title))
+  const enrolled = await teacher.get(`/courses/${course.id}/enrollments?size=100`)
+  if (enrolled.items.some((student) => student.cedula === EXCEL_STUDENTS[0])) titles.add(EXCEL_LIST)
   const missing = [
     ['la Etapa 6', STAGE6_TITLE, stage6],
     ['la Etapa 7', STAGE7_TITLE, stage7],
     ['la Etapa 8', STAGE8_TITLE, stage8],
     ['los retos de bloques', BLOCKS_TITLE, stageBlocks],
+    ['la lista en Excel', EXCEL_LIST, stageExcel],
   ].filter(([, title]) => !titles.has(title))
   if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')

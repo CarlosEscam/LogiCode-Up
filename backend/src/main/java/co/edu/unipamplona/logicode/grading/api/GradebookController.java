@@ -42,12 +42,27 @@ public class GradebookController {
     @Operation(summary = "Planilla en CSV para Excel (punto y coma, coma decimal, UTF-8)")
     public ResponseEntity<byte[]> export(@CurrentActor Actor actor, @PathVariable UUID courseId) {
         Gradebook.View view = gradebook.fullView(actor, courseId);
-        String name = ("planilla-" + view.courseName() + "-" + view.period()).replaceAll("[^\\p{L}\\p{N}-]+", "-")
-                + ".csv";
         return ResponseEntity.ok()
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.attachment().filename(name, StandardCharsets.UTF_8).build().toString())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(fileName(view, ".csv"), StandardCharsets.UTF_8).build().toString())
                 .body(GradebookCsv.write(view, clock).getBytes(StandardCharsets.UTF_8));
+    }
+
+    @GetMapping("/export/xlsx")
+    @Operation(summary = "Planilla en Excel .xlsx, con las notas y los porcentajes como números")
+    public ResponseEntity<byte[]> exportXlsx(@CurrentActor Actor actor, @PathVariable UUID courseId) {
+        Gradebook.View view = gradebook.fullView(actor, courseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(fileName(view, ".xlsx"), StandardCharsets.UTF_8).build().toString())
+                .body(GradebookXlsx.write(view, clock));
+    }
+
+    private static String fileName(Gradebook.View view, String extension) {
+        return ("planilla-" + view.courseName() + "-" + view.period()).replaceAll("[^\\p{L}\\p{N}-]+", "-")
+                + extension;
     }
 }

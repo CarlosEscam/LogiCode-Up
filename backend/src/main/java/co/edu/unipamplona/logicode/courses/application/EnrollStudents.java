@@ -11,7 +11,7 @@ import co.edu.unipamplona.logicode.courses.domain.Course;
 import co.edu.unipamplona.logicode.courses.domain.CourseEnrollment;
 import co.edu.unipamplona.logicode.identity.application.Actor;
 import co.edu.unipamplona.logicode.identity.application.EnableStudents;
-import co.edu.unipamplona.logicode.identity.application.StudentCsvReader;
+import co.edu.unipamplona.logicode.identity.application.StudentListReader;
 import co.edu.unipamplona.logicode.identity.application.UserDirectory;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import co.edu.unipamplona.logicode.shared.application.PageResult;
@@ -28,7 +28,7 @@ public class EnrollStudents {
     public record EnrolledStudent(String cedula, String fullName, boolean registered, Instant enrolledAt) {
     }
 
-    public record ImportResult(int enrolled, int alreadyEnrolled, List<StudentCsvReader.RowError> errors) {
+    public record ImportResult(int enrolled, int alreadyEnrolled, List<StudentListReader.RowError> errors) {
     }
 
     private final CourseEnrollmentRepository enrollments;
@@ -59,12 +59,12 @@ public class EnrollStudents {
     }
 
     @Transactional
-    public ImportResult importCsv(Actor actor, UUID courseId, InputStream csv) {
+    public ImportResult importFile(Actor actor, UUID courseId, InputStream in, String fileName) {
         Course course = requireManageEnrollments(actor, courseId);
-        StudentCsvReader.Result parsed = StudentCsvReader.read(csv);
+        StudentListReader.Result parsed = StudentListReader.read(in, fileName);
         int enrolled = 0;
         int already = parsed.duplicates();
-        for (StudentCsvReader.Row row : parsed.rows()) {
+        for (StudentListReader.Row row : parsed.rows()) {
             String cedula = enableStudents.ensureEnabled(actor, row.cedula(), row.fullName());
             if (enrollments.exists(course.getId(), cedula)) {
                 already++;

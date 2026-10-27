@@ -48,6 +48,7 @@ La **Biblioteca** del menú tiene los materiales públicos, que cualquiera puede
 Ten en cuenta:
 
 - **Fotos del cuaderno**: con buena luz, de frente, sin sombras y con la hoja completa. Si la foto no se lee, tu entrega pasa al docente y la nota tarda más.
+- **PDF**: la IA lee PDF de hasta 5 páginas y sin contraseña. Uno más largo pasa a tu docente y la nota tarda más.
 - **Intentos**: si la actividad permite más de uno, puedes volver a entregar antes del cierre. **Cuenta el último intento.**
 - **Cierre**: después del cierre ya no se puede entregar. Una actividad vencida sin entrega vale **0,0**, salvo que tu docente te dé un plazo nuevo (lo verás como "Ajustado por tu docente").
 

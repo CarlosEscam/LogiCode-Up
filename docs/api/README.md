@@ -89,7 +89,7 @@ Todas requieren sesión salvo las marcadas como públicas. Lo que la cuenta no p
 | `POST /api/v1/courses` | Crear curso `{name, period, description}`; quien lo crea es el docente responsable |
 | `GET/PUT /api/v1/courses/{id}` | Consultar o editar el curso |
 | `GET/POST /api/v1/courses/{id}/enrollments` | Inscritos (paginado) e inscripción `{cedula, fullName}` |
-| `POST /api/v1/courses/{id}/enrollments/import` | Inscripción por CSV (`file`, máx. 1 MB y 2000 filas) |
+| `POST /api/v1/courses/{id}/enrollments/import` | Inscripción por lista (`file` `.csv` o `.xlsx`, máx. 1 MB y 2000 filas; T-75) |
 | `DELETE /api/v1/courses/{id}/enrollments/{cedula}` | Retirar del curso |
 | `GET/POST /api/v1/courses/{id}/topics` | Temas con sus materiales · crear tema `{title, description, tool}` |
 | `PUT /api/v1/courses/{id}/topics/order` | Nuevo orden `{ids: [...]}` (todos los temas) |
@@ -176,6 +176,7 @@ Leer el foro no pide sesión; lo demás sí.
 | `DELETE /api/v1/forum/threads/{id}` · `DELETE /api/v1/forum/posts/{id}` | Ocultar un hilo o una respuesta (`MODERATE_FORUM`); `204` (T-65) |
 | `GET /api/v1/courses/{id}/gradebook` | Planilla (T-61): `columns` con porcentaje explícito, efectivo y estadísticas; `rows` con cada celda (`GRADED`, `OVERDUE`, `IN_REVIEW`, `PENDING`), `partial` y `definitive`; `weightsComplete`, `weightsWarning`, `passingScore` y `stats` del curso. Docente del curso y Administradores la ven completa (`fullView: true`); el estudiante inscrito solo su fila y sin estadísticas |
 | `GET /api/v1/courses/{id}/gradebook/export` | La misma planilla en CSV para Excel (T-64), como descarga `planilla-<curso>-<periodo>.csv`. Docente del curso y Administradores |
+| `GET /api/v1/courses/{id}/gradebook/export/xlsx` | La misma planilla en Excel `.xlsx`, con notas y porcentajes como números (T-76). Mismos permisos |
 | `GET /api/v1/admin/overview` | Cifras de la plataforma (`MANAGE_USERS`, T-62) |
 | `GET /api/v1/admin/backups` | `{service: {running, dailyHour, retentionDays}, pendingRequest, items: [{name, createdAt, databaseBytes, filesBytes, restoreTest, restoreTestDetail}]}` (`MANAGE_BACKUPS`). `restoreTest`: `OK`, `ERROR` o vacío si no se probó |
 | `POST /api/v1/admin/backups` | Pedir un respaldo inmediato; `202`. `409` si el servicio de respaldos no corre o ya hay uno pedido |

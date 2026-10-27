@@ -98,7 +98,7 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-38 | Cola de evaluación en PostgreSQL (`ai_grading_job`) y worker dentro del backend: toma un trabajo con `FOR UPDATE SKIP LOCKED` y un token de toma, llama al modelo fuera de toda transacción y guarda el resultado en otra; procesa de a uno | Es el diseño de la especificación (sin RabbitMQ). El token impide aplicar dos veces un resultado si un trabajo bloqueado se retoma; en CPU no sirve evaluar en paralelo |
 | T-39 | El modelo devuelve puntos por criterio y LogiCode calcula la nota: 5 × puntos obtenidos ÷ puntos totales, con un decimal. Puntos fuera de rango o criterios que no cuadran con la rúbrica cuentan como fallo técnico | La nota siempre corresponde a la rúbrica vigente y nunca se publica una nota que el modelo "inventó" aparte |
 | T-40 | El umbral de 80 % es fijo en el dominio, no configurable | Es una decisión aprobada; cambiarlo es un cambio de alcance |
-| T-41 | La IA lee respuestas escritas, fotos PNG/JPG y archivos `.psc`/`.ino`. Si la entrega trae otro formato, va completa al docente; no se califica a medias | PDF, Word, PowerPoint, video y Scratch necesitan conversión (P-08) |
+| T-41 | La IA lee respuestas escritas, fotos PNG/JPG y archivos `.psc`/`.ino`. Si la entrega trae otro formato, va completa al docente; no se califica a medias | Word, PowerPoint, video y Scratch necesitan conversión. Desde P-08 la IA sí lee PDF (T-77) |
 | T-42 | Fallo técnico: hasta 3 intentos con espera creciente (2 y 4 minutos); después la entrega pasa a Por revisar como "Falló la IA", sin nota. Cada intento queda registrado | RF-15 y RNF-06: reintento controlado y estado visible |
 | T-43 | El docente puede calificar en cualquier momento, también mientras la IA trabaja. Si la IA termina después, su resultado se guarda pero no cambia la nota | La revisión humana manda (RN-09) y nunca queda bloqueada por el modelo |
 | T-44 | Al modelo se envía el nombre del estudiante, el título, el enunciado y la respuesta esperada de la versión de rúbrica, los criterios y el contenido con etiquetas neutras ("Imagen 1", "Archivo 2"). Nunca cédula, correo ni el nombre original de los archivos. Fotos enderezadas según EXIF y reducidas a 1280 px; temperatura 0; respuesta JSON con esquema; tope de 3072 tokens | RN-08 y RN-18; el nombre de un archivo puede contener la cédula. Resultados reproducibles y sin respuestas sin fin |
@@ -148,14 +148,29 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-73 | Una actividad se califica con casos de prueba o con un reto de bloques, no con los dos; el reto exige entregas en texto | El programa de bloques viaja en la respuesta escrita (JSON), sin un tipo de entrega nuevo. Dos calificaciones automáticas sobre la misma entrega no tendrían una nota clara |
 | T-74 | Nota todo o nada: 5,0 si el robot llega a la meta y 0,0 si no. El servidor vuelve a ejecutar el programa (`BlockChallenge`, copia en Java del intérprete de `games/blocks.js`) y no confía en el resultado del navegador. Un programa con bloques no permitidos, con más bloques del máximo o que no es un programa va a Por revisar | Es la regla de los juegos (llegar o no llegar) y la que el docente puede explicar. Volver a ejecutar evita que una entrega armada a mano por la API se califique sola. Lo que la interfaz no deja armar no merece un 0 automático: lo mira el docente, como un programa de PSeInt que no corre (T-52) |
 
+## Decisiones aprobadas el 27 de octubre de 2026 (P-07 y P-08)
+
+Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hacer las dos cosas").
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| P-07 | Apache POI 5.5.1 (`poi-ooxml`) para importar la lista de estudiantes desde `.xlsx` y exportar la planilla a `.xlsx`. El CSV sigue en los dos sentidos | Excel es lo que usan los docentes; antes había que guardar como CSV. Se eligió 5.5.1 y no 6.0.0 porque 6.0.0 salió el 19 de octubre de 2026 y aún no tiene uso en producción |
+| P-08 | Apache PDFBox 3.0.8 para que la IA lea entregas en PDF | Muchos estudiantes exportan su trabajo a PDF. Word y PowerPoint siguen con el docente: POI los abriría, pero la IA necesitaría además dibujar sus páginas, y no se aprobó |
+
+## Decisiones técnicas de Excel y PDF
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-75 | Importación: se lee la primera hoja, cédula en la columna A y nombre en la B, con las mismas reglas del CSV (encabezado opcional, 2000 filas, 1 MB, repetidas una vez). Una cédula escrita como número se lee sin decimales ni notación científica. El formato se elige por la extensión (`.csv` o `.xlsx`; `.xls` antiguo no) | Que la misma lista sirva en los dos formatos. Una parte del `.xlsx` descomprimida de más de 20 MB se rechaza para que un archivo armado para inflarse no agote la memoria |
+| T-76 | Exportación `.xlsx` en `/gradebook/export/xlsx`, con las mismas filas del CSV; notas y porcentajes como números (notas con formato `0.0`; porcentajes en la fila "Porcentaje (%)"), textos como texto, y encabezado fijo al desplazarse | En Excel se puede ordenar y promediar sin convertir. Una celda de texto no se ejecuta como fórmula, así que no hace falta el apóstrofo del CSV (T-64) |
+| T-77 | La IA recibe de cada PDF su texto (si lo tiene) y cada página como imagen (110 ppp, lado mayor hasta 2000 px; luego se reduce como una foto). Un PDF de más de 5 páginas, de más de 25 MB, con contraseña o dañado manda la entrega completa al docente ("Formato que la IA no lee"), y también una entrega con más de 10 imágenes en total. Reemplaza la parte de PDF de T-41 | El texto evita errores de lectura en un PDF exportado; la imagen cubre un escaneo o una foto convertida a PDF. Los límites mantienen el tiempo de CPU parecido al de unas pocas fotos |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
 | P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Publicación en línea | Implementado con volumen local (T-22). Si se prefiere MinIO, se agrega como adaptador sin cambiar el resto |
 | P-06 | Dominio y remitente de Brevo | Envío real de correos; **conviene antes del piloto** | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml`. Sin Brevo, los estudiantes del piloto se registran e ingresan, pero los correos de verificación y de recuperación quedan en la bandeja local del equipo servidor y no les llegan |
-| P-08 | Que la IA lea PDF (y, si se quiere, Word y PowerPoint) | Calificar con IA entregas en PDF | Agregar Apache PDFBox (librería Java estándar de Apache) para convertir cada página a imagen y extraer el texto antes de enviarlo al modelo. Word y PowerPoint seguirían con el docente salvo que se apruebe también Apache POI. Mientras tanto van a Por revisar como "Formato que la IA no lee" |
-| P-07 | Carga de estudiantes desde Excel (RF-05) y exportación de la planilla (RF-18) | Cierre de la Etapa 3 | Agregar Apache POI (librería Java estándar para `.xlsx`) para la importación y la exportación. Mientras tanto se acepta CSV, que Excel exporta con "Guardar como", y la planilla sale en CSV que Excel abre directo (T-64) |
 | P-09 | Proveedor de alojamiento y de almacenamiento de objetos para publicar en línea | Publicación en línea (fuera del piloto) | En observación según la especificación. El despliegue seguirá siendo con Docker y los mismos archivos de Compose; el almacenamiento cambiaría con otro adaptador de `BinaryStorage` (P-05) |
 
 ## Observaciones de la especificación (no bloquean la base)

@@ -52,7 +52,7 @@ export const REVIEW_REASON_LABELS = {
 export const REVIEW_REASON_HELP = {
   AI_DISABLED: 'La calificación con IA estaba desactivada cuando llegó la entrega.',
   UNSUPPORTED:
-    'La entrega trae archivos que la IA aún no lee (PDF, Word, PowerPoint, video o Scratch). La IA lee respuestas escritas, fotos PNG o JPG y archivos de PSeInt o Arduino.',
+    'La entrega trae archivos que la IA no lee (Word, PowerPoint, video, Scratch o un PDF con contraseña, dañado o de más de 5 páginas). La IA lee respuestas escritas, fotos PNG o JPG, PDF cortos y archivos de PSeInt o Arduino.',
   ILLEGIBLE: 'La IA indicó que no puede leer la entrega con seguridad. Revísala y pon la nota.',
   LOW_CONFIDENCE: 'La IA propuso una nota, pero su confianza quedó por debajo del 80 %. Revísala y confírmala o ajústala.',
   AI_FAILED: 'La IA no pudo procesar la entrega después de varios intentos. No se asignó nota; puedes reintentar o calificar tú.',

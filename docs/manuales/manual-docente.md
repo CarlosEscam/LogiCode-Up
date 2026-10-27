@@ -14,7 +14,7 @@ LogiCode reúne el curso de Pensamiento Computacional: temas y materiales, activ
 1. **Cursos** → **Crear curso**: nombre, periodo (por ejemplo `2026-2`) y descripción.
 2. En el curso, sección **Estudiantes**:
    - **Inscribir estudiantes**: una cédula (y el nombre, opcional) a la vez.
-   - **Importar CSV**: una fila por estudiante, `cedula` o `cedula,nombre`, hasta 2000 filas. Desde Excel: "Guardar como" → "CSV UTF-8".
+   - **Importar lista**: un archivo de Excel (`.xlsx`) con la cédula en la columna A y el nombre, opcional, en la B (puede tener encabezado), o un CSV con `cedula` o `cedula,nombre`. Hasta 2000 filas. Al terminar, la página dice cuántos se inscribieron, cuántos ya estaban y qué filas tienen errores. Hay una plantilla en `datos-demo/muestras/lista-estudiantes.xlsx`.
 3. Inscribir una cédula también la **habilita** para registrarse. La lista muestra quién ya se registró ("Registrado") y quién no ("Pendiente"). **Retirar** saca a un estudiante del curso.
 4. Comparte con el grupo la dirección de LogiCode y el [manual del estudiante](manual-estudiante.md).
 
@@ -64,7 +64,7 @@ La sección **Por revisar** del curso lista las entregas que esperan tu nota, co
 | Quiz calificable | Al enviar el intento, por los puntos de cada pregunta (nota de 0 a 5) |
 | Taller de PSeInt con casos de prueba | En **Editar rúbrica**, "Casos de prueba de PSeInt": entradas y salida esperada de cada caso. Cada entrega con programa (texto o `.psc`) se ejecuta y la nota es 5 × casos aprobados / total. Si el programa no se puede ejecutar, va a Por revisar. En la entrega, **Ejecutar casos de prueba** muestra el detalle |
 | Reto de bloques | En **Editar rúbrica**, "Reto de bloques (opcional)" (ver abajo). Cada entrega se vuelve a ejecutar: 5,0 si el robot llega a la meta y 0,0 si choca o no llega, con la razón como retroalimentación |
-| Fotos y archivos con IA | Si la IA está activa (la enciende quien maneja el servidor), lee fotos PNG/JPG, texto y archivos `.psc`/`.ino` con la rúbrica. Publica sola solo si leyó bien y su confianza es de 80 % o más; si no, la entrega te llega con su propuesta. PDF, Word, PowerPoint y video van siempre a tu revisión. Un fallo técnico no pone nota: **Reintentar con IA** la vuelve a mandar |
+| Fotos y archivos con IA | Si la IA está activa (la enciende quien maneja el servidor), lee fotos PNG/JPG, texto, archivos `.psc`/`.ino` y PDF de hasta 5 páginas con la rúbrica. Publica sola solo si leyó bien y su confianza es de 80 % o más; si no, la entrega te llega con su propuesta. Word, PowerPoint, video y los PDF largos, dañados o con contraseña van siempre a tu revisión. Un fallo técnico no pone nota: **Reintentar con IA** la vuelve a mandar |
 
 ### Retos de bloques
 
@@ -95,7 +95,7 @@ Cuando alguien ya respondió, las preguntas y el tiempo no cambian. El **ranking
 
 La sección **Planilla** muestra una columna por actividad calificable publicada, con su porcentaje y el estado de cada nota; el **avance parcial** (promedio con pesos de lo que ya tiene nota) y la **nota definitiva** (cuando todo tiene resultado) van por separado. `0,0*` es una actividad vencida sin entrega.
 
-- **Exportar a Excel (CSV)** descarga la misma tabla; Excel en español la abre directamente.
+- **Exportar a Excel (.xlsx)** descarga la misma tabla con las notas como números, lista para ordenar o promediar en Excel. **Exportar a CSV** la da en texto, por si otro programa lo necesita.
 - **Estadísticas**: por actividad (entregas, calificadas, en revisión, vencidas, promedio, mínima, máxima y aprobados) y del curso.
 - Cada estudiante ve solo su fila en "Mis notas".
 

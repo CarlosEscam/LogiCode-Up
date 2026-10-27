@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,7 +22,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +33,11 @@ import co.edu.unipamplona.logicode.identity.application.EmailMessage;
 import co.edu.unipamplona.logicode.identity.application.EmailSender;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -352,6 +360,47 @@ class ForumAndOperationFlowsIT {
 
         mvc.perform(get(book + "/export").cookie(student)).andExpect(status().isForbidden());
         mvc.perform(get(book + "/export").cookie(ordinaryAdmin)).andExpect(status().isOk());
+
+        // P-07: la misma planilla en .xlsx, con notas y porcentajes como números.
+        MvcResult xlsx = mvc.perform(get(book + "/export/xlsx").cookie(teacher))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Disposition",
+                        org.hamcrest.Matchers.containsString(".xlsx")))
+                .andReturn();
+        try (XSSFWorkbook workbook = new XSSFWorkbook(
+                new ByteArrayInputStream(xlsx.getResponse().getContentAsByteArray()))) {
+            Map<String, Row> byFirstCell = new HashMap<>();
+            Map<String, Row> bySecondCell = new HashMap<>();
+            for (Row row : workbook.getSheetAt(0)) {
+                Cell first = row.getCell(0);
+                Cell second = row.getCell(1);
+                if (first != null) {
+                    byFirstCell.put(first.getStringCellValue(), row);
+                }
+                if (second != null && second.getCellType() == CellType.STRING) {
+                    bySecondCell.put(second.getStringCellValue(), row);
+                }
+            }
+            assertThat(byFirstCell.get("Planilla").getCell(1).getStringCellValue()).isEqualTo("Lógica de programación");
+            Row header = byFirstCell.get("Cédula");
+            assertThat(header.getCell(2).getStringCellValue()).isEqualTo("Taller 1");
+            assertThat(header.getCell(6).getStringCellValue()).isEqualTo("Nota definitiva");
+            Row weights = bySecondCell.get("Porcentaje (%)");
+            assertThat(weights.getCell(2).getNumericCellValue()).isEqualTo(50.0);
+            assertThat(new DataFormatter().formatCellValue(weights.getCell(2))).isEqualTo("50");
+            assertThat(weights.getCell(3).getNumericCellValue()).isEqualTo(25.0);
+            Row ana = byFirstCell.get("600001");
+            assertThat(ana.getCell(2).getNumericCellValue()).isEqualTo(4.0);
+            assertThat(ana.getCell(2).getCellStyle().getDataFormatString()).isEqualTo("0.0");
+            assertThat(ana.getCell(5).getNumericCellValue()).isEqualTo(2.5);
+            assertThat(ana.getCell(6).getNumericCellValue()).isEqualTo(anaDefinitive.doubleValue());
+            Row beto = byFirstCell.get("600004");
+            assertThat(beto.getCell(2).getStringCellValue()).isEqualTo("En revisión");
+            assertThat(beto.getCell(6)).isNull();
+        }
+        mvc.perform(get(book + "/export/xlsx").cookie(student)).andExpect(status().isForbidden());
     }
 
     // ---------- Panel de administración y respaldos (RNF-09, RF-28) ----------
