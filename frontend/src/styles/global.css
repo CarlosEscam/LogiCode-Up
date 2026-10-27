@@ -747,6 +747,48 @@ td .console {
   outline: 2px solid var(--color-primary);
 }
 
+.error-outputs {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.error-outputs dt {
+  font-weight: 600;
+}
+
+.error-outputs dd {
+  margin: 0;
+}
+
+.error-lines__line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+}
+
+.error-lines__line--bug {
+  background: #fee2e2;
+}
+
+.error-lines__number {
+  min-width: 1.5rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.error-lines__code {
+  overflow-wrap: anywhere;
+}
+
+.error-outputs__text {
+  white-space: pre-line;
+}
+
 .blocks-game {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);

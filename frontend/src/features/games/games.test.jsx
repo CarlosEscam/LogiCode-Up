@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { DIRECTIONS, MAX_STEPS, boardProblem, countBlocks, parseLevel, programText, runProgram } from './blocks.js'
-import { BLOCK_LEVELS, DFD_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
+import { BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
 
 // Menor número de bloques Avanzar/Girar (sin ciclos ni condiciones) que lleva el robot a la meta.
 function shortestSequence(level) {
@@ -82,6 +82,15 @@ describe('Niveles de los juegos', () => {
     expect([OUTPUT_LEVELS.length, ORDER_LEVELS.length, DFD_LEVELS.length]).toEqual([16, 12, 10])
   })
 
+  it('cada nivel de Caza el error marca una línea real y su corrección cambia esa línea', () => {
+    expect(new Set(ERROR_LEVELS.map((level) => level.id)).size).toBe(ERROR_LEVELS.length)
+    ERROR_LEVELS.forEach((level) => {
+      expect(level.lines[level.bug]?.trim(), level.id).toBeTruthy()
+      expect(level.fixes[level.fix], level.id).toBeDefined()
+      expect(new Set([...level.fixes, level.lines[level.bug]]).size, level.id).toBe(level.fixes.length + 1)
+    })
+  })
+
   it('las respuestas de los otros juegos están entre sus opciones', () => {
     OUTPUT_LEVELS.forEach((level) => expect(level.options[level.answer]).toBeDefined())
     DFD_LEVELS.forEach((level) => dfdBlanks(level).forEach((blank) => expect(level.options).toContain(blank.answer)))
@@ -151,6 +160,28 @@ describe('Página de juegos', () => {
     expect(screen.getByText(/¡El robot llegó a la meta con 2 bloques!/)).toBeInTheDocument()
     const levels = screen.getByRole('navigation', { name: 'Niveles' })
     expect(within(levels).getByRole('button', { name: /Pasillo largo.*resuelto/ })).toBeInTheDocument()
+  })
+
+  it('en Caza el error se encuentra la línea y luego se elige la corrección', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.history.replaceState(null, '', '/juegos?juego=error')
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Área del rectángulo' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: 'Línea 2: base <- 4' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar línea' }))
+    expect(screen.getByRole('status')).toHaveTextContent('La línea 2 está bien')
+    fireEvent.click(screen.getByRole('radio', { name: 'Línea 4: area <- base + altura' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar línea' }))
+    expect(screen.getByText('¡Esa es! El error está en la línea 4.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'area <- (base + altura) * 2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar corrección' }))
+    expect(screen.getByRole('status')).toHaveTextContent('todavía no muestra lo que debería')
+    fireEvent.click(screen.getByRole('radio', { name: 'area <- base * altura' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar corrección' }))
+    expect(screen.getByRole('status')).toHaveTextContent('¡Corregido!')
+    expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ error: ['error-1'] })
   })
 
   it('cambia el personaje del robot, lo recuerda y sigue diciendo hacia dónde mira', async () => {

@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { navigate, useLocation } from '../../shared/router/router.js'
 import BlocksGame from './BlocksGame.jsx'
 import DfdGame from './DfdGame.jsx'
+import ErrorGame from './ErrorGame.jsx'
 import OrderGame from './OrderGame.jsx'
 import OutputGame from './OutputGame.jsx'
-import { BLOCK_LEVELS, DFD_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
+import { BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
 import { loadProgress, markSolved } from './progress.js'
 
 const GAMES = [
   { key: 'bloques', label: 'Bloques', levels: BLOCK_LEVELS, Game: BlocksGame, about: 'Programa un robot con bloques: secuencias, ciclos, condiciones, rutas y depuración.' },
   { key: 'salida', label: '¿Qué imprime?', levels: OUTPUT_LEVELS, Game: OutputGame, about: 'Lee el programa de PSeInt y elige lo que muestra en pantalla.' },
+  { key: 'error', label: 'Caza el error', levels: ERROR_LEVELS, Game: ErrorGame, about: 'Cada programa tiene un error: encuentra la línea que falla y elige cómo corregirla.' },
   { key: 'orden', label: 'Ordena el algoritmo', levels: ORDER_LEVELS, Game: OrderGame, about: 'Pon las instrucciones en el orden correcto.' },
   { key: 'dfd', label: 'Completa el DFD', levels: DFD_LEVELS, Game: DfdGame, about: 'Completa las casillas del diagrama de flujo.' },
 ]
