@@ -3,7 +3,7 @@
 let blockId = 0
 const b = (type, extra = {}) => ({ id: `inicial-${blockId++}`, type, ...extra })
 
-// Juego de bloques (RF-22, RN-19): 20 niveles, cada uno un poco más difícil que el anterior. Va de secuencias
+// Juego de bloques (RF-22, RN-19): 24 niveles, cada uno un poco más difícil que el anterior. Va de secuencias
 // y rutas a ciclos, ciclos anidados y condiciones, con niveles de depuración entre medio y un laberinto final.
 // solution sirve a las pruebas para comprobar que cada nivel se puede resolver con maxBlocks.
 const seq = (...types) => types.map((type) => b(type))
@@ -150,6 +150,17 @@ export const BLOCK_LEVELS = [
     solution: [rep(2, [rep(3, seq('avanzar')), b('derecha'), rep(3, seq('avanzar')), b('izquierda')])],
   },
   {
+    id: 'ciclo-6',
+    topic: 'Ciclo',
+    title: 'Escalera con rellano',
+    goal: 'Dos escalones y un rellano de tres pasos, dos veces. Necesitas dos ciclos dentro de otro ciclo.',
+    grid: ['S.#########', '#..########', '##.....####', '######..###', '#######...M'],
+    facing: 'E',
+    maxBlocks: 8,
+    allowed: [...MOVES, 'repetir'],
+    solution: [rep(2, [rep(2, seq('avanzar', 'derecha', 'avanzar', 'izquierda')), rep(3, seq('avanzar'))])],
+  },
+  {
     id: 'depuracion-3',
     topic: 'Depuración',
     title: 'Escalones al revés',
@@ -230,6 +241,41 @@ export const BLOCK_LEVELS = [
     solution: bothWays(),
   },
   {
+    id: 'condicion-5',
+    topic: 'Condición',
+    title: 'Cuenta las curvas',
+    goal: 'Sin Mientras y con curvas para los dos lados: pon el Si doble del nivel 19 dentro de Repetir. Cada vuelta el robot avanza un paso o gira en una esquina: cuenta las vueltas exactas.',
+    grid: ['S..#..M', '##...##'],
+    facing: 'E',
+    maxBlocks: 7,
+    allowed: [...MOVES, 'repetir', 'si'],
+    solution: [rep(12, [si(seq('avanzar'), [b('derecha'), si([], seq('izquierda', 'izquierda'))])])],
+  },
+  {
+    id: 'depuracion-6',
+    topic: 'Depuración',
+    title: 'Faltan vueltas',
+    goal: 'El robot se detiene antes de la meta. Ejecútalo paso a paso, cuenta cuántas vueltas da en realidad y corrige el Repetir.',
+    grid: ['S..#..M', '##...##'],
+    facing: 'E',
+    maxBlocks: 7,
+    allowed: [...MOVES, 'repetir', 'si'],
+    start: [rep(9, [si(seq('avanzar'), [b('derecha'), si([], seq('izquierda', 'izquierda'))])])],
+    solution: [rep(12, [si(seq('avanzar'), [b('derecha'), si([], seq('izquierda', 'izquierda'))])])],
+  },
+  {
+    id: 'depuracion-7',
+    topic: 'Depuración',
+    title: 'El Si al revés',
+    goal: 'El robot da media vuelta justo cuando sí podía seguir. Uno de los Si tiene sus ramas cambiadas: encuéntralo y arréglalo.',
+    grid: ['###....', 'S##.##.', '.##.##.', '....##.', '####M..'],
+    facing: 'S',
+    maxBlocks: 7,
+    allowed: [...MOVES, 'si', 'mientras'],
+    start: [mientras([si(seq('avanzar'), [b('derecha'), si(seq('izquierda', 'izquierda'))])])],
+    solution: bothWays(),
+  },
+  {
     id: 'ruta-3',
     topic: 'Desafío final',
     title: 'Gran laberinto',
@@ -242,7 +288,7 @@ export const BLOCK_LEVELS = [
   },
 ]
 
-// ¿Qué imprime? Las respuestas se comprobaron con el intérprete de LogiCode.
+// ¿Qué imprime? De variables a funciones, cada nivel un poco más difícil. Las respuestas se comprobaron con el intérprete de LogiCode.
 export const OUTPUT_LEVELS = [
   {
     id: 'salida-1',
@@ -253,6 +299,22 @@ export const OUTPUT_LEVELS = [
     explanation: 'b vale 3 × 2 = 6, y a + b = 3 + 6 = 9. Escribir muestra el valor, no el texto de la expresión.',
   },
   {
+    id: 'salida-7',
+    title: 'Intercambio',
+    code: 'Algoritmo Cambio\n    a <- 5\n    b <- 8\n    aux <- a\n    a <- b\n    b <- aux\n    Escribir a, " ", b\nFinAlgoritmo',
+    options: ['5 8', '8 5', '8 8', '5 5'],
+    answer: 1,
+    explanation: 'aux guarda el 5 antes de perderlo: a toma el 8 de b y luego b toma el 5 guardado en aux.',
+  },
+  {
+    id: 'salida-8',
+    title: 'División entera y residuo',
+    code: 'Algoritmo Reparto\n    dulces <- 17\n    ninos <- 5\n    Escribir trunc(dulces / ninos), " ", dulces MOD ninos\nFinAlgoritmo',
+    options: ['3.4 0', '3 2', '2 3', '3 3'],
+    answer: 1,
+    explanation: '17 / 5 = 3,4 y trunc quita la parte decimal: a cada niño le tocan 3. Sobran 17 − 15 = 2, que es el residuo (MOD).',
+  },
+  {
     id: 'salida-2',
     title: 'Si … SiNo',
     code: 'Algoritmo ParImpar\n    x <- 7\n    Si x MOD 2 = 0 Entonces\n        Escribir "par"\n    SiNo\n        Escribir "impar"\n    FinSi\nFinAlgoritmo',
@@ -261,12 +323,28 @@ export const OUTPUT_LEVELS = [
     explanation: '7 MOD 2 es el residuo de 7 / 2, que es 1. Como 1 no es 0, se ejecuta la rama SiNo.',
   },
   {
+    id: 'salida-9',
+    title: 'Y, O',
+    code: 'Algoritmo Rango\n    x <- 12\n    Si x > 0 Y x < 10 Entonces\n        Escribir "A"\n    SiNo\n        Si x = 12 O x = 20 Entonces\n            Escribir "B"\n        SiNo\n            Escribir "C"\n        FinSi\n    FinSi\nFinAlgoritmo',
+    options: ['A', 'B', 'C', 'AB'],
+    answer: 1,
+    explanation: 'Con Y deben cumplirse las dos condiciones: 12 > 0 sí, pero 12 < 10 no, así que va al SiNo. Ahí, con O basta una: x = 12 se cumple.',
+  },
+  {
     id: 'salida-3',
     title: 'Acumulador en un Para',
     code: 'Algoritmo Suma\n    s <- 0\n    Para i <- 1 Hasta 4 Hacer\n        s <- s + i\n    FinPara\n    Escribir s\nFinAlgoritmo',
     options: ['4', '6', '10', '15'],
     answer: 2,
     explanation: 'El ciclo suma 1 + 2 + 3 + 4 = 10. El Para incluye el valor final.',
+  },
+  {
+    id: 'salida-10',
+    title: 'Contador con condición',
+    code: 'Algoritmo Multiplos\n    c <- 0\n    Para i <- 1 Hasta 10 Hacer\n        Si i MOD 3 = 0 Entonces\n            c <- c + 1\n        FinSi\n    FinPara\n    Escribir c\nFinAlgoritmo',
+    options: ['3', '4', '10', '18'],
+    answer: 0,
+    explanation: 'Solo cuentan los i divisibles por 3 entre 1 y 10: 3, 6 y 9. El contador suma 1 cada vez, no el valor de i.',
   },
   {
     id: 'salida-4',
@@ -292,9 +370,58 @@ export const OUTPUT_LEVELS = [
     answer: 1,
     explanation: 'Con Paso -1 el ciclo baja de 3 a 1, ambos incluidos. Sin Saltar deja todo en la misma línea.',
   },
+  {
+    id: 'salida-11',
+    title: 'Según',
+    code: 'Algoritmo Menu\n    op <- 2\n    Segun op Hacer\n        1:\n            Escribir "Sumar"\n        2:\n            Escribir "Restar"\n        3:\n            Escribir "Multiplicar"\n        De Otro Modo:\n            Escribir "Opción no válida"\n    FinSegun\nFinAlgoritmo',
+    options: ['Sumar', 'Restar', 'Restar Multiplicar', 'Opción no válida'],
+    answer: 1,
+    explanation: 'Segun compara op con cada caso y ejecuta solo el que coincide (2). No sigue con los casos de abajo.',
+  },
+  {
+    id: 'salida-12',
+    title: 'Contar dígitos',
+    code: 'Algoritmo Digitos\n    n <- 4521\n    c <- 0\n    Mientras n > 0 Hacer\n        n <- trunc(n / 10)\n        c <- c + 1\n    FinMientras\n    Escribir c\nFinAlgoritmo',
+    options: ['3', '4', '5', '4521'],
+    answer: 1,
+    explanation: 'Cada vuelta quita la última cifra: 4521 → 452 → 45 → 4 → 0. Fueron 4 vueltas, una por dígito.',
+  },
+  {
+    id: 'salida-13',
+    title: 'Fibonacci',
+    code: 'Algoritmo Fibo\n    a <- 0\n    b <- 1\n    Para i <- 1 Hasta 5 Hacer\n        c <- a + b\n        a <- b\n        b <- c\n    FinPara\n    Escribir b\nFinAlgoritmo',
+    options: ['5', '8', '13', '6'],
+    answer: 1,
+    explanation: 'Haz una tabla: b pasa por 1, 2, 3, 5 y 8. Cada número es la suma de los dos anteriores.',
+  },
+  {
+    id: 'salida-14',
+    title: 'Ciclos anidados',
+    code: 'Algoritmo Triangulo\n    c <- 0\n    Para i <- 1 Hasta 4 Hacer\n        Para j <- 1 Hasta i Hacer\n            c <- c + 1\n        FinPara\n    FinPara\n    Escribir c\nFinAlgoritmo',
+    options: ['4', '8', '10', '16'],
+    answer: 2,
+    explanation: 'El ciclo de adentro corre i veces en cada vuelta del de afuera: 1 + 2 + 3 + 4 = 10. No son 4 × 4 porque el límite de j cambia.',
+  },
+  {
+    id: 'salida-15',
+    title: 'Arreglos',
+    code: 'Algoritmo Cuadrados\n    Dimension v[5]\n    Para i <- 1 Hasta 5 Hacer\n        v[i] <- i * i\n    FinPara\n    Escribir v[2] + v[4]\nFinAlgoritmo',
+    options: ['6', '20', '24', '16'],
+    answer: 1,
+    explanation: 'Cada casilla guarda el cuadrado de su posición: v[2] = 4 y v[4] = 16, que suman 20. No se suman las posiciones (2 + 4).',
+  },
+  {
+    id: 'salida-16',
+    title: 'Funciones',
+    code: 'Funcion r <- Doble(x)\n    r <- x * 2\nFinFuncion\n\nAlgoritmo Usar\n    a <- Doble(3)\n    Escribir Doble(a) + 1\nFinAlgoritmo',
+    options: ['7', '12', '13', '14'],
+    answer: 2,
+    explanation: 'Doble(3) devuelve 6 y queda en a. Luego Doble(6) = 12, y más 1 da 13.',
+  },
 ]
 
-// Ordena el algoritmo: las líneas se muestran revueltas; la primera y la última quedan fijas.
+// Ordena el algoritmo: las líneas se muestran revueltas; la primera y la última quedan fijas. Cada nivel tiene un solo
+// orden correcto (sin pasos que se puedan intercambiar) y todos se comprobaron con el intérprete de LogiCode.
 export const ORDER_LEVELS = [
   {
     id: 'orden-1',
@@ -304,11 +431,11 @@ export const ORDER_LEVELS = [
     lines: ['Escribir "Escribe dos números"', 'Leer a, b', 'suma <- a + b', 'Escribir "La suma es ", suma'],
   },
   {
-    id: 'orden-2',
-    title: '¿Mayor de edad?',
-    first: 'Algoritmo Edad',
+    id: 'orden-5',
+    title: 'Área del círculo',
+    first: 'Algoritmo Circulo',
     last: 'FinAlgoritmo',
-    lines: ['Leer edad', 'Si edad >= 18 Entonces', '    Escribir "Mayor de edad"', 'SiNo', '    Escribir "Menor de edad"', 'FinSi'],
+    lines: ['Escribir "Escribe el radio"', 'Leer r', 'area <- 3.1416 * r * r', 'Escribir "El área es ", area'],
   },
   {
     id: 'orden-3',
@@ -318,11 +445,67 @@ export const ORDER_LEVELS = [
     lines: ['Escribir "Tabla del 5"', 'Para i <- 1 Hasta 10 Hacer', '    Escribir "5 x ", i, " = ", 5 * i', 'FinPara'],
   },
   {
+    id: 'orden-2',
+    title: '¿Mayor de edad?',
+    first: 'Algoritmo Edad',
+    last: 'FinAlgoritmo',
+    lines: ['Leer edad', 'Si edad >= 18 Entonces', '    Escribir "Mayor de edad"', 'SiNo', '    Escribir "Menor de edad"', 'FinSi'],
+  },
+  {
+    id: 'orden-6',
+    title: 'Promedio y aprobación',
+    first: 'Algoritmo Promedio',
+    last: 'FinAlgoritmo',
+    lines: ['Leer n1, n2, n3', 'prom <- (n1 + n2 + n3) / 3', 'Si prom >= 3 Entonces', '    Escribir "Aprobó con ", prom', 'SiNo', '    Escribir "Reprobó con ", prom', 'FinSi'],
+  },
+  {
     id: 'orden-4',
     title: 'Adivina el número',
     first: 'Algoritmo Adivina',
     last: 'FinAlgoritmo',
     lines: ['Definir intento Como Entero', 'Repetir', '    Escribir "Adivina el número"', '    Leer intento', 'Hasta Que intento = 7', 'Escribir "¡Correcto!"'],
+  },
+  {
+    id: 'orden-7',
+    title: 'Contar positivos',
+    first: 'Algoritmo Positivos',
+    last: 'FinAlgoritmo',
+    lines: ['c <- 0', 'Para i <- 1 Hasta 5 Hacer', '    Leer n', '    Si n > 0 Entonces', '        c <- c + 1', '    FinSi', 'FinPara', 'Escribir "Positivos: ", c'],
+  },
+  {
+    id: 'orden-8',
+    title: 'Sumar hasta el cero',
+    first: 'Algoritmo SumaHastaCero',
+    last: 'FinAlgoritmo',
+    lines: ['Leer n', 'suma <- n', 'Mientras n <> 0 Hacer', '    Leer n', '    suma <- suma + n', 'FinMientras', 'Escribir "Total: ", suma'],
+  },
+  {
+    id: 'orden-9',
+    title: '¿Cuál es mayor?',
+    first: 'Algoritmo Mayor',
+    last: 'FinAlgoritmo',
+    lines: ['Leer a, b', 'Si a = b Entonces', '    Escribir "Son iguales"', 'SiNo', '    Si a > b Entonces', '        Escribir "El mayor es ", a', '    SiNo', '        Escribir "El mayor es ", b', '    FinSi', 'FinSi'],
+  },
+  {
+    id: 'orden-10',
+    title: 'Validar la nota',
+    first: 'Algoritmo Validar',
+    last: 'FinAlgoritmo',
+    lines: ['Repetir', '    Escribir "Nota de 0 a 5"', '    Leer nota', 'Hasta Que nota >= 0 Y nota <= 5', 'Si nota >= 3 Entonces', '    Escribir "Aprobó"', 'SiNo', '    Escribir "Reprobó"', 'FinSi'],
+  },
+  {
+    id: 'orden-11',
+    title: 'Tablas del 1 al 3',
+    first: 'Algoritmo Tablas',
+    last: 'FinAlgoritmo',
+    lines: ['Para i <- 1 Hasta 3 Hacer', '    Escribir "Tabla del ", i', '    Para j <- 1 Hasta 10 Hacer', '        Escribir i, " x ", j, " = ", i * j', '    FinPara', 'FinPara'],
+  },
+  {
+    id: 'orden-12',
+    title: 'El mayor de un arreglo',
+    first: 'Algoritmo MayorArreglo',
+    last: 'FinAlgoritmo',
+    lines: ['Dimension v[5]', 'Para i <- 1 Hasta 5 Hacer', '    Leer v[i]', 'FinPara', 'mayor <- v[1]', 'Para i <- 2 Hasta 5 Hacer', '    Si v[i] > mayor Entonces', '        mayor <- v[i]', '    FinSi', 'FinPara', 'Escribir "El mayor es ", mayor'],
   },
 ]
 
@@ -352,6 +535,19 @@ export const DFD_LEVELS = [
       { shape: 'end', text: 'Fin' },
     ],
     options: ['prom ← n1 + n2 + n3 / 3', 'prom ← (n1 + n2 + n3) / 3', 'Escribir prom', 'Leer prom'],
+  },
+  {
+    id: 'dfd-5',
+    title: 'Minutos a horas',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer minutos' },
+      { shape: 'process', blank: 'A', answer: 'h ← trunc(minutos / 60)' },
+      { shape: 'process', blank: 'B', answer: 'm ← minutos MOD 60' },
+      { shape: 'io', text: 'Escribir h, " h ", m, " min"' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['h ← minutos * 60', 'h ← trunc(minutos / 60)', 'm ← minutos MOD 60', 'm ← minutos / 60'],
   },
   {
     id: 'dfd-3',
@@ -386,6 +582,102 @@ export const DFD_LEVELS = [
       { shape: 'end', text: 'Fin' },
     ],
     options: ['¿n / 2 = 0?', '¿n MOD 2 = 0?', 'Escribir "par"', 'n ← n MOD 2'],
+  },
+  {
+    id: 'dfd-6',
+    title: 'El mayor de dos',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer a, b' },
+      {
+        shape: 'decision',
+        blank: 'A',
+        answer: '¿a > b?',
+        yes: { shape: 'io', blank: 'B', answer: 'Escribir a' },
+        no: { shape: 'io', blank: 'C', answer: 'Escribir b' },
+      },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿a > b?', '¿a = b?', 'Escribir a', 'Escribir b', 'Leer a'],
+  },
+  {
+    id: 'dfd-7',
+    title: 'Precio con descuento',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer precio' },
+      {
+        shape: 'decision',
+        blank: 'A',
+        answer: '¿precio > 100000?',
+        yes: { shape: 'process', blank: 'B', answer: 'd ← precio * 0.1' },
+        no: { shape: 'process', text: 'd ← 0' },
+      },
+      { shape: 'process', blank: 'C', answer: 'total ← precio - d' },
+      { shape: 'io', text: 'Escribir total' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿precio > 100000?', '¿d > 100000?', 'd ← precio * 0.1', 'd ← 0.1', 'total ← precio - d', 'total ← precio + d'],
+  },
+  {
+    id: 'dfd-8',
+    title: 'Promedio y aprobación',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer n1, n2' },
+      { shape: 'process', blank: 'A', answer: 'prom ← (n1 + n2) / 2' },
+      {
+        shape: 'decision',
+        blank: 'B',
+        answer: '¿prom >= 3?',
+        yes: { shape: 'io', text: 'Escribir "Aprobó"' },
+        no: { shape: 'io', blank: 'C', answer: 'Escribir "Reprobó"' },
+      },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['prom ← n1 + n2 / 2', 'prom ← (n1 + n2) / 2', '¿prom >= 3?', '¿n1 >= 3?', 'Escribir "Aprobó"', 'Escribir "Reprobó"'],
+  },
+  {
+    id: 'dfd-9',
+    title: 'Aprobó y con honores',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer nota' },
+      {
+        shape: 'decision',
+        blank: 'A',
+        answer: '¿nota >= 3?',
+        yes: { shape: 'io', text: 'Escribir "Aprobó"' },
+        no: { shape: 'io', text: 'Escribir "Reprobó"' },
+      },
+      {
+        shape: 'decision',
+        blank: 'B',
+        answer: '¿nota >= 4.5?',
+        yes: { shape: 'io', blank: 'C', answer: 'Escribir "Honores"' },
+        no: { shape: 'io', blank: 'D', answer: 'Escribir "Sigue así"' },
+      },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿nota >= 3?', '¿nota >= 4.5?', '¿nota < 4.5?', 'Escribir "Honores"', 'Escribir "Sigue así"', 'Leer nota'],
+  },
+  {
+    id: 'dfd-10',
+    title: 'Cajero automático',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer saldo, retiro' },
+      {
+        shape: 'decision',
+        blank: 'A',
+        answer: '¿retiro <= saldo?',
+        yes: { shape: 'process', blank: 'B', answer: 'saldo ← saldo - retiro' },
+        no: { shape: 'io', blank: 'C', answer: 'Escribir "Sin fondos"' },
+      },
+      { shape: 'io', blank: 'D', answer: 'Escribir saldo' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿retiro <= saldo?', '¿saldo <= retiro?', 'saldo ← saldo - retiro', 'saldo ← retiro - saldo', 'Escribir "Sin fondos"', 'Escribir saldo', 'Leer saldo'],
   },
 ]
 

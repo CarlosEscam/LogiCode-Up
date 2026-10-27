@@ -45,9 +45,8 @@ describe('Niveles de los juegos', () => {
     if (level.start) expect(runProgram(level.start, level).outcome).not.toBe('goal')
   })
 
-  it('hay 20 niveles de bloques y los de ciclos o condiciones no se resuelven con una secuencia simple', () => {
-    expect(BLOCK_LEVELS).toHaveLength(20)
-    expect(new Set(BLOCK_LEVELS.map((level) => level.id)).size).toBe(20)
+  it('los niveles de bloques de ciclos o condiciones no se resuelven con una secuencia simple', () => {
+    expect(BLOCK_LEVELS).toHaveLength(24)
     BLOCK_LEVELS.filter((level) => level.allowed.some((type) => ['repetir', 'mientras'].includes(type))).forEach((level) =>
       expect(shortestSequence(level), level.id).toBeGreaterThan(level.maxBlocks),
     )
@@ -77,6 +76,12 @@ describe('Niveles de los juegos', () => {
     expect(boardProblem(['S..'])).not.toBeNull()
   })
 
+  it('los ids de cada juego no se repiten y las opciones de cada nivel tampoco', () => {
+    ;[BLOCK_LEVELS, OUTPUT_LEVELS, ORDER_LEVELS, DFD_LEVELS].forEach((levels) => expect(new Set(levels.map((level) => level.id)).size).toBe(levels.length))
+    ;[...OUTPUT_LEVELS, ...DFD_LEVELS].forEach((level) => expect(new Set(level.options).size, level.id).toBe(level.options.length))
+    expect([OUTPUT_LEVELS.length, ORDER_LEVELS.length, DFD_LEVELS.length]).toEqual([16, 12, 10])
+  })
+
   it('las respuestas de los otros juegos están entre sus opciones', () => {
     OUTPUT_LEVELS.forEach((level) => expect(level.options[level.answer]).toBeDefined())
     DFD_LEVELS.forEach((level) => dfdBlanks(level).forEach((blank) => expect(level.options).toContain(blank.answer)))
@@ -98,10 +103,10 @@ describe('Página de juegos', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
     expect(screen.getByRole('status')).toHaveTextContent('¡Correcto!')
     expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ salida: ['salida-1'] })
-    expect(screen.getByRole('tab', { name: '¿Qué imprime? (1/6)' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '¿Qué imprime? (1/16)' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente nivel' }))
-    expect(screen.getByRole('heading', { name: 'Si … SiNo' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Intercambio' })).toBeInTheDocument()
   })
 
   it('funciona aunque el navegador no deje guardar el avance', async () => {
