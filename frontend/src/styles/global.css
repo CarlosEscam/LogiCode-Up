@@ -974,3 +974,23 @@ td .console {
   display: block;
   color: var(--color-muted);
 }
+
+/* ---------- Etapa 10: página de inicio (RF-23) ---------- */
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0 1.5rem;
+}
+
+.home-features div {
+  padding: 0.5rem 0;
+}
+
+.home-features dt {
+  font-weight: 600;
+}
+
+.home-features dd {
+  margin: 0;
+}

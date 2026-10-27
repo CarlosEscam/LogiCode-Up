@@ -8,8 +8,12 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.29-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# openssl: crea el certificado local del piloto la primera vez (nginx/https.sh).
+RUN apk add --no-cache openssl
+COPY nginx/logicode.conf /etc/nginx/logicode.conf
+COPY nginx/http.conf /etc/nginx/conf.d/default.conf
+COPY --chmod=755 nginx/https.sh /docker-entrypoint.d/40-logicode-https.sh
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 80 443
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
-  CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1/nginx-salud || exit 1

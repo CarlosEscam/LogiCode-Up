@@ -38,3 +38,6 @@ ia-pruebas/muestras/*.jpeg
 ia-pruebas/muestras/*.png
 ia-pruebas/muestras/muestras.json
 ia-pruebas/resultados/
+
+# Certificados del piloto (llaves privadas)
+certificados/

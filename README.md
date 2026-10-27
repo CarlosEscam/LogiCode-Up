@@ -3,7 +3,7 @@
 Plataforma web de Pensamiento Computacional para estudiantes de primer semestre · Universidad de Pamplona.
 Fecha objetivo de entrega: 10 de diciembre de 2026.
 
-> **Estado actual: Etapa 9 (calidad y seguridad) implementada, pendiente de revisión.** Además del acceso (Etapa 3), cursos, temas y biblioteca (Etapa 4), actividades y entregas (Etapa 5), la calificación con IA (Etapa 6, pruebas de aceptación de Qwen pendientes en el equipo de referencia) y los quizzes, PSeInt y juegos (Etapa 7), ya hay foro por herramienta con moderación, planilla del curso con avance parcial, nota definitiva, estadísticas y exportación a Excel (CSV), panel de administración y respaldos diarios con prueba de restauración. La Etapa 9 revisó seguridad, permisos, accesibilidad y móvil, agregó cabeceras de seguridad y registro de cada solicitud, y demostró la restauración y la calificación ([docs/calidad.md](docs/calidad.md)). Detalle en [docs/estado.md](docs/estado.md).
+> **Estado actual: Etapa 10 (piloto y entrega) preparada, pendiente de revisión y del piloto con el docente.** LogiCode tiene acceso y permisos, cursos, temas y biblioteca, actividades y entregas, calificación manual, automática (PSeInt y quizzes) y con IA (pruebas de aceptación de Qwen pendientes en el equipo de referencia), juegos, foro, planilla, panel de administración y respaldos con prueba de restauración (Etapas 3 a 9). La Etapa 10 agregó el modo piloto con HTTPS para usarlo desde los equipos y celulares del aula, la página de inicio con misión y visión, la actualización de Spring Boot por vulnerabilidades y los manuales técnico, docente y estudiante. Versión 1.0.0. Detalle en [docs/estado.md](docs/estado.md).
 
 ## Documentación
 
@@ -16,6 +16,9 @@ Fecha objetivo de entrega: 10 de diciembre de 2026.
 | [docs/api/README.md](docs/api/README.md) | Convenciones REST y catálogo de endpoints |
 | [docs/modelo-de-datos.md](docs/modelo-de-datos.md) | Convenciones de base de datos y esquema actual |
 | [docs/permisos.md](docs/permisos.md) | Matriz de roles y privilegio completo |
+| [docs/calidad.md](docs/calidad.md) | Defectos, riesgos aceptados, revisión de seguridad y observabilidad |
+| [docs/piloto.md](docs/piloto.md) | Despliegue del piloto con HTTPS, plan, registro de observaciones y acta de aceptación |
+| [docs/manuales/](docs/manuales/) | Manuales [técnico](docs/manuales/manual-tecnico.md), [docente](docs/manuales/manual-docente.md) y [estudiante](docs/manuales/manual-estudiante.md) |
 
 ## Requisitos previos
 
@@ -90,6 +93,10 @@ docker compose up --build
 Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos y los archivos cargados: `docker compose down -v`.
 
 Los archivos de los materiales se guardan en el volumen `file-storage`. El servicio `backup` respalda cada día la base de datos y esos archivos en el volumen `backups` y prueba que cada copia se pueda restaurar; desde la web (Administración) se ve el estado y se pide un respaldo inmediato. Cómo copiarlos fuera del equipo y cómo restaurar: [respaldos/README.md](respaldos/README.md).
+
+### Piloto con HTTPS
+
+Para usar LogiCode desde otros equipos y celulares de la red (el piloto), se suma `docker-compose.piloto.yml`: HTTPS en el puerto 443 con un certificado local que se crea solo, cookies seguras y la documentación de la API apagada, en una base de datos aparte de la de desarrollo. Pasos, variables (`COMPOSE_PROJECT_NAME`, `COMPOSE_FILE`, `LOGICODE_PUBLIC_URL`, `LOGICODE_TLS_HOSTS`) y cómo confiar en el certificado: [docs/piloto.md](docs/piloto.md).
 
 ### Datos de demostración
 
@@ -185,7 +192,7 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   ├── src/app                      Rutas y navegación según permisos
 │   ├── src/features                 auth, account, admin, courses, content, activities, quizzes, pseint, games, forum, gradebook, system
 │   ├── src/shared                   Cliente HTTP con CSRF, enrutador, formularios
-│   ├── nginx.conf                   Sirve la interfaz y reenvía /api al backend
+│   ├── nginx/                       Nginx: sitio común, modo HTTP y modo HTTPS del piloto (crea el certificado local)
 │   └── Dockerfile
 ├── datos-demo/                      Script de datos de demostración (se amplía en cada etapa)
 ├── respaldos/                       Script del servicio de respaldos y cómo restaurar
@@ -194,6 +201,8 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 ├── .github/workflows/ci.yml         Integración continua
 ├── docker-compose.yml               db + backend + frontend + backup (+ ollama con el perfil ia)
 ├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
+├── docker-compose.piloto.yml        Piloto: HTTPS, cookies seguras, API sin documentación pública
+├── certificados/                    Certificado y autoridad local del piloto (se crean solos, fuera de Git)
 └── .env.example                     Variables de ejemplo (sin secretos)
 ```
 
@@ -206,4 +215,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 9 en [docs/calidad.md](docs/calidad.md): la lista de defectos y riesgos aceptados, y repetir las demostraciones de restauración y de calificación. Antes del piloto conviene revisar las dependencias Java contra vulnerabilidades (R9-05). Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 (almacenamiento local o MinIO), P-06 (remitente de Brevo), P-07 (Excel con Apache POI) y P-08 (que la IA lea PDF con Apache PDFBox) en [docs/decisiones.md](docs/decisiones.md). Después sigue la **Etapa 10 · Piloto y entrega** (HTTPS, manuales y despliegue local del piloto).
+Revisar la Etapa 10: [docs/piloto.md](docs/piloto.md) y los [manuales](docs/manuales/). Después, preparar el equipo servidor, probar allí la restauración y hacer el piloto con el docente hasta firmar el acta de aceptación (entrega objetivo: 10 de diciembre de 2026). Conviene cerrar antes P-06 (remitente de Brevo), porque sin él los correos de verificación y recuperación no llegan a los estudiantes. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05, P-07, P-08 y P-09 de [docs/decisiones.md](docs/decisiones.md).

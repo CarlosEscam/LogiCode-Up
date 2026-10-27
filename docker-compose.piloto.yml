@@ -1,0 +1,26 @@
+# LogiCode · despliegue del piloto (Etapa 10): HTTPS en Nginx, cookies seguras y documentación de la API apagada.
+# Se suma al archivo principal (ver docs/piloto.md):
+#   docker compose -f docker-compose.yml -f docker-compose.piloto.yml up -d --build --wait
+# Con Brevo, agregar también -f docker-compose.brevo.yml; con IA, --profile ia.
+services:
+  backend:
+    environment:
+      LOGICODE_ENVIRONMENT: piloto
+      # Dirección con la que los demás equipos abren LogiCode, por ejemplo https://192.168.1.50 (va en los correos).
+      LOGICODE_PUBLIC_URL: ${LOGICODE_PUBLIC_URL:?Define LOGICODE_PUBLIC_URL en .env con la dirección https del piloto}
+      SESSION_COOKIE_SECURE: "true"
+      # R9-02: la documentación de la API no se publica en el piloto.
+      SPRINGDOC_APIDOCS_ENABLED: "false"
+      SPRINGDOC_SWAGGERUI_ENABLED: "false"
+
+  frontend:
+    environment:
+      LOGICODE_HTTPS: "true"
+      # Nombres o IP del equipo servidor que van en el certificado, separados por comas.
+      LOGICODE_TLS_HOSTS: ${LOGICODE_TLS_HOSTS:-}
+    volumes:
+      # Certificado y autoridad local; nginx/https.sh los crea la primera vez. Fuera de Git.
+      - ./certificados:/etc/nginx/certificados
+    ports: !override
+      - "80:80"
+      - "443:443"

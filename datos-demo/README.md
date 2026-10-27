@@ -20,7 +20,7 @@ $env:LOGICODE_ADMIN_PASSWORD = "<tu contraseña>"
 node datos-demo/cargar-datos-demo.mjs
 ```
 
-Si el frontend no está en `http://localhost:3000`, indica la dirección con `$env:LOGICODE_URL`.
+Si el frontend no está en `http://localhost:3000`, indica la dirección con `$env:LOGICODE_URL`. Por HTTPS con el certificado local del piloto, indica también la autoridad: `$env:NODE_EXTRA_CA_CERTS = "certificados\logicode-ca.crt"` (ver Etapa 10).
 
 - Si los datos ya están cargados, el script lo detecta y no cambia nada.
 - Las fechas se calculan desde el momento de la carga (por ejemplo, "cerró hace 3 días"); para una presentación conviene cargarlos el mismo día o el anterior.
@@ -149,6 +149,30 @@ No agrega datos: la etapa revisa lo que ya existe. Los datos de las Etapas 3 a 8
 | Restauración | Una cuenta inicial o Diana (`1000000103`) | Respaldo desde `/admin`, un cambio cualquiera y restauración por consola |
 
 Cada demostración usa un intento de esos estudiantes. Para repetirlas desde cero, restaura el respaldo hecho antes de empezar.
+
+### Etapa 10 · Piloto y entrega
+
+No agrega personas ni contenidos: los de las Etapas 3 a 8 cubren todos los recorridos de los [manuales](../docs/manuales/), y sus capturas salieron de estos datos. Lo que cambia:
+
+- **El script se niega a cargar en una instalación en modo piloto** (`/api/v1/system/info` dice `entorno piloto`), porque las cuentas demo tienen una contraseña pública (`Demo#2026`) y el piloto tiene estudiantes reales ([docs/piloto.md](../docs/piloto.md)).
+- Para **presentar con datos ficticios por HTTPS** (por ejemplo, con los celulares del público), usa una instalación aparte solo para eso, en modo piloto pero con otro `COMPOSE_PROJECT_NAME` o sin él, y carga así:
+
+  ```powershell
+  $env:LOGICODE_URL = "https://localhost"
+  $env:NODE_EXTRA_CA_CERTS = "certificados\logicode-ca.crt"
+  $env:LOGICODE_DEMO_EN_PILOTO = "si"
+  node datos-demo/cargar-datos-demo.mjs
+  ```
+
+Guion sugerido para presentar con estos datos, en el orden de los manuales:
+
+| Manual | Recorrido | Cuenta |
+| --- | --- | --- |
+| Estudiante | Registro con una cédula habilitada | Gabriela (`1000000207`), inscrita sin registrarse |
+| Estudiante | Entregar con foto el Taller 2 y ver "Mis notas" en el celular | Felipe (`1000000206`) y Ana (`1000000201`) |
+| Estudiante | Taller 4 de PSeInt con nota automática | Elena (`1000000205`) |
+| Docente | Temas, nueva actividad con rúbrica, Por revisar, calificar, planilla y exportación | Laura (`1000000101`) |
+| Técnico / Administración | Aprobar al docente pendiente, panel, respaldo y restauración | Diana (`1000000103`) o una cuenta inicial; Jorge (`1000000102`) está por aprobar |
 
 ## Para las etapas siguientes
 

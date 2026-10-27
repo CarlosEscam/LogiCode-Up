@@ -130,14 +130,25 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-65 | En el foro, eliminar oculta el hilo o la respuesta y guarda quién y cuándo; no se borra de la base | Deja rastro de la moderación (RN-15) y permite revisar un caso de abuso |
 | T-66 | El foro muestra solo el nombre del autor, nunca su cédula ni su correo | Es de lectura pública (RF-26) |
 
+## Decisiones técnicas tomadas en la Etapa 10
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-67 | HTTPS del piloto en el mismo Nginx del frontend, activado por `docker-compose.piloto.yml`. Si no hay certificado, Nginx crea al arrancar una autoridad local y un certificado firmado por ella para `localhost` y los nombres o IP de `LOGICODE_TLS_HOSTS` (397 días). Un certificado de la Universidad se usa poniéndolo en `certificados/` | El piloto es en la red del aula, sin dominio público, así que no se puede usar Let's Encrypt. Con la autoridad local, los equipos que la instalan no ven advertencias, y al cambiar la IP solo se rehace el certificado del servidor. No agrega servicios ni tecnologías: Nginx ya estaba aprobado (especificación, capa de borde) |
+| T-68 | El piloto usa su propio proyecto de Compose (`COMPOSE_PROJECT_NAME=logicode-piloto`), con base de datos y archivos aparte | Los datos de demostración tienen contraseña pública y no deben llegar a la instalación real; así tampoco se borra la instancia de presentación |
+| T-69 | El backend reconoce `X-Forwarded-Proto` de Nginx (`server.forward-headers-strategy: native`, solo desde redes internas) | Detrás de HTTPS la cookie CSRF también sale con `Secure` |
+| T-70 | Spring Boot 4.1.1 → 4.1.2 | La revisión de dependencias (R9-05) encontró vulnerabilidades publicadas en septiembre y octubre de 2026 en Tomcat 11.0.24 y Jackson 3.1.5 / 2.21.5; 4.1.2 trae las versiones corregidas. Las 116 pruebas siguen en verde |
+| T-71 | Versión 1.0.0 para el piloto | Marca la versión que se entrega; la página de inicio y `/api/v1/system/info` la muestran |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
 | P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Publicación en línea | Implementado con volumen local (T-22). Si se prefiere MinIO, se agrega como adaptador sin cambiar el resto |
-| P-06 | Dominio y remitente de Brevo | Envío real de correos | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml` |
+| P-06 | Dominio y remitente de Brevo | Envío real de correos; **conviene antes del piloto** | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml`. Sin Brevo, los estudiantes del piloto se registran e ingresan, pero los correos de verificación y de recuperación quedan en la bandeja local del equipo servidor y no les llegan |
 | P-08 | Que la IA lea PDF (y, si se quiere, Word y PowerPoint) | Calificar con IA entregas en PDF | Agregar Apache PDFBox (librería Java estándar de Apache) para convertir cada página a imagen y extraer el texto antes de enviarlo al modelo. Word y PowerPoint seguirían con el docente salvo que se apruebe también Apache POI. Mientras tanto van a Por revisar como "Formato que la IA no lee" |
 | P-07 | Carga de estudiantes desde Excel (RF-05) y exportación de la planilla (RF-18) | Cierre de la Etapa 3 | Agregar Apache POI (librería Java estándar para `.xlsx`) para la importación y la exportación. Mientras tanto se acepta CSV, que Excel exporta con "Guardar como", y la planilla sale en CSV que Excel abre directo (T-64) |
+| P-09 | Proveedor de alojamiento y de almacenamiento de objetos para publicar en línea | Publicación en línea (fuera del piloto) | En observación según la especificación. El despliegue seguirá siendo con Docker y los mismos archivos de Compose; el almacenamiento cambiaría con otro adaptador de `BinaryStorage` (P-05) |
 
 ## Observaciones de la especificación (no bloquean la base)
 

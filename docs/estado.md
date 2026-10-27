@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 9 (calidad y seguridad)**
+Última actualización: 27 de octubre de 2026 · Etapa en curso: **cierre de la Etapa 10 (piloto y entrega)**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -17,12 +17,43 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
 | 7 · Quizzes, PSeInt y juegos | Implementada y aprobada | Falta que Carlos revise niveles y notas automáticas de los datos demo |
 | 8 · Foro y operación docente | Implementada y aprobada | Carlos pidió la Etapa 9 el 27 de octubre |
-| 9 · Calidad y seguridad | Implementada, pendiente de revisión | Detalle abajo y en [calidad.md](calidad.md) |
-| 10 · Piloto y entrega | Pendiente | También falta la página de inicio con misión y visión (RF-23) |
+| 9 · Calidad y seguridad | Implementada y aprobada | Carlos pidió la Etapa 10 el 27 de octubre. R9-01, R9-02 y R9-05 se cerraron en la Etapa 10 |
+| 10 · Piloto y entrega | Preparada, pendiente de revisión y del piloto con el docente | Detalle abajo, en [piloto.md](piloto.md) y en los [manuales](manuales/) |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso un taller de PSeInt con casos de prueba y hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8); volver a ejecutarlo no duplica datos. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso un taller de PSeInt con casos de prueba y hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Etapa 10 · detalle
+
+| Entregable de la especificación | Estado | Dónde |
+| --- | --- | --- |
+| Despliegue local inicial con Docker Compose | Implementado | `docker-compose.piloto.yml` sobre el archivo principal: HTTPS en Nginx (puerto 443, el 80 redirige), cookies `Secure`, documentación de la API apagada, proyecto aparte para no mezclar con los datos demo (T-67, T-68). Guía en [piloto.md](piloto.md) |
+| HTTPS (RNF-02, R9-01) | Implementado | Certificado propio o, si no hay, autoridad local + certificado creados al arrancar (`frontend/nginx/https.sh`); se instala `logicode-ca.crt` en los equipos para no ver advertencias |
+| Respaldos restaurables | Demostrado en modo piloto | Respaldo pedido desde el panel, hilo creado después, restauración por consola con los mismos comandos: el hilo desapareció |
+| Manual técnico, docente y estudiante | Implementado | [manuales/](manuales/): técnico (instalación, operación, administración, respaldos, actualización, seguridad, problemas), docente y estudiante con capturas |
+| Docente acepta el piloto | **Pendiente** | Plan, registro de observaciones y acta de aceptación en [piloto.md](piloto.md#7-acta-de-aceptación-del-piloto). Lo hacen el docente y el equipo durante el piloto |
+| Página de inicio (RF-23) | Implementado | Misión, visión, qué se puede hacer y cómo empezar |
+| Dependencias Java contra vulnerabilidades (R9-05) | Implementado | Spring Boot 4.1.2 (T-70); detalle en [calidad.md](calidad.md) |
+| Proveedor en línea de alojamiento y almacenamiento | Pendiente (en observación) | P-09: se decide antes de publicar. Todo despliegue futuro será con Docker |
+| Entrega objetivo | 10 de diciembre de 2026 | Versión 1.0.0 (T-71) |
+
+### Verificación realizada (Etapa 10)
+
+- Backend: `./mvnw verify` con Spring Boot 4.1.2 → 116 pruebas en verde (70 unitarias y 46 de integración).
+- Frontend: `npm run lint`, `npm test` (42 pruebas, una nueva para la página de inicio) y `npm run build` en verde; `npm audit` en 0.
+- Docker Compose en modo piloto sobre una base limpia: los cuatro servicios `healthy`; el certificado se creó solo con las IP y nombres pedidos y Chromium y `curl` lo aceptaron con la autoridad local; HTTP redirige a HTTPS; HTTP/2; las cookies de sesión y CSRF salen con `Secure`; `/swagger-ui.html` y `/api/v1/openapi` responden 404; la página de inicio muestra "versión 1.0.0 · entorno piloto".
+- Datos de demostración cargados por HTTPS (Etapas 3 a 8) y recorrido en Chromium a 1280 y 390 px para las capturas de los manuales; axe-core en la página de inicio nueva: 0 hallazgos y sin desborde a lo ancho.
+- Restauración demostrada en el modo piloto (detalle en la tabla).
+- No verificado en el entorno de Claude: la línea `apk add openssl` del Dockerfile del frontend (el entorno no llega a los repositorios de Alpine; se probó con el mismo `openssl` tomado de otra imagen Alpine), la instalación de la autoridad en teléfonos reales y el firewall de Windows.
+
+### Punto de control
+
+| Criterio | Cómo se comprueba |
+| --- | --- |
+| Docente acepta el piloto | Acta de [piloto.md](piloto.md#7-acta-de-aceptación-del-piloto) firmada después del piloto. **Pendiente** |
+| Respaldos restaurables | Demostrado en modo piloto; repetirlo en el equipo servidor antes del piloto (piloto.md, sección 5). **Pendiente: revisión de Carlos** |
+| Manual técnico, docente y estudiante entregados | [manuales/](manuales/). **Pendiente: revisión de Carlos** |
 
 ## Etapa 9 · detalle
 
@@ -257,4 +288,4 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | RF-14, RF-15, RF-17 | Implementados (Etapa 6): calificación con IA en segundo plano, confirmación docente y registro de cada evaluación. Pruebas de aceptación del modelo pendientes en el equipo de referencia |
 | RF-12, RF-16, RF-21, RF-22 | Implementados (Etapa 7): casos de prueba y calificación automática de PSeInt, quizzes con banco de preguntas, quiz de repaso con revisión y juegos. Falta que el docente configure niveles de bloques (RF-12) |
 | RF-18, RF-20, RF-26, RF-27 | Implementados (Etapa 8): planilla con exportación CSV (Excel `.xlsx` pendiente de P-07), notas del estudiante y foro con moderación |
-| RF-23 | Pendiente |
+| RF-23 | Implementado (Etapa 10): página de inicio con misión, visión y explicación de la plataforma. El texto de misión y visión es una propuesta a partir del propósito de la especificación |

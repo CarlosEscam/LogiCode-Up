@@ -4,7 +4,8 @@
 // Uso (con la aplicación corriendo):
 //   node datos-demo/cargar-datos-demo.mjs
 // Variables opcionales: LOGICODE_URL (por defecto http://localhost:3000),
-// LOGICODE_ADMIN_CEDULA y LOGICODE_ADMIN_PASSWORD (si no están, se piden al iniciar).
+// LOGICODE_ADMIN_CEDULA y LOGICODE_ADMIN_PASSWORD (si no están, se piden al iniciar),
+// LOGICODE_DEMO_EN_PILOTO=si para cargar en una instalación en modo piloto (ver la Etapa 10 del README).
 //
 // Cada etapa agrega su sección al final de main(). Requiere Node 20 o superior.
 
@@ -730,13 +731,30 @@ async function idOf(session) {
   return (await session.get('/me')).id
 }
 
+// ---------- Etapa 10 · piloto ----------
+
+// Las cuentas demo tienen contraseña pública: en una instalación del piloto (con estudiantes reales) no se cargan,
+// salvo que se pida a propósito para presentar con datos ficticios por HTTPS.
+function stage10(info) {
+  if (info.environment === 'piloto' && process.env.LOGICODE_DEMO_EN_PILOTO !== 'si') {
+    throw new Error('Esta instalación está en modo piloto. Los datos de demostración tienen una contraseña pública y no se ' +
+      'cargan ahí. Si es una instalación solo para presentar, ejecuta con LOGICODE_DEMO_EN_PILOTO=si.')
+  }
+}
+
 // ---------- Programa ----------
 
 async function main() {
   console.log(`LogiCode · datos de demostración → ${BASE}`)
-  await fetch(`${API}/system/info`).catch(() => {
-    throw new Error(`No hay respuesta en ${BASE}. ¿Está corriendo "docker compose up"?`)
-  })
+  const info = await fetch(`${API}/system/info`)
+    .then((response) => response.json())
+    .catch((error) => {
+      const certificate = /certificate|self.signed|UNABLE_TO_VERIFY/i.test(String(error.cause?.code ?? error.cause))
+      throw new Error(certificate
+        ? `${BASE} usa el certificado local del piloto: ejecuta con NODE_EXTRA_CA_CERTS=certificados/logicode-ca.crt.`
+        : `No hay respuesta en ${BASE}. ¿Está corriendo "docker compose up"?`)
+    })
+  stage10(info)
 
   let existing = null
   try {

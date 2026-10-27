@@ -9,18 +9,18 @@ No se encontraron defectos críticos (pérdida de datos, acceso sin permiso o no
 | Id | Severidad | Defecto | Estado |
 | --- | --- | --- | --- |
 | D9-01 | Seria (accesibilidad, RNF-11) | Las tablas que se desplazan a lo ancho en el teléfono (planilla, panel de administración, habilitaciones, auditoría) no se podían desplazar con el teclado | Corregido: toda `.table-wrap` recibe foco con Tab y se desplaza con las flechas |
-| D9-02 | Media (seguridad) | Nginx servía la interfaz sin `Content-Security-Policy`, `X-Content-Type-Options` ni `Referrer-Policy`, y mostraba su versión | Corregido en `frontend/nginx.conf`: solo se cargan recursos del propio sitio (scripts, estilos, imágenes, videos y la vista previa de PDF); la página no se puede incrustar en otro sitio |
+| D9-02 | Media (seguridad) | Nginx servía la interfaz sin `Content-Security-Policy`, `X-Content-Type-Options` ni `Referrer-Policy`, y mostraba su versión | Corregido en la configuración de Nginx (desde la Etapa 10, `frontend/nginx/logicode.conf`): solo se cargan recursos del propio sitio (scripts, estilos, imágenes, videos y la vista previa de PDF); la página no se puede incrustar en otro sitio |
 | D9-03 | Media (observabilidad) | No quedaba registro de cada solicitud a la API, así que un error reportado por un usuario no se podía ubicar en los logs | Corregido: una línea por solicitud con método, ruta, estado, duración y el `X-Request-Id`; métricas en `/actuator/metrics` |
 
-Riesgos aceptados o que pasan a la Etapa 10 (no críticos):
+Riesgos aceptados o que pasaron a la Etapa 10 (no críticos):
 
 | Id | Riesgo | Decisión |
 | --- | --- | --- |
-| R9-01 | Sin HTTPS: en local la sesión viaja sin cifrar por la red del aula (RNF-02 pide HTTPS en despliegue) | Etapa 10: certificado en Nginx y `SESSION_COOKIE_SECURE=true` |
-| R9-02 | `/swagger-ui.html` y `/api/v1/openapi` son públicos | Solo describen la API, sin datos. Apagarlos al publicar en línea (`SPRINGDOC_APIDOCS_ENABLED=false`, `SPRINGDOC_SWAGGERUI_ENABLED=false`) |
+| R9-01 | Sin HTTPS: en local la sesión viaja sin cifrar por la red del aula (RNF-02 pide HTTPS en despliegue) | **Resuelto en la Etapa 10**: el modo piloto (`docker-compose.piloto.yml`) sirve solo por HTTPS con cookies `Secure` ([piloto.md](piloto.md)). El modo de desarrollo sigue en HTTP local |
+| R9-02 | `/swagger-ui.html` y `/api/v1/openapi` son públicos | Solo describen la API, sin datos. **Etapa 10:** apagados en el modo piloto (`SPRINGDOC_APIDOCS_ENABLED=false`, `SPRINGDOC_SWAGGERUI_ENABLED=false`); siguen en desarrollo |
 | R9-03 | Cinco intentos fallidos bloquean 15 minutos la cédula, aunque los haga otra persona | Se mantiene: protege contra adivinar contraseñas; el bloqueo es corto y queda en la auditoría |
 | R9-04 | Una cédula sin cuenta responde un poco más rápido al iniciar sesión | Se mantiene: el registro ya informa si una cédula está registrada, así que medir tiempos no revela nada nuevo |
-| R9-05 | Las dependencias Java no se revisaron contra la base de vulnerabilidades: el entorno de Claude no llega a esa base | **Pendiente.** Las de la interfaz sí: `npm audit` sin vulnerabilidades. Revisar las del backend antes del piloto (por ejemplo con el plugin OWASP Dependency-Check en el PC) |
+| R9-05 | Las dependencias Java no se revisaron contra la base de vulnerabilidades: el entorno de Claude no llega a esa base | **Resuelto en la Etapa 10** (27 de octubre): las 168 dependencias de `./mvnw dependency:list` (todas las de ejecución y de prueba) contra la base OSV de Maven. Con Spring Boot 4.1.1 había 10 avisos: tres críticos de Tomcat 11.0.24 en la autenticación DIGEST y FORM y en las restricciones de seguridad declaradas en el contenedor (LogiCode no usa ninguna de las tres: la seguridad la hace Spring Security) y siete altos o medios de Jackson 3.1.5 y 2.21.5 (consumo de recursos al leer JSON). Se subió a Spring Boot 4.1.2 (Tomcat 11.0.27, Jackson 3.1.7 y 2.21.7): 0 avisos. `npm audit`: 0. Repetir antes de cada entrega (manual técnico, sección 8) |
 
 ## Qué se revisó y cómo
 
@@ -33,7 +33,7 @@ Riesgos aceptados o que pasan a la Etapa 10 (no críticos):
 | Exportación | El CSV antepone `'` a celdas que empiezan con `=`, `+`, `-` o `@` para que Excel no las ejecute | Sin hallazgos |
 | Interfaz | Sin `dangerouslySetInnerHTML` ni `eval`; React escapa todo el texto del foro y de las entregas | Sin hallazgos |
 | Accesibilidad (RNF-11) y móvil | axe-core 4.10 (WCAG 2.1 A y AA: contraste, etiquetas, teclado, nombres de botones) en 37 vistas de visitante, estudiante, docente y administradora, incluidas todas las pestañas del curso, a 1280 px y a 390 px; también se mide desplazamiento horizontal | D9-01; después, 0 hallazgos y nada se sale de la pantalla |
-| Dependencias | `npm audit`: 0 vulnerabilidades | R9-05 |
+| Dependencias | `npm audit`: 0 vulnerabilidades; Java revisado en la Etapa 10 | R9-05 (resuelto) |
 
 ## Observabilidad
 
