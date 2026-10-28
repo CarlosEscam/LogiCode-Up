@@ -103,7 +103,7 @@ Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero
 
 ## 8. Juegos
 
-**Juegos** del menú (no necesita cuenta y no da nota): 24 niveles de bloques con un robot (secuencias, ciclos, condiciones, rutas y depuración), 16 de "¿Qué imprime?", 12 de "Caza el error" (encuentra la línea que falla y elige cómo corregirla), 12 de "Ordena el algoritmo" y 10 de "Completa el DFD". En cada juego los niveles van de lo más fácil a lo más difícil. Tu avance se guarda en el navegador que uses.
+**Juegos** del menú (no necesita cuenta y no da nota): 24 niveles de bloques con un robot (secuencias, ciclos, condiciones, rutas y depuración), 21 de "¿Qué imprime?", 14 de "Caza el error" (encuentra la línea que falla y elige cómo corregirla), 14 de "Ordena el algoritmo", 14 de "Completa el DFD" (con ciclos) y 12 de "¿Qué hace este código?" de Arduino (lee el programa y elige qué pasa con el LED, el botón, el sensor o el Monitor Serie). Hay niveles de textos y matrices. En cada juego los niveles van de lo más fácil a lo más difícil. Tu avance se guarda en el navegador que uses.
 
 En el juego de bloques puedes cambiar el **personaje del robot** debajo del tablero: flecha, lápiz, cerebro o fantasma. Todos muestran hacia dónde mira el robot (el lápiz apunta con la punta; el cerebro y el fantasma miran con los ojos y tienen un triángulo en el borde de la casilla), y el texto debajo del tablero lo dice con palabras.
 

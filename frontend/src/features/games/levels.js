@@ -418,6 +418,46 @@ export const OUTPUT_LEVELS = [
     answer: 2,
     explanation: 'Doble(3) devuelve 6 y queda en a. Luego Doble(6) = 12, y más 1 da 13.',
   },
+  {
+    id: 'salida-17',
+    title: 'Textos',
+    code: 'Algoritmo Textos\n    p <- "logica"\n    Escribir Mayusculas(Subcadena(p, 1, 3)), " ", Longitud(p)\nFinAlgoritmo',
+    options: ['LOG 6', 'log 6', 'LOGI 6', 'LOG 3'],
+    answer: 0,
+    explanation: 'Subcadena(p, 1, 3) toma de la letra 1 a la 3: "log". Mayusculas la vuelve "LOG" y Longitud cuenta las 6 letras de "logica".',
+  },
+  {
+    id: 'salida-18',
+    title: 'Recorrer un texto',
+    code: 'Algoritmo Letras\n    p <- "banana"\n    c <- 0\n    Para i <- 1 Hasta Longitud(p) Hacer\n        Si Subcadena(p, i, i) = "a" Entonces\n            c <- c + 1\n        FinSi\n    FinPara\n    Escribir c\nFinAlgoritmo',
+    options: ['1', '2', '3', '6'],
+    answer: 2,
+    explanation: 'Subcadena(p, i, i) es la letra número i. El ciclo pasa por las 6 letras y cuenta las que son "a": b-A-n-A-n-A, 3 en total.',
+  },
+  {
+    id: 'salida-19',
+    title: 'Palabra al revés',
+    code: 'Algoritmo Reves\n    p <- "roma"\n    r <- ""\n    Para i <- Longitud(p) Hasta 1 Con Paso -1 Hacer\n        r <- r + Subcadena(p, i, i)\n    FinPara\n    Escribir r\nFinAlgoritmo',
+    options: ['roma', 'amor', 'ramo', 'a'],
+    answer: 1,
+    explanation: 'El ciclo va de la última letra a la primera y las va pegando al final de r: a, am, amo, amor.',
+  },
+  {
+    id: 'salida-20',
+    title: 'Matrices',
+    code: 'Algoritmo Matriz\n    Dimension m[2, 3]\n    Para f <- 1 Hasta 2 Hacer\n        Para c <- 1 Hasta 3 Hacer\n            m[f, c] <- f * 10 + c\n        FinPara\n    FinPara\n    Escribir m[2, 1] + m[1, 3]\nFinAlgoritmo',
+    options: ['24', '33', '34', '43'],
+    answer: 2,
+    explanation: 'En m[fila, columna] primero va la fila. m[2, 1] = 2 × 10 + 1 = 21 y m[1, 3] = 13, que suman 34.',
+  },
+  {
+    id: 'salida-21',
+    title: 'Diagonal de una matriz',
+    code: 'Algoritmo Diagonal\n    Dimension m[3, 3]\n    Para f <- 1 Hasta 3 Hacer\n        Para c <- 1 Hasta 3 Hacer\n            m[f, c] <- f + c\n        FinPara\n    FinPara\n    s <- 0\n    Para i <- 1 Hasta 3 Hacer\n        s <- s + m[i, i]\n    FinPara\n    Escribir s\nFinAlgoritmo',
+    options: ['6', '12', '18', '36'],
+    answer: 1,
+    explanation: 'm[i, i] recorre solo la diagonal: m[1, 1] = 2, m[2, 2] = 4 y m[3, 3] = 6, que suman 12. Toda la matriz sumaría 36.',
+  },
 ]
 
 // Ordena el algoritmo: las líneas se muestran revueltas; la primera y la última quedan fijas. Cada nivel tiene un solo
@@ -507,10 +547,25 @@ export const ORDER_LEVELS = [
     last: 'FinAlgoritmo',
     lines: ['Dimension v[5]', 'Para i <- 1 Hasta 5 Hacer', '    Leer v[i]', 'FinPara', 'mayor <- v[1]', 'Para i <- 2 Hasta 5 Hacer', '    Si v[i] > mayor Entonces', '        mayor <- v[i]', '    FinSi', 'FinPara', 'Escribir "El mayor es ", mayor'],
   },
+  {
+    id: 'orden-13',
+    title: 'Palabra al revés',
+    first: 'Algoritmo Reves',
+    last: 'FinAlgoritmo',
+    lines: ['Leer p', 'n <- Longitud(p)', 'Para i <- n Hasta 1 Con Paso -1 Hacer', '    Escribir Sin Saltar Subcadena(p, i, i)', 'FinPara'],
+  },
+  {
+    id: 'orden-14',
+    title: 'Sumar las columnas de una matriz',
+    first: 'Algoritmo Columnas',
+    last: 'FinAlgoritmo',
+    lines: ['Dimension m[2, 3]', 'Para f <- 1 Hasta 2 Hacer', '    Para c <- 1 Hasta 3 Hacer', '        Leer m[f, c]', '    FinPara', 'FinPara', 'Para c <- 1 Hasta 3 Hacer', '    Escribir m[1, c] + m[2, c]', 'FinPara'],
+  },
 ]
 
 // Completa el diagrama de flujo (DFD). Cada casilla en blanco tiene su respuesta; las opciones son las mismas para todas.
-// Un nodo 'decision' tiene dos ramas (yes, no) que se unen en el siguiente nodo.
+// Un nodo 'decision' tiene dos ramas (yes, no) que se unen en el siguiente nodo; si a una rama le falta su nodo (no), se
+// dibuja solo la línea. Un nodo 'while' repite su cuerpo (body) mientras la condición se cumple y sale por el No.
 export const DFD_LEVELS = [
   {
     id: 'dfd-1',
@@ -679,6 +734,90 @@ export const DFD_LEVELS = [
     ],
     options: ['¿retiro <= saldo?', '¿saldo <= retiro?', 'saldo ← saldo - retiro', 'saldo ← retiro - saldo', 'Escribir "Sin fondos"', 'Escribir saldo', 'Leer saldo'],
   },
+  {
+    id: 'dfd-11',
+    title: 'Contar del 1 al 5',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'process', text: 'i ← 1' },
+      {
+        shape: 'while',
+        blank: 'A',
+        answer: '¿i <= 5?',
+        body: [
+          { shape: 'io', blank: 'B', answer: 'Escribir i' },
+          { shape: 'process', blank: 'C', answer: 'i ← i + 1' },
+        ],
+      },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿i <= 5?', '¿i > 5?', 'Escribir i', 'Leer i', 'i ← i + 1', 'i ← i - 1'],
+  },
+  {
+    id: 'dfd-12',
+    title: 'Suma del 1 al n',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'io', text: 'Leer n' },
+      { shape: 'process', text: 's ← 0' },
+      { shape: 'process', text: 'i ← 1' },
+      {
+        shape: 'while',
+        blank: 'A',
+        answer: '¿i <= n?',
+        body: [
+          { shape: 'process', blank: 'B', answer: 's ← s + i' },
+          { shape: 'process', text: 'i ← i + 1' },
+        ],
+      },
+      { shape: 'io', blank: 'C', answer: 'Escribir s' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿i <= n?', '¿i < n?', 's ← s + i', 's ← s + 1', 's ← i', 'Escribir s', 'Escribir i'],
+  },
+  {
+    id: 'dfd-13',
+    title: 'Adivina el número',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'process', text: 'secreto ← 7' },
+      { shape: 'io', text: 'Leer n' },
+      {
+        shape: 'while',
+        blank: 'A',
+        answer: '¿n <> secreto?',
+        body: [
+          { shape: 'io', text: 'Escribir "Intenta otra vez"' },
+          { shape: 'io', blank: 'B', answer: 'Leer n' },
+        ],
+      },
+      { shape: 'io', blank: 'C', answer: 'Escribir "¡Adivinaste!"' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿n <> secreto?', '¿n = secreto?', 'Leer n', 'Leer secreto', 'n ← n + 1', 'Escribir "¡Adivinaste!"'],
+  },
+  {
+    id: 'dfd-14',
+    title: 'Contar aprobados',
+    nodes: [
+      { shape: 'start', text: 'Inicio' },
+      { shape: 'process', text: 'c ← 0' },
+      { shape: 'process', text: 'k ← 1' },
+      {
+        shape: 'while',
+        blank: 'A',
+        answer: '¿k <= 10?',
+        body: [
+          { shape: 'io', text: 'Leer nota' },
+          { shape: 'decision', blank: 'B', answer: '¿nota >= 3?', yes: { shape: 'process', blank: 'C', answer: 'c ← c + 1' } },
+          { shape: 'process', blank: 'D', answer: 'k ← k + 1' },
+        ],
+      },
+      { shape: 'io', text: 'Escribir c' },
+      { shape: 'end', text: 'Fin' },
+    ],
+    options: ['¿k <= 10?', '¿k = 10?', '¿nota >= 3?', '¿nota < 3?', 'c ← c + 1', 'c ← c + nota', 'k ← k + 1'],
+  },
 ]
 
 // Caza el error: un programa de PSeInt con un solo error. Primero se encuentra la línea y luego se elige la corrección.
@@ -830,11 +969,149 @@ export const ERROR_LEVELS = [
     fix: 0,
     explanation: 'La función devuelve lo que quede en res, la variable que aparece en su primera línea. El cálculo se guardaba en a, que se pierde al terminar.',
   },
+  {
+    id: 'error-13',
+    title: 'Palabra al revés',
+    goal: 'Mostrar la palabra "sol" al revés.',
+    lines: ['Algoritmo Reves', '    p <- "sol"', '    r <- ""', '    Para i <- 1 Hasta Longitud(p) Hacer', '        r <- r + Subcadena(p, i, i)', '    FinPara', '    Escribir r', 'FinAlgoritmo'],
+    expected: 'los',
+    output: 'sol',
+    bug: 4,
+    fixes: ['        r <- Subcadena(p, i, i) + r', '        r <- Subcadena(p, i, i)', '        r <- r + Subcadena(p, 1, i)'],
+    fix: 0,
+    explanation: 'Pegar cada letra al final copia la palabra igual. Para invertirla, cada letra nueva va adelante: s, os, los.',
+  },
+  {
+    id: 'error-14',
+    title: 'Sumar una fila',
+    goal: 'Sumar la fila 1 de la matriz: 11 + 12 + 13.',
+    lines: ['Algoritmo Fila', '    Dimension m[3, 3]', '    Para f <- 1 Hasta 3 Hacer', '        Para c <- 1 Hasta 3 Hacer', '            m[f, c] <- f * 10 + c', '        FinPara', '    FinPara', '    s <- 0', '    Para c <- 1 Hasta 3 Hacer', '        s <- s + m[c, 1]', '    FinPara', '    Escribir s', 'FinAlgoritmo'],
+    expected: '36',
+    output: '63',
+    bug: 9,
+    fixes: ['        s <- s + m[1, c]', '        s <- s + m[c, c]', '        s <- s + m[1, 1]'],
+    fix: 0,
+    explanation: 'En m[fila, columna] la fila va primero. m[c, 1] recorre la columna 1 (11 + 21 + 31 = 63); la fila 1 es m[1, c].',
+  },
 ]
 
-// Casillas en blanco de un DFD, en orden (A, B, …).
+// Arduino: ¿qué hace este código? Se lee el programa y se elige lo que pasa en la placa. Las respuestas se comprobaron
+// ejecutando cada programa en C++ con funciones de Arduino simuladas (pines, tiempo y Monitor Serie).
+export const ARDUINO_LEVELS = [
+  {
+    id: 'arduino-1',
+    title: 'Encender un LED',
+    code: 'void setup() {\n  pinMode(13, OUTPUT);\n  digitalWrite(13, HIGH);\n}\n\nvoid loop() {\n}',
+    question: '¿Qué hace el LED del pin 13?',
+    options: ['Parpadea cada segundo', 'Se enciende y se queda encendido', 'No hace nada porque loop está vacío', 'Se enciende y se apaga una vez'],
+    answer: 1,
+    explanation: 'setup se ejecuta una vez al encender la placa: configura el pin como salida y lo pone en HIGH. Como loop no lo cambia, el LED sigue encendido.',
+  },
+  {
+    id: 'arduino-2',
+    title: 'Parpadeo',
+    code: 'void setup() {\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(13, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  delay(1000);\n}',
+    question: '¿Qué hace el LED del pin 13?',
+    options: ['Se enciende 1 segundo y se queda apagado', 'Parpadea: 1 segundo encendido y 1 segundo apagado, sin parar', 'Parpadea 1000 veces y para', 'Se queda encendido'],
+    answer: 1,
+    explanation: 'loop se repite sin fin. delay(1000) espera 1000 milisegundos, es decir, 1 segundo, entre encender y apagar.',
+  },
+  {
+    id: 'arduino-3',
+    title: 'Tres parpadeos',
+    code: 'void setup() {\n  pinMode(13, OUTPUT);\n  for (int i = 0; i < 3; i++) {\n    digitalWrite(13, HIGH);\n    delay(500);\n    digitalWrite(13, LOW);\n    delay(500);\n  }\n}\n\nvoid loop() {\n}',
+    question: '¿Qué hace el LED del pin 13?',
+    options: ['Parpadea 2 veces y se apaga', 'Parpadea 3 veces y se queda apagado', 'Parpadea 4 veces y se queda apagado', 'Parpadea sin parar'],
+    answer: 1,
+    explanation: 'El for va con i = 0, 1 y 2: tres vueltas. Como está en setup, pasa una sola vez y al final el LED queda en LOW.',
+  },
+  {
+    id: 'arduino-4',
+    title: 'Monitor Serie',
+    code: 'void setup() {\n  Serial.begin(9600);\n  for (int i = 1; i <= 3; i++) {\n    Serial.println(i * 2);\n  }\n}\n\nvoid loop() {\n}',
+    question: '¿Qué aparece en el Monitor Serie?',
+    options: ['1, 2 y 3, una vez', '2, 4 y 6, cada uno en su línea, una sola vez', '2, 4 y 6 repetidos sin parar', '246 en una sola línea'],
+    answer: 1,
+    explanation: 'i toma 1, 2 y 3, y se imprime el doble. println salta de línea después de cada número. Al estar en setup, no se repite.',
+  },
+  {
+    id: 'arduino-5',
+    title: 'Contador',
+    code: 'int n = 0;\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  n = n + 1;\n  Serial.println(n);\n  delay(1000);\n}',
+    question: '¿Qué aparece en el Monitor Serie?',
+    options: ['1, 2, 3, 4… un número nuevo cada segundo', '1 cada segundo, siempre el mismo', '0, 1, 2, 3… cada segundo', 'Solo un 1'],
+    answer: 0,
+    explanation: 'n está declarada fuera de las funciones, así que guarda su valor entre una vuelta de loop y la siguiente: 1, 2, 3…',
+  },
+  {
+    id: 'arduino-6',
+    title: 'La variable que se reinicia',
+    code: 'void setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int n = 0;\n  n = n + 1;\n  Serial.println(n);\n  delay(1000);\n}',
+    question: '¿Qué aparece en el Monitor Serie?',
+    options: ['1, 2, 3, 4… un número nuevo cada segundo', '1 cada segundo, siempre el mismo', '0 cada segundo', 'Nada, porque n no está declarada'],
+    answer: 1,
+    explanation: 'Aquí n se declara dentro de loop: en cada vuelta vuelve a nacer en 0 y sube a 1. Por eso siempre muestra 1.',
+  },
+  {
+    id: 'arduino-7',
+    title: 'Botón',
+    code: 'void setup() {\n  pinMode(2, INPUT);   // botón con resistencia a tierra\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  if (digitalRead(2) == HIGH) {\n    digitalWrite(13, HIGH);\n  } else {\n    digitalWrite(13, LOW);\n  }\n}',
+    question: '¿Qué hace el LED del pin 13?',
+    options: ['Se enciende solo mientras el botón está presionado', 'Cambia de encendido a apagado con cada pulsación', 'Se enciende al presionar y ya no se apaga', 'Se apaga mientras el botón está presionado'],
+    answer: 0,
+    explanation: 'loop revisa el botón miles de veces por segundo. Presionado se lee HIGH y el LED se enciende; al soltarlo se lee LOW y se apaga.',
+  },
+  {
+    id: 'arduino-8',
+    title: 'Botón con INPUT_PULLUP',
+    code: 'void setup() {\n  pinMode(2, INPUT_PULLUP);   // botón entre el pin 2 y tierra\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  if (digitalRead(2) == LOW) {\n    digitalWrite(13, HIGH);\n  } else {\n    digitalWrite(13, LOW);\n  }\n}',
+    question: '¿Qué hace el LED del pin 13?',
+    options: ['Se enciende cuando el botón está suelto', 'Se enciende solo mientras el botón está presionado', 'Se queda siempre encendido', 'Se queda siempre apagado'],
+    answer: 1,
+    explanation: 'Con INPUT_PULLUP el pin se lee HIGH cuando el botón está suelto y LOW cuando se presiona, porque el botón lo une a tierra. Por eso se compara con LOW.',
+  },
+  {
+    id: 'arduino-9',
+    title: 'Sensor de luz',
+    code: 'void setup() {\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  int luz = analogRead(A0);   // 0 = oscuro, 1023 = mucha luz\n  if (luz < 300) {\n    digitalWrite(13, HIGH);\n  } else {\n    digitalWrite(13, LOW);\n  }\n}',
+    question: '¿Cuándo se enciende el LED?',
+    options: ['Cuando hay mucha luz', 'Cuando hay poca luz (lectura menor que 300)', 'Solo una vez, al encender la placa', 'Cada 300 milisegundos'],
+    answer: 1,
+    explanation: 'analogRead da un número de 0 a 1023. Si la lectura baja de 300 está oscuro y el LED se enciende, como una luz nocturna.',
+  },
+  {
+    id: 'arduino-10',
+    title: 'Brillo por pasos',
+    code: 'void setup() {\n  pinMode(9, OUTPUT);\n}\n\nvoid loop() {\n  for (int b = 0; b <= 255; b = b + 51) {\n    analogWrite(9, b);\n    delay(500);\n  }\n}',
+    question: '¿Qué hace el LED del pin 9?',
+    options: ['Parpadea 255 veces', 'Sube de brillo en 6 pasos, de apagado a máximo, y vuelve a empezar', 'Se enciende al máximo y se queda así', 'Baja de brillo de máximo a apagado'],
+    answer: 1,
+    explanation: 'b toma 0, 51, 102, 153, 204 y 255: seis brillos, medio segundo cada uno. Después loop vuelve a empezar desde 0.',
+  },
+  {
+    id: 'arduino-11',
+    title: 'Potenciómetro',
+    code: 'void setup() {\n  pinMode(9, OUTPUT);\n}\n\nvoid loop() {\n  int v = analogRead(A0);   // potenciómetro: 0 a 1023\n  int brillo = map(v, 0, 1023, 0, 255);\n  analogWrite(9, brillo);\n}',
+    question: '¿Qué hace el LED del pin 9?',
+    options: ['Se enciende o apaga según el potenciómetro, sin brillos intermedios', 'Su brillo sigue al potenciómetro: más giro, más brillo', 'Brilla siempre al máximo', 'Su brillo baja cuanto más se gira'],
+    answer: 1,
+    explanation: 'map pasa la lectura de 0–1023 a 0–255, la escala de analogWrite. Con 0 queda apagado, con 1023 al máximo y en medio, brillos intermedios.',
+  },
+  {
+    id: 'arduino-12',
+    title: 'Semáforo',
+    code: 'void setup() {\n  pinMode(10, OUTPUT);   // rojo\n  pinMode(11, OUTPUT);   // amarillo\n  pinMode(12, OUTPUT);   // verde\n}\n\nvoid loop() {\n  digitalWrite(12, HIGH);\n  delay(3000);\n  digitalWrite(12, LOW);\n  digitalWrite(11, HIGH);\n  delay(1000);\n  digitalWrite(11, LOW);\n  digitalWrite(10, HIGH);\n  delay(3000);\n  digitalWrite(10, LOW);\n}',
+    question: '¿En qué orden se encienden las luces?',
+    options: ['Rojo 3 s, amarillo 1 s, verde 3 s', 'Verde 3 s, amarillo 1 s, rojo 3 s, y se repite', 'Las tres a la vez durante 7 s', 'Verde, amarillo y rojo una sola vez'],
+    answer: 1,
+    explanation: 'Cada luz se enciende, espera y se apaga antes de la siguiente: verde (pin 12), amarillo (11) y rojo (10). loop repite el ciclo.',
+  },
+]
+
+// Casillas en blanco de un DFD, en orden (A, B, …). Recorre las ramas de las decisiones y el cuerpo de los ciclos.
 export function dfdBlanks(level) {
-  return level.nodes.flatMap((node) => [node, node.yes, node.no].filter((item) => item?.blank))
+  const walk = (nodes) => nodes.flatMap((node) => [node, node.yes, node.no].filter((item) => item?.blank).concat(walk(node.body ?? [])))
+  return walk(level.nodes)
 }
 
 // Revuelve las líneas sin dejarlas en el orden correcto.

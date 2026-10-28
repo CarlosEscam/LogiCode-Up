@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { DIRECTIONS, MAX_STEPS, boardProblem, countBlocks, parseLevel, programText, runProgram } from './blocks.js'
-import { BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
+import { ARDUINO_LEVELS, BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
 
 // Menor número de bloques Avanzar/Girar (sin ciclos ni condiciones) que lleva el robot a la meta.
 function shortestSequence(level) {
@@ -77,9 +77,9 @@ describe('Niveles de los juegos', () => {
   })
 
   it('los ids de cada juego no se repiten y las opciones de cada nivel tampoco', () => {
-    ;[BLOCK_LEVELS, OUTPUT_LEVELS, ORDER_LEVELS, DFD_LEVELS].forEach((levels) => expect(new Set(levels.map((level) => level.id)).size).toBe(levels.length))
-    ;[...OUTPUT_LEVELS, ...DFD_LEVELS].forEach((level) => expect(new Set(level.options).size, level.id).toBe(level.options.length))
-    expect([OUTPUT_LEVELS.length, ORDER_LEVELS.length, DFD_LEVELS.length]).toEqual([16, 12, 10])
+    ;[BLOCK_LEVELS, OUTPUT_LEVELS, ORDER_LEVELS, DFD_LEVELS, ARDUINO_LEVELS].forEach((levels) => expect(new Set(levels.map((level) => level.id)).size).toBe(levels.length))
+    ;[...OUTPUT_LEVELS, ...DFD_LEVELS, ...ARDUINO_LEVELS].forEach((level) => expect(new Set(level.options).size, level.id).toBe(level.options.length))
+    expect([OUTPUT_LEVELS.length, ORDER_LEVELS.length, DFD_LEVELS.length, ERROR_LEVELS.length, ARDUINO_LEVELS.length]).toEqual([21, 14, 14, 14, 12])
   })
 
   it('cada nivel de Caza el error marca una línea real y su corrección cambia esa línea', () => {
@@ -92,9 +92,17 @@ describe('Niveles de los juegos', () => {
   })
 
   it('las respuestas de los otros juegos están entre sus opciones', () => {
-    OUTPUT_LEVELS.forEach((level) => expect(level.options[level.answer]).toBeDefined())
+    ;[...OUTPUT_LEVELS, ...ARDUINO_LEVELS].forEach((level) => expect(level.options[level.answer], level.id).toBeDefined())
+    ARDUINO_LEVELS.forEach((level) => expect(level.question, level.id).toBeTruthy())
     DFD_LEVELS.forEach((level) => dfdBlanks(level).forEach((blank) => expect(level.options).toContain(blank.answer)))
     ORDER_LEVELS.forEach((level) => expect(shuffle(level.lines)).not.toEqual(level.lines))
+  })
+
+  it('las casillas de un DFD con ciclo incluyen la condición, el cuerpo y las ramas de adentro, en orden', () => {
+    const loops = DFD_LEVELS.filter((level) => level.nodes.some((node) => node.shape === 'while'))
+    expect(loops.map((level) => level.id)).toEqual(['dfd-11', 'dfd-12', 'dfd-13', 'dfd-14'])
+    loops.forEach((level) => expect(dfdBlanks(level).map((node) => node.blank).join(''), level.id).toBe('ABCD'.slice(0, dfdBlanks(level).length)))
+    expect(dfdBlanks(DFD_LEVELS.find((level) => level.id === 'dfd-14')).map((node) => node.answer)).toEqual(['¿k <= 10?', '¿nota >= 3?', 'c ← c + 1', 'k ← k + 1'])
   })
 })
 
@@ -106,8 +114,8 @@ describe('Página de juegos', () => {
     render(<App />)
 
     const list = await screen.findByRole('region', { name: 'Juegos' })
-    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(5)
-    expect(screen.getByRole('status')).toHaveTextContent('5 juegos · 74 niveles')
+    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(6)
+    expect(screen.getByRole('status')).toHaveTextContent('6 juegos · 99 niveles')
     // Con un nivel resuelto, el botón lleva al primero que falta.
     expect(screen.getByRole('link', { name: 'Seguir jugando: ¿Qué imprime?' })).toHaveAttribute('href', `/juegos?juego=salida&nivel=${OUTPUT_LEVELS[1].id}`)
 
@@ -118,6 +126,37 @@ describe('Página de juegos', () => {
     fireEvent.change(screen.getByLabelText('Tema'), { target: { value: '' } })
     expect(within(list).getByRole('heading', { level: 2 })).toHaveTextContent('Completa el DFD')
     window.localStorage.clear()
+  })
+
+  it('completa un DFD con un ciclo que tiene una decisión adentro', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.history.replaceState(null, '', '/juegos?juego=dfd&nivel=dfd-14')
+    render(<App />)
+
+    const answers = { 'Casilla A (ciclo mientras)': '¿k <= 10?', 'Casilla B (decisión)': '¿nota >= 3?', 'Casilla C (proceso)': 'c ← c + 1', 'Casilla D (proceso)': 'c ← c + 1' }
+    for (const [name, value] of Object.entries(answers)) fireEvent.change(await screen.findByLabelText(name), { target: { value } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Revisa la casilla D')
+    fireEvent.change(screen.getByLabelText('Casilla D (proceso)'), { target: { value: 'k ← k + 1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('¡Diagrama completo!')
+    expect(screen.getByRole('img', { name: /ciclo: mientras ¿k <= 10\?, repite;.*si no, nada;.*fin del ciclo/ })).toBeInTheDocument()
+  })
+
+  it('en el juego de Arduino se elige qué pasa en la placa', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.history.replaceState(null, '', '/juegos?juego=arduino&nivel=arduino-6')
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: '¿Qué hace este código?' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '¿Qué aparece en el Monitor Serie?' })).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('1, 2, 3, 4… un número nuevo cada segundo'))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('qué pasa en cada pin')
+    fireEvent.click(screen.getByLabelText('1 cada segundo, siempre el mismo'))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('¡Correcto!')
+    expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ arduino: ['arduino-6'] })
   })
 
   it('se juega sin sesión y recuerda los niveles resueltos', async () => {
@@ -133,7 +172,7 @@ describe('Página de juegos', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
     expect(screen.getByRole('status')).toHaveTextContent('¡Correcto!')
     expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ salida: ['salida-1'] })
-    expect(screen.getByText('1 de 16 niveles resueltos')).toBeInTheDocument()
+    expect(screen.getByText('1 de 21 niveles resueltos')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente nivel' }))
     expect(screen.getByRole('heading', { name: 'Intercambio' })).toBeInTheDocument()

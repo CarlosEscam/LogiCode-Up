@@ -18,10 +18,10 @@ export default function OutputGame({ level, onSolved, onNext }) {
         }}
       >
         <fieldset className="choices">
-          <legend>¿Qué muestra en pantalla?</legend>
+          <legend>{level.question ?? '¿Qué muestra en pantalla?'}</legend>
           {level.options.map((option, index) => (
             <label key={option}>
-              <input type="radio" name="salida" checked={choice === index} onChange={() => setChoice(index)} /> <code>{option}</code>
+              <input type="radio" name="salida" checked={choice === index} onChange={() => setChoice(index)} /> {level.question ? option : <code>{option}</code>}
             </label>
           ))}
         </fieldset>
@@ -34,7 +34,7 @@ export default function OutputGame({ level, onSolved, onNext }) {
           <Solved onNext={onNext}>¡Correcto! {level.explanation}</Solved>
         ) : (
           <p className="notice notice--error" role="status">
-            No es esa. Sigue el programa línea por línea y anota cuánto vale cada variable.
+            No es esa. Sigue el programa línea por línea y anota cuánto vale cada variable{level.question ? ' y qué pasa en cada pin' : ''}.
           </p>
         ))}
     </section>

@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 28 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" rediseño visual con el Canva y juegos como catálogo entregados**
+Última actualización: 28 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -24,6 +24,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · juegos con más niveles y personajes del robot | Implementada; Carlos aprobó los 20 niveles y los personajes y pidió más niveles en todos los juegos (27 de octubre) | Detalle abajo |
 | Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
+| Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
 
 ## Datos de demostración
 
@@ -52,8 +53,8 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 
 | Elemento | Estado | Notas |
 | --- | --- | --- |
-| Catálogo de juegos | Implementado | `/juegos` muestra los cinco juegos como tarjetas, igual que la biblioteca muestra materiales: dibujo del juego, herramienta (Scratch, PSeInt o DFD), temas, descripción y "N de M niveles resueltos". El botón dice "Jugar" o "Seguir jugando" y abre el primer nivel sin resolver |
-| Filtros | Implementado | Buscar por nombre o descripción, Herramienta y Tema (Secuencias, Variables, Condiciones, Ciclos, Arreglos, Funciones, Rutas, Depuración), en la franja lavanda como en la biblioteca. Si ningún juego coincide lo dice |
+| Catálogo de juegos | Implementado | `/juegos` muestra los seis juegos como tarjetas, igual que la biblioteca muestra materiales: dibujo del juego, herramienta (Scratch, PSeInt, DFD o Arduino), temas, descripción y "N de M niveles resueltos". El botón dice "Jugar" o "Seguir jugando" y abre el primer nivel sin resolver |
+| Filtros | Implementado | Buscar por nombre o descripción, Herramienta y Tema (Secuencias, Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones, Rutas, Depuración, Sensores y actuadores), en la franja lavanda como en la biblioteca. Si ningún juego coincide lo dice |
 | Página de cada juego | Implementado | `/juegos?juego=<clave>&nivel=<id>`: enlace "← Juegos", herramienta y temas, avance y los niveles resueltos marcados con ✓. Los juegos y sus niveles no cambian |
 | Agregar juegos | Implementado | Un juego nuevo es una entrada más en la lista `GAMES` de `GamesPage.jsx` (clave, nombre, herramienta, temas, niveles, componente y descripción); la tarjeta y los filtros salen solos (T-83) |
 
@@ -81,6 +82,22 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 ### Punto de control
 
 Pendiente: revisión de Carlos (importar `datos-demo/muestras/lista-estudiantes.xlsx`, abrir la planilla exportada en Excel) y una prueba con PDF real en el equipo de referencia con la IA encendida.
+
+## Juego de Arduino, matrices y textos, ciclos en DFD · detalle
+
+| Elemento | Estado | Detalle |
+|---|---|---|
+| Juego nuevo "¿Qué hace este código?" (Arduino, 12 niveles) | Implementado | Tarjeta Arduino en `/juegos` (`ARDUINO_LEVELS`, usa el componente de "¿Qué imprime?" con una pregunta propia por nivel). Se lee el programa y se elige lo que pasa en la placa: LED fijo, parpadeo, `for` en `setup`, Monitor Serie, variable global contra variable dentro de `loop`, botón con `INPUT` y con `INPUT_PULLUP`, sensor de luz con `analogRead`, brillo con `analogWrite`, potenciómetro con `map` y semáforo (T-84) |
+| Matrices y textos en PSeInt | Implementado | "¿Qué imprime?" pasa a 21 niveles (textos con `Subcadena`, `Mayusculas` y `Longitud`, recorrer un texto, palabra al revés, matrices y diagonal), "Caza el error" a 14 (palabra al revés, fila contra columna de una matriz) y "Ordena el algoritmo" a 14 (palabra al revés, sumar las columnas de una matriz). Solo usan posiciones de 1 en adelante, que funcionan igual en el intérprete de LogiCode y en PSeInt |
+| Ciclos en "Completa el DFD" | Implementado | 14 niveles. Figura nueva `while`: rombo con el cuerpo debajo por el Sí, flecha de regreso por la izquierda y salida por el No a la derecha. Niveles: contar del 1 al 5, suma del 1 al n, adivina el número y contar aprobados (una decisión dentro del ciclo, con la rama No vacía). El texto alternativo del diagrama dice dónde empieza y termina el ciclo |
+| Niveles aceptados por Carlos | **Pendiente: revisión de Carlos** | Capturas en `capturas-arduino-matrices-dfd/` |
+
+### Verificación realizada (Arduino, matrices y textos, ciclos en DFD)
+
+- Programas de PSeInt: todos los niveles de "¿Qué imprime?", "Ordena" y "Caza el error" (los nuevos y los anteriores) se ejecutaron con el intérprete de LogiCode compilado aparte: cada respuesta coincide y ninguna otra opción da lo mismo; en Caza el error, con el error sale lo que dice el nivel, con la corrección correcta lo esperado y con las otras no.
+- Programas de Arduino: cada uno se compiló con g++ y funciones de Arduino simuladas (pines, tiempo, `analogRead`, `map` y Monitor Serie), con el botón presionado y suelto y con varias lecturas del sensor; la traza coincide con la respuesta de cada nivel. No se probaron en una placa real.
+- Interfaz: 69 pruebas (nuevas: casillas de un DFD con ciclo, un DFD con ciclo completo, el juego de Arduino y conteos), oxlint sin hallazgos y compilación de Vite.
+- axe sin hallazgos en el catálogo, Arduino, un DFD con ciclo y los niveles nuevos de PSeInt a 1366 px y a 390 px, sin desborde lateral. Se corrigió un hallazgo anterior: en el teléfono las líneas largas de "Ordena" creaban barras de desplazamiento sin teclado; ahora bajan de renglón.
 
 ## Juegos ampliados: más niveles y personajes del robot · detalle
 
@@ -219,7 +236,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Quizzes calificables y de repaso (RF-10, RF-21) | Implementado | Tipos de actividad "Quiz calificable" y "Quiz de repaso" (T-53): mismas fechas, publicación, excepciones y planilla que las demás actividades. Las preguntas elegidas y su clave quedan como la rúbrica versionada del quiz (T-54). El de repaso no da nota, se repite libremente y muestra la revisión al terminar |
 | Tiempo total, envío automático e intentos (RN-13) | Implementado | El tiempo corre desde que empieza el intento; la página guarda las respuestas solas y lo envía al acabarse. Si el navegador se cierra, el servidor lo envía con lo guardado (revisión cada 30 s, margen de 30 s, T-56). Un intento por defecto; el docente da otro con "Plazo e intentos" |
 | Nota por aciertos y ranking (RN-14, RF-16) | Implementado | Nota = 5 × puntos obtenidos ÷ puntos totales, con un decimal; se publica como "Automática" y entra a la planilla como una entrega más. Ranking por nota y luego por menor tiempo; en el calificable cuenta el último intento y en el de repaso el mejor (T-57). La revisión del calificable se abre cuando cierra el quiz (T-58) |
-| Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (16 niveles, respuestas comprobadas con el intérprete), "Caza el error" (12), "Ordena el algoritmo" (12), "Completa el DFD" (10, diagrama dibujado en SVG) y "Bloques" (24 niveles desde el 27 de octubre: secuencia, ruta, ciclo, ciclos anidados, condición y depuración, con ejecución animada, paso a paso, límite de bloques y personaje del robot a elegir). Avance guardado solo en el navegador (T-59) |
+| Juegos de salida, orden, DFD y bloques (RF-22, RN-19) | Implementado | Página pública `/juegos`: "¿Qué imprime?" (21 niveles, respuestas comprobadas con el intérprete), "Caza el error" (14), "Ordena el algoritmo" (14), "Completa el DFD" (14, diagrama dibujado en SVG, con ciclos), "¿Qué hace este código?" de Arduino (12) y "Bloques" (24 niveles desde el 27 de octubre: secuencia, ruta, ciclo, ciclos anidados, condición y depuración, con ejecución animada, paso a paso, límite de bloques y personaje del robot a elegir). Avance guardado solo en el navegador (T-59) |
 | Niveles de bloques configurados por el docente (RF-12, "criterios de bloques") | Implementado después de la Etapa 10 | Los niveles de `/juegos` siguen fijos en el código; el docente configura retos calificables en la rúbrica (ver "Retos de bloques" arriba) |
 | Instrucciones de PSeInt no cubiertas | Pendiente | `Para Cada` y el perfil estricto (declarar todo, `;` obligatorio). Un programa que las use va a revisión del docente, nunca recibe un 0 automático |
 

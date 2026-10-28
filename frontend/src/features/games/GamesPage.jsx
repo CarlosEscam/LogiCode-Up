@@ -7,7 +7,7 @@ import DfdGame from './DfdGame.jsx'
 import ErrorGame from './ErrorGame.jsx'
 import OrderGame from './OrderGame.jsx'
 import OutputGame from './OutputGame.jsx'
-import { BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
+import { ARDUINO_LEVELS, BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
 import { loadProgress, markSolved } from './progress.js'
 
 // Para agregar un juego basta otra entrada aquí: herramienta y temas alimentan los filtros del catálogo.
@@ -25,7 +25,7 @@ const GAMES = [
     key: 'salida',
     label: '¿Qué imprime?',
     tool: 'PSEINT',
-    topics: ['Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Funciones'],
+    topics: ['Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Matrices', 'Textos', 'Funciones'],
     levels: OUTPUT_LEVELS,
     Game: OutputGame,
     about: 'Lee el programa de PSeInt y elige lo que muestra en pantalla.',
@@ -34,7 +34,7 @@ const GAMES = [
     key: 'error',
     label: 'Caza el error',
     tool: 'PSEINT',
-    topics: ['Depuración', 'Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Funciones'],
+    topics: ['Depuración', 'Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Matrices', 'Textos', 'Funciones'],
     levels: ERROR_LEVELS,
     Game: ErrorGame,
     about: 'Cada programa tiene un error: encuentra la línea que falla y elige cómo corregirla.',
@@ -43,7 +43,7 @@ const GAMES = [
     key: 'orden',
     label: 'Ordena el algoritmo',
     tool: 'PSEINT',
-    topics: ['Secuencias', 'Condiciones', 'Ciclos', 'Arreglos'],
+    topics: ['Secuencias', 'Condiciones', 'Ciclos', 'Arreglos', 'Matrices', 'Textos'],
     levels: ORDER_LEVELS,
     Game: OrderGame,
     about: 'Pon las instrucciones en el orden correcto.',
@@ -52,14 +52,23 @@ const GAMES = [
     key: 'dfd',
     label: 'Completa el DFD',
     tool: 'DFD',
-    topics: ['Secuencias', 'Condiciones'],
+    topics: ['Secuencias', 'Condiciones', 'Ciclos'],
     levels: DFD_LEVELS,
     Game: DfdGame,
     about: 'Completa las casillas del diagrama de flujo.',
   },
+  {
+    key: 'arduino',
+    label: '¿Qué hace este código?',
+    tool: 'ARDUINO',
+    topics: ['Sensores y actuadores', 'Variables', 'Condiciones', 'Ciclos'],
+    levels: ARDUINO_LEVELS,
+    Game: OutputGame,
+    about: 'Lee el programa de Arduino y elige lo que pasa en la placa: LED, botón, sensor o Monitor Serie.',
+  },
 ]
 
-const TOPICS = ['Secuencias', 'Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Funciones', 'Rutas', 'Depuración']
+const TOPICS = ['Secuencias', 'Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Matrices', 'Textos', 'Funciones', 'Rutas', 'Depuración', 'Sensores y actuadores']
 const TOOLS = [...new Set(GAMES.map((game) => game.tool))]
 
 // Juegos de práctica (RF-22): abiertos a cualquiera, sin nota. El avance se guarda solo en este navegador.
@@ -216,6 +225,7 @@ function GameArt({ gameKey }) {
         </text>
       </svg>
     ),
+    arduino: <code>{'digitalWrite(13, HIGH);\ndelay(1000);\n// ¿Qué hace?'}</code>,
   }
   return (
     <div className={`game-art game-art--${gameKey}`} aria-hidden="true">

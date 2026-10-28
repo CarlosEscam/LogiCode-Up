@@ -1103,8 +1103,10 @@ td .console {
 
 .order-line__code {
   flex: 1;
-  white-space: pre;
-  overflow-x: auto;
+  min-width: 0;
+  /* En el teléfono las líneas largas bajan de renglón en vez de crear una barra de desplazamiento */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .order-line--fixed {
@@ -1672,6 +1674,10 @@ td .console {
 
 .game-art--dfd {
   background: #dff1e6;
+}
+
+.game-art--arduino {
+  background: #d9f1f2;
 }
 
 .game-art__grid {
