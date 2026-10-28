@@ -99,6 +99,27 @@ describe('Niveles de los juegos', () => {
 })
 
 describe('Página de juegos', () => {
+  it('muestra el catálogo y filtra los juegos por herramienta y tema', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.localStorage.setItem('logicode.juegos.v1', JSON.stringify({ salida: ['salida-1'] }))
+    window.history.replaceState(null, '', '/juegos')
+    render(<App />)
+
+    const list = await screen.findByRole('region', { name: 'Juegos' })
+    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(5)
+    expect(screen.getByRole('status')).toHaveTextContent('5 juegos · 74 niveles')
+    // Con un nivel resuelto, el botón lleva al primero que falta.
+    expect(screen.getByRole('link', { name: 'Seguir jugando: ¿Qué imprime?' })).toHaveAttribute('href', `/juegos?juego=salida&nivel=${OUTPUT_LEVELS[1].id}`)
+
+    fireEvent.change(screen.getByLabelText('Tema'), { target: { value: 'Funciones' } })
+    expect(within(list).getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual(['¿Qué imprime?', 'Caza el error'])
+    fireEvent.change(screen.getByLabelText('Herramienta'), { target: { value: 'DFD' } })
+    expect(screen.getByText('No hay juegos con estos filtros.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Tema'), { target: { value: '' } })
+    expect(within(list).getByRole('heading', { level: 2 })).toHaveTextContent('Completa el DFD')
+    window.localStorage.clear()
+  })
+
   it('se juega sin sesión y recuerda los niveles resueltos', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
     window.history.replaceState(null, '', '/juegos?juego=salida')
@@ -112,7 +133,7 @@ describe('Página de juegos', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
     expect(screen.getByRole('status')).toHaveTextContent('¡Correcto!')
     expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ salida: ['salida-1'] })
-    expect(screen.getByRole('tab', { name: '¿Qué imprime? (1/16)' })).toBeInTheDocument()
+    expect(screen.getByText('1 de 16 niveles resueltos')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente nivel' }))
     expect(screen.getByRole('heading', { name: 'Intercambio' })).toBeInTheDocument()

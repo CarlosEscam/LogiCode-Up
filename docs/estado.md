@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 27 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" y rediseño visual con el Canva entregados**
+Última actualización: 28 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" rediseño visual con el Canva y juegos como catálogo entregados**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -23,6 +23,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
 | Ampliación · juegos con más niveles y personajes del robot | Implementada; Carlos aprobó los 20 niveles y los personajes y pidió más niveles en todos los juegos (27 de octubre) | Detalle abajo |
 | Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
+| Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 
 ## Datos de demostración
 
@@ -34,7 +35,7 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 | --- | --- | --- |
 | Colores, letras y botones | Implementado | Fondo crema, franja lavanda bajo la barra superior, títulos con serifa (Fraunces), texto en DM Sans, código en JetBrains Mono y morado como color de acento, tomados del diseño de Canva "Página web educativa para estudiantes". Las tres fuentes van en `frontend/public/fonts/` (licencia OFL): la CSP solo permite archivos propios y el piloto puede no tener internet (T-82). Todo en `styles/global.css` |
 | Barra superior | Implementado | Logo, menú con iconos (`shared/ui/Icon.jsx`) y la opción actual en morado; agrega "Inicio". En el celular el menú es una fila que se desliza de lado y deja a la vista la opción actual. Los permisos de cada opción no cambian |
-| Encabezado de página | Implementado | La primera sección del curso, la biblioteca, el foro y los juegos es una franja lavanda de borde a borde (`page-head`). Las pestañas del curso cierran la franja; las de los juegos son pastillas |
+| Encabezado de página | Implementado | La primera sección del curso, la biblioteca, el foro y los juegos es una franja lavanda de borde a borde (`page-head`). Las pestañas del curso cierran la franja; los niveles de cada juego son pastillas |
 | Inicio | Implementado | Presentación con el título, los botones de ingreso y registro, un algoritmo de PSeInt en un arco y el cerebro del juego de bloques como mascota (`BrainMascot`). En lugar de la foto del Canva va el arco, porque no hay una foto con permiso de uso |
 | Iniciar sesión | Implementado | Tarjeta con un lado lavanda y la mascota; los campos y enlaces son los mismos |
 | Biblioteca y foro | Implementado | Los filtros van en una barra dentro de la franja. La biblioteca muestra cada material como tarjeta con su formato; el foro muestra las iniciales del autor y el número de respuestas a la derecha, y el formulario "Abrir un hilo" al lado de la lista en el computador |
@@ -46,6 +47,20 @@ Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticio
 - Interfaz: 65 pruebas, oxlint sin hallazgos y compilación de Vite.
 - Con backend y datos demo en una base limpia: axe sin hallazgos (WCAG 2.1 AA y buenas prácticas) en 24 pantallas (inicio, ingreso, registro, biblioteca, foro, hilo, juegos, Caza el error, mi cuenta, las seis pestañas del curso, Mis notas, PSeInt, una actividad, panel de administración, usuarios y auditoría) a 1366 px y a 390 px, sin desborde lateral. Capturas en `capturas-rediseno/`.
 - Solo se pudo ver la parte de arriba del diseño de Canva (está en otra cuenta); el resto de las pantallas siguen el mismo estilo.
+
+## Juegos como catálogo · detalle
+
+| Elemento | Estado | Notas |
+| --- | --- | --- |
+| Catálogo de juegos | Implementado | `/juegos` muestra los cinco juegos como tarjetas, igual que la biblioteca muestra materiales: dibujo del juego, herramienta (Scratch, PSeInt o DFD), temas, descripción y "N de M niveles resueltos". El botón dice "Jugar" o "Seguir jugando" y abre el primer nivel sin resolver |
+| Filtros | Implementado | Buscar por nombre o descripción, Herramienta y Tema (Secuencias, Variables, Condiciones, Ciclos, Arreglos, Funciones, Rutas, Depuración), en la franja lavanda como en la biblioteca. Si ningún juego coincide lo dice |
+| Página de cada juego | Implementado | `/juegos?juego=<clave>&nivel=<id>`: enlace "← Juegos", herramienta y temas, avance y los niveles resueltos marcados con ✓. Los juegos y sus niveles no cambian |
+| Agregar juegos | Implementado | Un juego nuevo es una entrada más en la lista `GAMES` de `GamesPage.jsx` (clave, nombre, herramienta, temas, niveles, componente y descripción); la tarjeta y los filtros salen solos (T-83) |
+
+### Verificación realizada (juegos como catálogo)
+
+- Interfaz: 66 pruebas (una nueva para el catálogo y sus filtros), oxlint sin hallazgos y compilación de Vite.
+- axe sin hallazgos en el catálogo, Bloques y Caza el error a 1366 px y a 390 px, sin desborde lateral. Capturas en `capturas-juegos-catalogo/`.
 
 ## Excel y PDF (P-07 y P-08) · detalle
 

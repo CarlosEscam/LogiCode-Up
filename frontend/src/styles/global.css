@@ -1633,6 +1633,109 @@ td .console {
   margin-left: 0;
 }
 
+/* Juegos: catálogo en tarjetas, como la biblioteca */
+.game-art {
+  display: grid;
+  place-items: center;
+  height: 7rem;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-band);
+}
+
+.game-art code {
+  display: block;
+  font: 500 0.78rem / 1.6 var(--font-code);
+  white-space: pre;
+}
+
+.game-art--salida {
+  background: var(--color-text);
+  color: #efe9f7;
+}
+
+.game-art--error {
+  background: #fde3e3;
+}
+
+.game-art--error mark {
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  background: #f7b9bd;
+  color: inherit;
+}
+
+.game-art--orden {
+  background: #fff0c9;
+}
+
+.game-art--dfd {
+  background: #dff1e6;
+}
+
+.game-art__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1.25rem);
+  gap: 3px;
+}
+
+.game-art__cell {
+  height: 1.25rem;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.game-art__cell--w {
+  background: var(--color-text);
+}
+
+.game-art__cell--p {
+  background: #f49ac1;
+}
+
+.game-art__cell--g {
+  background: #ffe7a3;
+}
+
+.game-card .material__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.game-progress {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 20rem;
+  margin: 0.75rem 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.game-progress__bar {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-band-strong);
+}
+
+.game-progress__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.game-card .game-progress__bar {
+  background: var(--color-band);
+}
+
+.level--done {
+  border-color: #b9dfc8;
+  background: #dff1e6;
+}
+
 /* Foro: lista de hilos y formulario al lado */
 .forum-layout {
   display: grid;
