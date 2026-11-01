@@ -42,7 +42,7 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 | 1000000204 | David Suárez Mora | Estudiante del curso | Entrega de la Tarea 1 en Por revisar |
 | 1000000205 | Elena Vargas Ruiz | Estudiante del curso | Tarea 1 vencida (0,0); segundo intento del Taller 2 |
 | 1000000206 | Felipe Ortiz Cano | Estudiante del curso | Tarea 1 vencida pero con plazo ampliado: puede entregar |
-| 1000000207 | Gabriela Ruiz Peña | Inscrita sin registrarse | Aparece como "Aún no se registra" |
+| 1000000207 | Gabriela Ruiz Peña | Inscrita sin registrarse | Aparece como "Pendiente" en Estudiantes (aún no se registra) |
 | 1000000208 | Hugo Lara Medina | Estudiante fuera del curso | Solo ve la biblioteca pública |
 | 1000000209 | Iván Castro Rueda | Inscrito sin registrarse | Llegó con la lista de Excel (P-07) |
 | 1000000210 | Juliana Mora Díaz | Inscrita sin registrarse | Llegó con la lista de Excel (P-07) |
@@ -134,7 +134,7 @@ En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar caso
 
 Para probar la moderación, entra con Laura o Diana y usa "Fijar arriba", "Cerrar a respuestas" o "Eliminar" dentro de un hilo; con un estudiante esos botones no aparecen.
 
-**Planilla**: pestaña "Planilla" del curso (Laura, Diana o una cuenta inicial) y "Mis notas" para cada estudiante. No agrega notas nuevas: muestra las de las etapas anteriores. Como el curso ya tenía porcentajes que suman 100 % (Tarea 1 30 %, Taller 2 30 % y Evaluación 1 40 %), Quiz 1, Taller 3 y Taller 4 quedan en 0 % y la planilla lo avisa; para verlas pesar, quita o baja un porcentaje desde la actividad. "Exportar a Excel (CSV)" descarga la misma tabla.
+**Planilla**: pestaña "Planilla" del curso (Laura, Diana o una cuenta inicial) y "Mis notas" para cada estudiante. No agrega notas nuevas: muestra las de las etapas anteriores. Como el curso ya tenía porcentajes que suman 100 % (Tarea 1 30 %, Taller 2 30 % y Evaluación 1 40 %), Quiz 1, Taller 3 y Taller 4 quedan en 0 % y la planilla lo avisa; para verlas pesar, quita o baja un porcentaje desde la actividad. "Exportar a Excel (.xlsx)" y "Exportar a CSV" descargan la misma tabla.
 
 **Panel de administración**: `/admin` con Diana o una cuenta inicial: cifras de la plataforma y respaldos. El primer respaldo diario lo hace el servicio `backup` a la hora de `BACKUP_HOUR`; con "Crear respaldo ahora" se ve uno en un minuto.
 

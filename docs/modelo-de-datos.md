@@ -17,6 +17,9 @@
 
 ## Esquema actual (implementado)
 
+Revisado contra las migraciones `V1` a `V8` el 1 de noviembre de 2026. Son 31 tablas de negocio, más `flyway_schema_history` (de Flyway) y las dos de sesiones de Spring Session. Las fechas `created_at`, `updated_at` y la columna `version` (bloqueo optimista) se omiten en los diagramas cuando no aportan.
+
+
 | Migración | Contenido |
 | --- | --- |
 | `V1__linea_base.sql` | Línea base: no crea tablas de negocio. Flyway crea su tabla `flyway_schema_history` |
@@ -27,6 +30,54 @@
 | `V6__quizzes_y_pseint.sql` | Etapa 7: tipos de actividad `QUIZ` y `PRACTICE_QUIZ`, casos de prueba en la rúbrica, notas `AUTOMATIC` y motivo `CODE_ERROR`, banco de preguntas, quizzes, intentos y sus respuestas |
 | `V7__foro.sql` | Etapa 8: hilos y respuestas del foro. La planilla y las estadísticas se calculan con las tablas existentes y los respaldos viven en el volumen `backups`, no en la base |
 | `V8__retos_de_bloques.sql` | Retos de bloques (RF-12): columna `block_challenge` en `rubric_version` con el reto en JSON (tablero, orientación, máximo de bloques, bloques permitidos y programa inicial), T-72 |
+
+## Vista de conjunto
+
+Relaciones principales entre todas las tablas (sin columnas). El detalle de cada grupo está en las secciones siguientes.
+
+```mermaid
+erDiagram
+    user_account ||--o{ one_time_token : recibe
+    user_account ||--o{ recovery_request : solicita
+    user_account ||--o{ student_enablement : habilita
+    user_account ||--o{ course : "es docente de"
+    course ||--o{ course_enrollment : inscribe
+    course ||--o{ topic : tiene
+    topic ||--o{ material : contiene
+    stored_file |o--o{ material : "archivo de"
+    course ||--o{ activity : tiene
+    activity ||--o{ submission : recibe
+    user_account ||--o{ submission : entrega
+    submission ||--o{ submission_file : adjunta
+    stored_file ||--o{ submission_file : archivo
+    activity ||--o{ deadline_exception : ajusta
+    activity ||--o{ rubric_version : versiona
+    rubric_version ||--o{ rubric_criterion : criterios
+    rubric_version ||--o{ rubric_test_case : "casos de prueba"
+    submission ||--o| grade : nota
+    rubric_version ||--o{ grade : "evalúa con"
+    grade ||--o{ grade_change : historial
+    grade ||--o{ ai_grading_job : cola
+    grade ||--o{ ai_evaluation : evaluaciones
+    ai_evaluation ||--o{ ai_evaluation_criterion : puntos
+    course ||--o{ quiz_question : banco
+    quiz_question ||--o{ quiz_question_option : opciones
+    quiz_question ||--o{ quiz_question_answer : "respuestas aceptadas"
+    activity ||--o| quiz : "si es quiz"
+    quiz ||--o{ quiz_item : preguntas
+    quiz_question ||--o{ quiz_item : "usada en"
+    activity ||--o{ quiz_attempt : intentos
+    quiz_attempt ||--o{ quiz_attempt_answer : respuestas
+    quiz_attempt |o--o| submission : "calificable terminado"
+    user_account ||--o{ forum_thread : abre
+    forum_thread ||--o{ forum_post : respuestas
+    user_account ||--o{ forum_post : escribe
+    user_account |o--o{ forum_post : "elimina (deleted_by)"
+```
+
+Tablas sin relación de clave foránea: `audit_event` (guarda `actor_id` y `target_user_id` sin FK, para que la auditoría sobreviva a cualquier cambio de cuentas), `course_enrollment.cedula` (la inscripción es por cédula, no por cuenta, T-24) y `spring_session` / `spring_session_attributes` (el principal es el `id` de la cuenta como texto).
+
+El modelo de datos del análisis de la Etapa 6 ([diagramas/3-modelo-datos.mmd](diagramas/3-modelo-datos.mmd), [imagen](diagramas/3-modelo-datos.png)) muestra solo las tablas del flujo de entrega y calificación. Se corrigió en esta revisión: `GRADE.source` decía `TEACHER, AI` y la migración `V6` agregó `AUTOMATIC` (casos de prueba, retos de bloques y quizzes).
 
 ## Identidad y acceso (Etapa 3, implementado)
 
@@ -96,6 +147,8 @@ Cómo cubre las reglas aprobadas:
 - **RN-16**: los casos de uso rechazan cualquier cambio que deje la plataforma sin una cuenta inicial activa con privilegio completo; el arranque además lo restablece (T-17).
 - **D-01**: al cambiar o restablecer la contraseña se borran las filas de `spring_session` de la cuenta (el nombre del principal es el `id` de la cuenta).
 - **RN-01**: el registro de estudiante exige una fila en `student_enablement` con su cédula y sin `registered_user_id`.
+- `spring_session` (`primary_id`, `session_id`, `principal_name`, tiempos de creación, último acceso y vencimiento) y `spring_session_attributes` siguen el esquema oficial de Spring Session JDBC para PostgreSQL.
+- `user_account` exige que `full_privileges` solo sea verdadero con `role = ADMIN` (`user_account_full_privileges_ck`) y que la cédula tenga de 3 a 15 dígitos.
 
 ## Cursos, temas y biblioteca (Etapa 4, implementado)
 
@@ -111,6 +164,7 @@ erDiagram
         uuid id PK
         varchar name
         varchar period "p. ej. 2026-2"
+        varchar description
         uuid owner_id FK "docente responsable"
     }
     course_enrollment {
@@ -123,6 +177,7 @@ erDiagram
         uuid id PK
         uuid course_id FK
         varchar title
+        varchar description
         varchar tool "PSEINT | DFD | SCRATCH | ARDUINO | GENERAL"
         int position
         boolean next_class "uno por curso (índice único parcial)"
@@ -131,6 +186,7 @@ erDiagram
     material {
         uuid id PK
         uuid topic_id FK
+        varchar title
         varchar kind "GUIDE | DOCUMENT | PRESENTATION | IMAGE | VIDEO | TOOL_FILE | LINK"
         varchar visibility "PUBLIC | PRIVATE"
         int position
@@ -143,6 +199,7 @@ erDiagram
         varchar storage_key UK "aleatoria; nunca el nombre original"
         varchar original_name
         varchar format "PDF, DOCX, PNG, MP4, SB3..."
+        varchar content_type
         bigint size_bytes
         varchar sha256
         timestamptz retain_until "carga + 6 meses como mínimo"
@@ -153,7 +210,7 @@ erDiagram
 - **RNF-04 / RN-21**: `files` comprueba la extensión permitida para el tipo de material, el tamaño (500 MB; 1 GB videos) y la firma del contenido antes de guardar.
 - **RNF-12**: temas y materiales se archivan (`archived_at`); el archivo se conserva al menos hasta `retain_until`.
 
-## Actividades, entregas y notas (Etapa 5, implementado)
+## Actividades, entregas y notas (Etapas 5 a 7 y RF-12, implementado)
 
 ```mermaid
 erDiagram
@@ -171,7 +228,8 @@ erDiagram
     activity {
         uuid id PK
         uuid course_id FK
-        varchar kind "TASK | WORKSHOP | EXAM"
+        varchar title
+        varchar kind "TASK | WORKSHOP | EXAM | QUIZ | PRACTICE_QUIZ (V6)"
         text statement
         boolean accepts_text
         boolean accepts_files
@@ -183,6 +241,11 @@ erDiagram
         int max_attempts "1 a 10"
         varchar status "DRAFT | PUBLISHED"
         timestamptz archived_at
+    }
+    submission_file {
+        uuid submission_id PK
+        int position PK
+        uuid file_id FK
     }
     submission {
         uuid id PK
@@ -209,26 +272,42 @@ erDiagram
         text expected_answer
         text block_challenge "reto de bloques en JSON, V8"
     }
+    rubric_criterion {
+        uuid rubric_version_id PK
+        int position PK
+        varchar name
+        varchar description
+        numeric max_points "mayor que 0"
+    }
     grade {
         uuid id PK
         uuid submission_id FK "UK"
         uuid rubric_version_id FK
-        varchar status "PROCESSING | PENDING_REVIEW | PUBLISHED"
+        varchar status "PROCESSING (V5) | PENDING_REVIEW | PUBLISHED"
+        varchar review_reason "V5 y V6, ver abajo"
         numeric score "0,0 a 5,0"
-        varchar source "TEACHER | AI"
+        text feedback
+        varchar source "TEACHER | AI | AUTOMATIC (V6)"
+        uuid graded_by FK
     }
     grade_change {
         uuid id PK
         uuid grade_id FK
         numeric previous_score
         numeric new_score
+        text feedback
+        varchar source
         uuid changed_by FK
+        timestamptz changed_at
     }
 ```
 
+- `activity` exige al menos una forma de entrega salvo en los quizzes (`activity_modes_ck`), cierre posterior a la apertura, de 1 a 10 intentos y porcentaje entre 0 y 100; el quiz de repaso no tiene porcentaje (`activity_practice_weight_ck`, V6).
+- **RF-12 (V8)**: `rubric_version.block_challenge` guarda el reto de bloques en JSON (tablero, orientación inicial, máximo de bloques, bloques permitidos y programa inicial). Una actividad usa casos de prueba o reto de bloques, no los dos (lo valida la aplicación, T-73).
 - **RN-20**: cada entrega guarda en `grade.rubric_version_id` la versión vigente al enviarla; editar la rúbrica o el enunciado crea una fila nueva en `rubric_version`.
 - **RN-05**: la actividad vencida sin entrega no tiene fila: el estado `OVERDUE` (0,0) se calcula al consultar (T-32).
 - Las entregas y las notas no se borran; archivar la actividad solo la oculta.
+- `grade.review_reason` dice por qué una nota espera al docente: `AI_DISABLED`, `UNSUPPORTED`, `ILLEGIBLE`, `LOW_CONFIDENCE`, `AI_FAILED` (V5) y `CODE_ERROR` (V6). Una nota `PUBLISHED` siempre tiene `score` (`grade_published_ck`). Los estados y sus transiciones están en [casos-de-uso.md](casos-de-uso.md#estados-de-una-entrega).
 
 ## Calificación con IA (Etapa 6, implementado)
 
@@ -304,9 +383,25 @@ erDiagram
         text explanation
         timestamptz archived_at
     }
+    quiz_question_option {
+        uuid question_id PK
+        int position PK
+        varchar text
+        boolean correct
+    }
+    quiz_question_answer {
+        uuid question_id PK
+        int position PK
+        varchar answer
+    }
     quiz {
         uuid activity_id PK
         int time_limit_minutes "1 a 300"
+    }
+    quiz_item {
+        uuid quiz_id PK
+        int position PK
+        uuid question_id FK
     }
     quiz_attempt {
         uuid id PK
@@ -319,6 +414,7 @@ erDiagram
         timestamptz deadline "tiempo total o cierre, lo primero"
         timestamptz finished_at
         int correct_count
+        int question_count
         int points
         int max_points
         numeric score "0,0 a 5,0"

@@ -1,5 +1,31 @@
 # API REST de LogiCode
 
+Catálogo revisado contra los controladores el 1 de noviembre de 2026: 17 controladores, todos bajo `/api/v1` (`ApiPaths.V1`). El contrato completo, con cada campo, lo genera el backend con springdoc.
+
+## Resumen por módulo
+
+| Módulo | Controlador | Rutas base | Sin sesión |
+| --- | --- | --- | --- |
+| `system` | `SystemController` | `/system/info` | Sí |
+| `identity` | `AuthController` | `/auth/*` | Sí |
+| `identity` | `MeController` | `/me`, `/me/password`, `/me/email-verification` | Solo `GET /me` (responde `401` si no hay sesión) |
+| `identity` | `AdminUserController` | `/admin/users`, `/admin/teachers/{id}/approve`, `/admin/audit-events` | No |
+| `identity` | `StudentEnablementController` | `/student-enablements`, `/student-enablements/import` | No |
+| `courses` | `CourseController` | `/courses`, `/courses/{id}`, `/courses/{id}/enrollments` | No |
+| `content` | `TopicController` | `/courses/{id}/topics`, `/courses/{id}/next-class`, `/topics/{id}` | No |
+| `content` | `MaterialController` | `/topics/{id}/materials`, `/materials/{id}` | `GET` de materiales públicos |
+| `content` | `LibraryController` | `/library`, `/library/topics` | Sí |
+| `activities` | `ActivityController` | `/courses/{id}/activities`, `/activities/{id}`, entregas y excepciones | No |
+| `activities` | `SubmissionController` | `/submissions/{id}` y sus archivos | No |
+| `grading` | `GradingController` | rúbricas, Por revisar, notas, casos de prueba, reintento con IA | No |
+| `grading` | `GradebookController` | `/courses/{id}/gradebook` y exportaciones | No |
+| `pseint` | `PseintController` | `/pseint/runs` | No |
+| `quizzes` | `QuizController` | banco de preguntas, quiz, intentos y ranking | No |
+| `forum` | `ForumController` | `/forum/threads`, `/forum/posts` | `GET` |
+| `administration` | `AdministrationController` | `/admin/overview`, `/admin/backups` | No |
+
+Los juegos (`/juegos`) no usan la API: corren en el navegador (T-59).
+
 ## Convenciones
 
 | Tema | Convención |
@@ -12,7 +38,30 @@
 | Códigos | `200` consulta, `201` creación (con cabecera `Location`), `202` solicitud aceptada (correos), `204` sin contenido, `400` formato inválido, `401` sin sesión, `403` sin permiso, `404` no existe, `409` conflicto de estado, `422` regla de negocio incumplida, `429` límite de solicitudes |
 | Paginación | `?page=0&size=20&sort=campo,asc`; respuesta `{ "items": [], "page": 0, "size": 20, "totalItems": 0, "totalPages": 0 }` |
 | Trazabilidad | Cada respuesta incluye `X-Request-Id` |
-| Documentación | El contrato vivo lo genera el backend: `/api/v1/openapi` y `/swagger-ui.html` |
+| Documentación | El contrato vivo lo genera springdoc: `/api/v1/openapi` (JSON) y `/swagger-ui.html` (interfaz). En desarrollo se abre en `http://localhost:3000/swagger-ui.html`. En el modo piloto están apagados (`SPRINGDOC_APIDOCS_ENABLED=false`, R9-02) |
+
+Ejemplos de error:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Regla de negocio incumplida",
+  "status": 422,
+  "detail": "Sube un archivo .csv o .xlsx con una cédula por fila.",
+  "instance": "/api/v1/student-enablements/import"
+}
+```
+
+```json
+{
+  "title": "Datos inválidos",
+  "status": 400,
+  "detail": "Revisa los datos del formulario.",
+  "errors": [{ "field": "cedula", "message": "…" }]
+}
+```
+
+Títulos usados: "Sesión requerida" (`401`), "Acceso denegado" (`403`), "Recurso no encontrado" (`404`), "Conflicto" (`409`), "Archivo demasiado grande" (`413`), "Regla de negocio incumplida" (`422`), "Demasiadas solicitudes" (`429`) y "Error interno" (`500`, sin detalles). La interfaz muestra `detail`. Con la respuesta llega la cabecera `X-Request-Id`, que sirve para encontrar la solicitud en los logs.
 
 ## Catálogo de endpoints
 
@@ -34,17 +83,17 @@ GET /api/v1/system/info
 ```json
 {
   "application": "LogiCode",
-  "version": "0.1.0-SNAPSHOT",
+  "version": "1.0.0",
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
-  "schemaVersion": "2"
+  "schemaVersion": "8"
 }
 ```
 
 ### Implementados (Etapa 3 · Acceso y permisos)
 
-Sesión: cookie `LOGICODE_SESSION` (HttpOnly, SameSite=Lax). Toda petición `POST`/`PATCH` lleva la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`; si aún no existe, se obtiene con `GET /api/v1/auth/csrf`. Sin token válido la respuesta es `403`.
+Sesión: cookie `LOGICODE_SESSION` (HttpOnly, SameSite=Lax). Toda petición de escritura (`POST`, `PUT`, `PATCH`, `DELETE`) lleva la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`; si aún no existe, se obtiene con `GET /api/v1/auth/csrf`. Sin token válido la respuesta es `403`.
 
 | Método y ruta | Quién | Respuesta | Requisito |
 | --- | --- | --- | --- |
@@ -67,7 +116,7 @@ Sesión: cookie `LOGICODE_SESSION` (HttpOnly, SameSite=Lax). Toda petición `POS
 | `GET /api/v1/admin/audit-events?page=&size=` | `VIEW_AUDIT` | Página de eventos, del más reciente al más antiguo | Auditoría |
 | `GET /api/v1/student-enablements?page=&size=` | `MANAGE_STUDENT_ENABLEMENTS` | Cédulas habilitadas | RF-05 |
 | `POST /api/v1/student-enablements` | `MANAGE_STUDENT_ENABLEMENTS` | `201` | RF-05, RN-01 |
-| `POST /api/v1/student-enablements/import` | `MANAGE_STUDENT_ENABLEMENTS` | `200` con habilitadas, repetidas y filas con error. Multipart, campo `file`, `.csv` de hasta 1 MB y 2000 filas | RF-05 |
+| `POST /api/v1/student-enablements/import` | `MANAGE_STUDENT_ENABLEMENTS` | `200` con habilitadas, repetidas y filas con error. Multipart, campo `file`, `.csv` o `.xlsx` (primera hoja, cédula en A y nombre en B) de hasta 1 MB y 2000 filas (T-75) | RF-05 |
 
 Ejemplo de inicio de sesión:
 
@@ -181,6 +230,16 @@ Leer el foro no pide sesión; lo demás sí.
 | `GET /api/v1/admin/backups` | `{service: {running, dailyHour, retentionDays}, pendingRequest, items: [{name, createdAt, databaseBytes, filesBytes, restoreTest, restoreTestDetail}]}` (`MANAGE_BACKUPS`). `restoreTest`: `OK`, `ERROR` o vacío si no se probó |
 | `POST /api/v1/admin/backups` | Pedir un respaldo inmediato; `202`. `409` si el servicio de respaldos no corre o ya hay uno pedido |
 
-### Etapas siguientes (de la especificación, pendientes)
+### Diferencias con el diseño REST inicial de la especificación
 
-Ninguno por ahora. Falta la página de inicio (RF-23).
+| Especificación (sección 7) | Implementado | Motivo |
+| --- | --- | --- |
+| `GET/POST /api/v1/topics` | `GET/POST /api/v1/courses/{id}/topics` | Los temas pertenecen a un curso |
+| `GET /api/v1/submissions/{id}/grading` | `GET /api/v1/submissions/{id}/grade` | Un solo recurso para la nota, el resultado de la IA y el historial |
+| `POST /api/v1/submissions/{id}/grade/confirm` | `POST /api/v1/submissions/{id}/grade` | Confirmar la propuesta de la IA es calificar; mismo permiso (`GRADE`) |
+| `POST /activities/{id}/submissions` responde `202` | Responde `201` con el intento; el estado de la calificación se consulta aparte (T-46) | La entrega sí queda creada al responder |
+| `POST /api/v1/admin/users` | No existe | Las cuentas se crean por registro (estudiante con cédula habilitada) o solicitud docente; las iniciales, desde `.env` |
+
+### Pendiente
+
+No hay endpoints pendientes de la especificación. La página de inicio (RF-23) es solo de la interfaz y usa `GET /system/info` para el estado de la plataforma.

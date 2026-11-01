@@ -13,16 +13,18 @@ Tu docente te da la dirección de LogiCode (por ejemplo `https://192.168.1.50`) 
 1. En la página de inicio, pulsa **Registrarme como estudiante**.
 2. Escribe tu cédula, tu nombre completo, tu correo y una contraseña de **mínimo 8 caracteres con al menos un número y un carácter especial** (por ejemplo `#`, `*` o `!`).
 3. Revisa tu correo y abre el enlace **Confirmar correo** (vence en 24 horas). Confirmarlo es lo que te permite recuperar la contraseña si la olvidas.
-4. Pulsa **Iniciar sesión** y entra con tu **cédula** y tu contraseña.
+4. Pulsa **Iniciar sesión** (arriba a la derecha), escribe tu **cédula** y tu contraseña y pulsa **Ingresar**.
 
 Si dice que tu cédula no está habilitada, pídele a tu docente que la agregue al curso.
 
 ## 2. Tu cuenta
 
+La barra superior tiene un icono por opción: **Inicio, Cursos, Biblioteca, Juegos, PSeInt** y **Foro**. En el celular se desliza de lado para ver todas.
+
 En el menú, tu nombre abre **Mi cuenta**: ahí ves tus datos y lo que puedes hacer, reenvías el correo de verificación y cambias tu contraseña. **Al cambiarla se cierran todas tus sesiones**, también las del celular.
 
 - **Olvidé mi contraseña**: en Iniciar sesión, "¿Olvidaste tu contraseña?". Escribe tu correo verificado y abre el enlace que llega. El enlace vence en 60 minutos, sirve una sola vez y puedes pedirlo máximo dos veces al día.
-- **Ya no uso ese correo**: en Iniciar sesión, "¿Ya no tienes acceso a tu correo?". Escribe el último correo que registraste y tu contraseña actual (o la anterior, si es la que recuerdas) y el correo nuevo. Te llega un enlace al correo nuevo; hasta que lo confirmes sigue valiendo el anterior.
+- **Ya no uso ese correo**: en Iniciar sesión, "¿Ya no tienes acceso a tu correo?". Escribe tu **Cédula**, el **Último correo registrado**, tu **Contraseña actual o anterior** y el **Correo nuevo**. Te llega un enlace al correo nuevo; hasta que lo confirmes sigue valiendo el anterior.
 - Cierra sesión con **Cerrar sesión** cuando uses un computador compartido.
 
 ## 3. Tu curso
@@ -81,7 +83,7 @@ En el menú, **PSeInt** abre el mismo editor para practicar cuando quieras, con 
 
 Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero del robot en lugar de la caja de respuesta.
 
-1. Agrega bloques con los botones. Para meter bloques dentro de **Repetir** o **Si**, pulsa primero "Hacer: agregar aquí"; "Volver al principal" regresa al programa principal. El reto dice cuántos bloques puedes usar.
+1. Agrega bloques con los botones. Para meter bloques dentro de **Repetir** o **Mientras**, pulsa primero "Hacer: agregar aquí"; dentro de **Si**, "Entonces: agregar aquí" o "Si no: agregar aquí". "Volver al principal" regresa al programa principal. El reto dice cuántos bloques puedes usar.
 2. Pulsa **Ejecutar** (o **Paso a paso**) para ver al robot. Puedes probar todas las veces que quieras antes de enviar.
 3. Pulsa **Enviar entrega**. La nota sale sola: **5,0** si el robot llega a la meta y **0,0** si choca o no llega, con la razón. Si la actividad permite más intentos, puedes corregir y volver a enviar.
 
@@ -103,9 +105,29 @@ Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero
 
 ## 8. Juegos
 
-**Juegos** del menú (no necesita cuenta y no da nota): 24 niveles de bloques con un robot (secuencias, ciclos, condiciones, rutas y depuración), 21 de "¿Qué imprime?", 14 de "Caza el error" (encuentra la línea que falla y elige cómo corregirla), 14 de "Ordena el algoritmo", 14 de "Completa el DFD" (con ciclos) y 12 de "¿Qué hace este código?" de Arduino (lee el programa y elige qué pasa con el LED, el botón, el sensor o el Monitor Serie). Hay niveles de textos y matrices. En cada juego los niveles van de lo más fácil a lo más difícil. Tu avance se guarda en el navegador que uses.
+**Juegos** del menú abre el catálogo **Juegos de lógica**: seis juegos con 99 niveles para practicar. No necesitan cuenta y no dan nota.
 
-En el juego de bloques puedes cambiar el **personaje del robot** debajo del tablero: flecha, lápiz, cerebro o fantasma. Todos muestran hacia dónde mira el robot (el lápiz apunta con la punta; el cerebro y el fantasma miran con los ojos y tienen un triángulo en el borde de la casilla), y el texto debajo del tablero lo dice con palabras.
+<img src="img/juegos-catalogo.jpg" alt="Catálogo de juegos filtrado por la herramienta Arduino" width="640">
+
+- **Buscar** (nombre del juego o tema), **Herramienta** (Scratch, PSeInt, DFD, Arduino) y **Tema** filtran el catálogo. Arriba dice cuántos juegos y niveles quedan con esos filtros.
+- Cada tarjeta muestra su herramienta, sus temas y "N de M niveles resueltos". **Jugar** abre el primer nivel; **Seguir jugando**, el primero que no has resuelto.
+- Dentro del juego, los niveles van de lo más fácil a lo más difícil y **Siguiente nivel** pasa al que sigue.
+- Tu avance se guarda en el navegador que uses: en otro equipo o en una ventana privada empiezas de cero.
+
+| Juego | Herramienta | Niveles | Qué haces | Temas |
+| --- | --- | --- | --- | --- |
+| Bloques | Scratch | 24 | Programas un robot con bloques para llegar a la meta | Secuencias, Rutas, Ciclos, Condiciones, Depuración |
+| ¿Qué imprime? | PSeInt | 21 | Lees el programa y eliges lo que muestra en pantalla | Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones |
+| Caza el error | PSeInt | 14 | Eliges la línea que falla (**Comprobar línea**) y cómo corregirla (**Comprobar corrección**) | Depuración, Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones |
+| Ordena el algoritmo | PSeInt | 14 | Pones las instrucciones en el orden correcto | Secuencias, Condiciones, Ciclos, Arreglos, Matrices, Textos |
+| Completa el DFD | DFD | 14 | Completas las casillas del diagrama de flujo; los últimos niveles tienen ciclos | Secuencias, Condiciones, Ciclos |
+| ¿Qué hace este código? | Arduino | 12 | Lees el programa y eliges qué pasa en la placa: LED, botón, sensor o Monitor Serie | Sensores y actuadores, Variables, Condiciones, Ciclos |
+
+<img src="img/juego-arduino.jpg" alt="Nivel del juego ¿Qué hace este código? con un programa de Arduino" width="640">
+
+<img src="img/juego-dfd-ciclo.jpg" alt="Nivel de Completa el DFD con un ciclo" width="640">
+
+En el juego de bloques puedes cambiar el **Personaje del robot** debajo del tablero: Flecha, Lápiz, Cerebro o Fantasma. Todos muestran hacia dónde mira el robot (el lápiz apunta con la punta; el cerebro y el fantasma miran con los ojos y tienen un triángulo en el borde de la casilla), y el texto debajo del tablero lo dice con palabras.
 
 ## 9. Foro
 
@@ -114,7 +136,7 @@ En el juego de bloques puedes cambiar el **personaje del robot** debajo del tabl
 - **Abrir un hilo**: elige la herramienta, escribe un título claro y tu pregunta (pega tu código si ayuda).
 - Busca antes de preguntar: quizá alguien ya lo resolvió.
 - Se muestra tu nombre, nunca tu cédula ni tu correo. No publiques datos personales ni respuestas de actividades calificables.
-- Los docentes pueden fijar, cerrar o eliminar hilos y respuestas.
+- Los docentes y las cuentas Administrador pueden fijar, cerrar o eliminar hilos y respuestas.
 
 ## 10. Problemas frecuentes
 

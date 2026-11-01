@@ -72,7 +72,7 @@ Con un certificado de la Universidad o de una entidad pública no hace falta nin
 | --- | --- |
 | Ver que todo esté arriba | `docker compose ps` (todos `healthy`) y la página de inicio, sección "Estado de la plataforma" |
 | Detener al final del día | `docker compose stop` (no borra nada). Para retomar: `docker compose up -d --wait` |
-| Respaldo antes de un cambio | Administración → Respaldos → "Hacer un respaldo ahora" y esperar la prueba de restauración en `OK` |
+| Respaldo antes de un cambio | Administración → Respaldos → **Crear respaldo ahora** y esperar a que la copia diga "Restauración probada" |
 | Copiar respaldos fuera del equipo | `docker compose cp backup:/respaldos ./copias-logicode` y guardar la carpeta en un disco cifrado (contiene datos de todos) |
 | Restaurar | [respaldos/README.md](../respaldos/README.md); con `COMPOSE_FILE` en `.env` los comandos son los mismos |
 | Si cambió la IP del equipo | Actualiza `LOGICODE_PUBLIC_URL` y `LOGICODE_TLS_HOSTS` en `.env`, borra `certificados/logicode.crt` y `certificados/logicode.key` (no la autoridad) y ejecuta `docker compose up -d --wait`. Los equipos que instalaron `logicode-ca.crt` no tienen que hacer nada |

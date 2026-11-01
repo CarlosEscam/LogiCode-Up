@@ -1,0 +1,11 @@
+flowchart LR
+  EST["Estudiante"]
+  DOC["Docente"]
+  IA["Servicio IA local<br/>Ollama + Qwen2.5-VL 7B"]
+  P0(("0 LogiCode<br/>Entregar y calificar<br/>actividades"))
+  EST -- "F1 entrega" --> P0
+  P0 -- "F23 estado y nota" --> EST
+  DOC -- "F19 confirmación o ajuste" --> P0
+  P0 -- "F18 Por revisar y propuesta" --> DOC
+  P0 -- "F11 solicitud de evaluación" --> IA
+  IA -- "F12 resultado" --> P0

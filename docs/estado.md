@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 28 de octubre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08) juegos con más niveles (bloques con personajes), juego nuevo "Caza el error" rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados**
+Última actualización: 1 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -9,7 +9,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Etapa | Estado | Notas |
 | --- | --- | --- |
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
-| 1 · Análisis y diseño | Diseño técnico mínimo hecho | Pendientes de la etapa completa: casos de uso, historias con criterios de aceptación, maquetas, rúbricas y prueba de lectura manuscrita |
+| 1 · Análisis y diseño | Diseño técnico hecho; casos de uso e historias de usuario entregados | [Casos de uso](casos-de-uso.md) e [historias de usuario](historias-de-usuario.md) con criterios Dado/Cuando/Entonces, escritos sobre lo implementado (1 de noviembre). Siguen **pendientes**: maquetas, rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen en `ia-pruebas/`) |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
 | 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06). La carga desde Excel llegó con P-07 |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
@@ -25,10 +25,36 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
+| Documentación completa del proyecto | Entregada, pendiente de revisión | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre). Detalle abajo |
 
 ## Datos de demostración
 
 Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Documentación del proyecto · detalle
+
+Solo documentación: no cambia código de la aplicación. Todo se revisó contra el commit `344801c` (base de datos en la versión 8).
+
+| Documento | Estado | Notas |
+| --- | --- | --- |
+| [docs/README.md](README.md) | Nuevo | Índice por tipo de lector (directivo, docente, estudiante, administrador, desarrollador) |
+| [Visión general](vision-general.md) | Nuevo | Problema, propuesta, roles, funciones, recorrido de un curso, tecnología, estado y glosario |
+| [Casos de uso](casos-de-uso.md) | Nuevo | Actores y casos CU-01 a CU-32 con su estado; estados de una entrega |
+| [Historias de usuario](historias-de-usuario.md) | Nuevo | HU-01 a HU-37 en diez épicas, con criterios Dado/Cuando/Entonces |
+| [Instalación](instalacion.md) | Nuevo | Windows y Linux desde cero, primer ingreso, datos demo, IA, Brevo, piloto, respaldos, problemas frecuentes y pasar LogiCode a otro PC |
+| [Manual del administrador](manuales/manual-administrador.md) | Nuevo | Cuentas iniciales frente a las demás cuentas Administrador; panel, usuarios, habilitaciones, auditoría, biblioteca, foro y respaldos |
+| [`migracion/`](../migracion/) | Nuevo | Copia de `exportar.ps1` e `importar.ps1` y su guía, sin rutas personales |
+| [Diagramas](diagramas/) | Nuevo | DFD de contexto y de nivel 1, modelo de datos, secuencia y estados de la entrega (Mermaid e imagen). Se corrigieron el modelo (falta el origen `AUTOMATIC` de la nota) y los estados (faltaban la publicación automática y la nota del docente mientras la IA procesa) |
+| Arquitectura, modelo de datos y API | Actualizados | Doce módulos y sus reglas, procesos en segundo plano, migraciones `V1` a `V8` con diagramas entidad-relación, todos los endpoints y los errores con sus títulos reales |
+| Manuales del docente, del estudiante y técnico | Actualizados | Barra con iconos, importar desde Excel, "Definir rúbrica", PDF leídos por la IA, catálogo de juegos con filtros y niveles, juego de Arduino, ciclos en DFD, cambio de correo con cédula. Capturas nuevas en `manuales/img/` |
+| Textos de la interfaz en otros documentos | Corregidos | "Crear respaldo ahora" en `piloto.md` y `calidad.md` (decía "Hacer un respaldo ahora"); "Exportar a Excel (.xlsx)" y "Exportar a CSV" y "Pendiente" en Estudiantes en `datos-demo/README.md` |
+| Maquetas, rúbricas de referencia y prueba de lectura manuscrita (Etapa 1) | **Pendiente** | No se pueden escribir sin el docente ni sin correr las pruebas de Qwen en el equipo de referencia |
+
+### Verificación realizada (documentación)
+
+- Textos de botones, pestañas y mensajes comparados con el código del frontend; permisos con `AccessPolicy`; tablas con las migraciones `V1` a `V8`; endpoints con los controladores.
+- Todos los diagramas Mermaid se dibujaron con mermaid-cli sin errores, y los enlaces relativos entre documentos apuntan a archivos que existen.
+- No se ejecutaron de nuevo la aplicación, los scripts de migración ni la instalación en Linux para esta entrega. Algunas capturas son anteriores al rediseño o usan un modelo simulado, y su pie lo dice.
 
 ## Rediseño visual con el Canva · detalle
 

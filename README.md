@@ -7,8 +7,14 @@ Fecha objetivo de entrega: 10 de diciembre de 2026.
 
 ## Documentación
 
+Empieza por **[docs/README.md](docs/README.md)**: el índice de toda la documentación según quién lee (directivo, docente, estudiante, administrador o desarrollador).
+
 | Documento | Contenido |
 | --- | --- |
+| [docs/README.md](docs/README.md) | Índice de la documentación por tipo de lector |
+| [docs/vision-general.md](docs/vision-general.md) | Qué es LogiCode, roles, funciones, recorrido de un curso, estado y glosario |
+| [docs/instalacion.md](docs/instalacion.md) | Instalación paso a paso en Windows o Linux y cómo pasar LogiCode a otro PC |
+| [docs/casos-de-uso.md](docs/casos-de-uso.md) y [docs/historias-de-usuario.md](docs/historias-de-usuario.md) | Casos de uso e historias con criterios de aceptación |
 | [LogiCode - Especificacion para Claude Code.md](LogiCode%20-%20Especificacion%20para%20Claude%20Code.md) | Requisitos, reglas de negocio, arquitectura y etapas (fuente de verdad) |
 | [docs/estado.md](docs/estado.md) | Qué está implementado, qué está pendiente |
 | [docs/decisiones.md](docs/decisiones.md) | Decisiones aprobadas, decisiones técnicas tomadas y preguntas abiertas |
@@ -18,7 +24,8 @@ Fecha objetivo de entrega: 10 de diciembre de 2026.
 | [docs/permisos.md](docs/permisos.md) | Matriz de roles y privilegio completo |
 | [docs/calidad.md](docs/calidad.md) | Defectos, riesgos aceptados, revisión de seguridad y observabilidad |
 | [docs/piloto.md](docs/piloto.md) | Despliegue del piloto con HTTPS, plan, registro de observaciones y acta de aceptación |
-| [docs/manuales/](docs/manuales/) | Manuales [técnico](docs/manuales/manual-tecnico.md), [docente](docs/manuales/manual-docente.md) y [estudiante](docs/manuales/manual-estudiante.md) |
+| [docs/manuales/](docs/manuales/) | Manuales [técnico](docs/manuales/manual-tecnico.md), [del administrador](docs/manuales/manual-administrador.md), [docente](docs/manuales/manual-docente.md) y [estudiante](docs/manuales/manual-estudiante.md) |
+| [docs/diagramas/](docs/diagramas/) | DFD, modelo de datos, secuencia y estados de una entrega (Mermaid e imagen) |
 
 ## Requisitos previos
 
@@ -185,7 +192,7 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 │   │   └── administration/          Etapa 8: panel de administración y respaldos
 │   ├── src/main/resources/
 │   │   ├── application.yml          Configuración por variables de entorno
-│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA, V6 quizzes y PSeInt, V7 foro)
+│   │   └── db/migration/            Migraciones Flyway (V1 línea base, V2 identidad y acceso, V3 cursos y biblioteca, V4 actividades y entregas, V5 calificación con IA, V6 quizzes y PSeInt, V7 foro, V8 retos de bloques)
 │   ├── src/test/                    Pruebas (JUnit, Testcontainers, ArchUnit)
 │   └── Dockerfile
 ├── frontend/                        React 19 · Vite · JavaScript
@@ -197,7 +204,8 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 ├── datos-demo/                      Script de datos de demostración (se amplía en cada etapa)
 ├── respaldos/                       Script del servicio de respaldos y cómo restaurar
 ├── ia-pruebas/                      Arnés de pruebas de aceptación de la IA (muestras y resultados fuera de Git)
-├── docs/                            Diseño técnico, estado y decisiones
+├── migracion/                       Scripts para pasar una instalación con sus datos a otro PC (Windows)
+├── docs/                            Índice, visión, instalación, diseño técnico, manuales, diagramas, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
 ├── docker-compose.yml               db + backend + frontend + backup (+ ollama con el perfil ia)
 ├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
@@ -215,4 +223,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 10: [docs/piloto.md](docs/piloto.md) y los [manuales](docs/manuales/). Después, preparar el equipo servidor, probar allí la restauración y hacer el piloto con el docente hasta firmar el acta de aceptación (entrega objetivo: 10 de diciembre de 2026). Conviene cerrar antes P-06 (remitente de Brevo), porque sin él los correos de verificación y recuperación no llegan a los estudiantes. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 y P-09 de [docs/decisiones.md](docs/decisiones.md). Los retos de bloques (RF-12) y Excel y PDF (P-07, P-08) están entregados y esperan revisión.
+Revisar la Etapa 10: [docs/piloto.md](docs/piloto.md) y los [manuales](docs/manuales/). Después, preparar el equipo servidor, probar allí la restauración y hacer el piloto con el docente hasta firmar el acta de aceptación (entrega objetivo: 10 de diciembre de 2026). Conviene cerrar antes P-06 (remitente de Brevo), porque sin él los correos de verificación y recuperación no llegan a los estudiantes. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 y P-09 de [docs/decisiones.md](docs/decisiones.md). Los retos de bloques (RF-12), Excel y PDF (P-07, P-08) y la documentación completa ([docs/README.md](docs/README.md)) están entregados y esperan revisión.

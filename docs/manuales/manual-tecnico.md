@@ -1,6 +1,6 @@
 # Manual técnico · LogiCode
 
-Para quien instala, opera y mantiene LogiCode, y para las cuentas Administrador. El detalle de cada tema está en los documentos enlazados; aquí está lo necesario para operar el piloto.
+Para quien instala, opera y mantiene LogiCode. La instalación paso a paso está en [instalacion.md](../instalacion.md) y el uso de la web por las cuentas Administrador en el [manual del administrador](manual-administrador.md). El detalle de cada tema está en los documentos enlazados; aquí está lo necesario para operar el piloto.
 
 ## 1. Qué es
 
@@ -14,7 +14,7 @@ Para quien instala, opera y mantiene LogiCode, y para las cuentas Administrador.
 | IA (opcional) | Ollama + Qwen2.5-VL 7B en Docker, perfil `ia` | README, "Calificación con IA" |
 | Correo | Bandeja local `.local/mail-outbox` o Brevo (`docker-compose.brevo.yml`) | README, "Correo real con Brevo" |
 
-Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `backend`, `frontend`, `backup` y, con IA, `ollama`.
+Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `backend`, `frontend`, `backup` y, con IA, `ollama`. Diagramas de despliegue, módulos y flujo de datos: [arquitectura.md](../arquitectura.md) y [diagramas/](../diagramas/).
 
 ## 2. Equipo servidor
 
@@ -25,22 +25,22 @@ Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `backend`, `fr
 
 ## 3. Instalar y configurar
 
-1. Instalación y variables: [README](../../README.md), secciones "Configuración local" e "Iniciar". Todo se configura en `.env` (fuera de Git); `.env.example` lista las variables sin secretos.
+1. Instalación y variables: [instalacion.md](../instalacion.md) (Windows y Linux, paso a paso) y el [README](../../README.md), secciones "Configuración local" e "Iniciar". Todo se configura en `.env` (fuera de Git); `.env.example` lista las variables sin secretos.
 2. Modo piloto con HTTPS: [piloto.md](../piloto.md), sección 2.
 3. Secretos: la contraseña de la base va en `.env`; la API key y el remitente de Brevo, en `secrets/` como secretos de Docker; las llaves del certificado, en `certificados/`. Ninguno de los tres se sube al repositorio ni se comparte.
 
 ### Cuentas iniciales
 
-Las dos cuentas con privilegio completo se crean al arrancar desde `INITIAL_ADMIN_1_*` e `INITIAL_ADMIN_2_*` de `.env`, sin contraseña. Cada una confirma su correo y crea la contraseña con "¿Olvidaste tu contraseña?" (README, "Primer ingreso de las cuentas iniciales"). Son las únicas que cambian roles y la plataforma no permite desactivar la última que quede activa.
+Las dos cuentas con privilegio completo se crean al arrancar desde `INITIAL_ADMIN_1_*` e `INITIAL_ADMIN_2_*` de `.env`, sin contraseña. Cada una confirma su correo y crea la contraseña con "¿Olvidaste tu contraseña?" ([instalacion.md](../instalacion.md) y README, "Primer ingreso de las cuentas iniciales"). Son las únicas que cambian roles y la plataforma no permite desactivar la última que quede activa.
 
 ## 4. Tareas de administración en la web
 
-Menú **Administración** (cuentas Administrador). Las cuentas Administrador ordinarias no responden actividades, no crean temas, materiales ni actividades, no califican, no ajustan notas y no cambian roles ([permisos.md](../permisos.md)).
+Menú **Administración** (cuentas Administrador). Paso a paso en el [manual del administrador](manual-administrador.md). Las cuentas Administrador ordinarias no responden actividades, no crean temas, materiales ni actividades, no califican, no ajustan notas y no cambian roles ([permisos.md](../permisos.md)).
 
 | Tarea | Dónde |
 | --- | --- |
 | Ver cifras de la plataforma, la cola de la IA y el espacio usado | **Administración** (`/admin`) |
-| Pedir un respaldo inmediato y ver la prueba de restauración de cada copia | **Administración** → Respaldos |
+| Pedir un respaldo inmediato y ver la prueba de restauración de cada copia | **Administración** → Respaldos → **Crear respaldo ahora** |
 | Aprobar solicitudes de docentes | **Usuarios**, filtro "Pendiente de aprobación" → **Aprobar** |
 | Buscar, desactivar o reactivar cuentas | **Usuarios** |
 | Cambiar el rol de una cuenta | **Usuarios** (solo las dos cuentas iniciales) |
@@ -72,12 +72,17 @@ Menú **Administración** (cuentas Administrador). Las cuentas Administrador ord
 
 ## 7. Actualizar a una versión nueva
 
-1. Respaldo inmediato desde el panel (y copia fuera del equipo).
+1. Respaldo inmediato desde el panel con **Crear respaldo ahora** (y copia fuera del equipo).
 2. `git pull <archivo .bundle> main` en la carpeta del proyecto.
 3. `docker compose up -d --build --wait`. Flyway aplica las migraciones nuevas al arrancar el backend; si una falla, el backend no arranca y la base queda como estaba.
 4. Revisa "Estado de la plataforma" (versión y esquema).
 
 Para volver atrás: `git checkout` de la versión anterior, `docker compose up -d --build --wait` y restaurar el respaldo del paso 1 (una base migrada no sirve a una versión anterior).
+
+### Pasar la instalación a otro PC
+
+- Solo el código: un bundle de git ([instalacion.md, 11.1](../instalacion.md#111-recibir-el-código-como-bundle)).
+- El código con la base de datos, los archivos subidos y los respaldos: los scripts `exportar.ps1` e `importar.ps1` de [`migracion/`](../../migracion/) y su [guía](../../migracion/Guia-pasar-LogiCode-a-otro-PC.md). El `.env` y `secrets/` se copian a mano por separado.
 
 ## 8. Seguridad
 

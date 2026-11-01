@@ -1,0 +1,41 @@
+flowchart LR
+  EST["Estudiante"]
+  DOC["Docente"]
+  IA["Servicio IA local"]
+  P1(("1 Recibir y<br/>validar entrega"))
+  P2(("2 Encolar<br/>calificación"))
+  P3(("3 Evaluar<br/>con IA"))
+  P4(("4 Aplicar política<br/>de confianza"))
+  P5(("5 Revisar y<br/>confirmar nota"))
+  P6(("6 Consultar<br/>resultado"))
+  D1[("D1 Actividades y rúbricas")]
+  D2[("D2 Entregas")]
+  D3[("D3 Archivos")]
+  D4[("D4 Notas e historial")]
+  D5[("D5 Cola de IA")]
+  D6[("D6 Evaluaciones IA")]
+  EST -- F1 --> P1
+  D1 -- F2 --> P1
+  P1 -- F3 --> D2
+  P1 -- F4 --> D3
+  P1 -- F5 --> D4
+  P1 -- F6 --> P2
+  P2 -- F7 --> D5
+  D5 -- F8 --> P3
+  D2 -- F9 --> P3
+  D3 -- F9 --> P3
+  D1 -- F10 --> P3
+  P3 -- F11 --> IA
+  IA -- F12 --> P3
+  P3 -- F13 --> D6
+  P3 -- F14 --> D5
+  P3 -- F15 --> P4
+  P4 -- F16 --> D4
+  D4 -- F17 --> P5
+  D6 -- F17 --> P5
+  P5 -- F18 --> DOC
+  DOC -- F19 --> P5
+  P5 -- F20 --> D4
+  P5 -- F21 --> D5
+  D4 -- F22 --> P6
+  P6 -- F23 --> EST

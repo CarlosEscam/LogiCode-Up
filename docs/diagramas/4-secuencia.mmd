@@ -1,0 +1,41 @@
+sequenceDiagram
+  actor E as Estudiante
+  participant R as React
+  participant A as API /api/v1
+  participant S as Servicio de entregas
+  participant BD as PostgreSQL
+  participant W as Worker IA
+  participant O as Ollama (Qwen2.5-VL)
+  actor D as Docente
+  E->>R: Adjunta texto, fotos o archivos
+  R->>A: POST /activities/{id}/submissions (multipart, sesión, CSRF)
+  A->>S: Entregar(actor, actividad, contenido)
+  S->>BD: Valida rol, inscripción, plazo, intentos y formato real
+  alt Fuera de plazo o sin intentos
+    S-->>R: 422 con el motivo
+  else Entrega válida
+    S->>BD: Guarda intento, archivos y nota PROCESSING + trabajo PENDING
+    S-->>R: Entrega registrada (estado Calificando con IA)
+  end
+  loop Cada pocos segundos
+    W->>BD: Toma trabajo (FOR UPDATE SKIP LOCKED, claim_token)
+  end
+  W->>O: Nombre, enunciado, rúbrica, respuesta esperada, contenido
+  alt Fallo técnico o respuesta incoherente
+    O-->>W: Error o tiempo agotado
+    W->>BD: Registra fallo y reintenta con espera creciente (3 intentos)
+    W->>BD: Tras el último: PENDING_REVIEW, motivo AI_FAILED, sin nota
+  else Resultado válido
+    O-->>W: Legibilidad, confianza, puntos por criterio
+    W->>BD: Guarda evaluación IA
+    alt Legible y confianza >= 80 %
+      W->>BD: Nota PUBLISHED, fuente IA, historial
+    else Ilegible o confianza < 80 %
+      W->>BD: PENDING_REVIEW con motivo y propuesta
+    end
+  end
+  D->>A: Por revisar, confirma o ajusta la nota
+  A->>BD: Nota PUBLISHED, fuente docente, historial
+  E->>R: Consulta la actividad
+  R->>A: GET /activities/{id}/submissions/mine
+  A-->>R: Estado, nota publicada y retroalimentación

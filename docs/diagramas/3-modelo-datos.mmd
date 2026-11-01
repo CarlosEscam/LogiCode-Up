@@ -1,0 +1,55 @@
+erDiagram
+  USER_ACCOUNT ||--o{ SUBMISSION : "entrega (estudiante)"
+  COURSE ||--o{ ACTIVITY : contiene
+  ACTIVITY ||--|{ RUBRIC_VERSION : "se versiona en"
+  RUBRIC_VERSION ||--|{ RUBRIC_CRITERION : tiene
+  ACTIVITY ||--o{ SUBMISSION : recibe
+  ACTIVITY ||--o{ DEADLINE_EXCEPTION : "ajusta plazo"
+  SUBMISSION ||--o{ SUBMISSION_FILE : adjunta
+  STORED_FILE ||--o{ SUBMISSION_FILE : "es referido por"
+  SUBMISSION ||--o| GRADE : "se califica con"
+  RUBRIC_VERSION ||--o{ GRADE : "vigente al entregar"
+  GRADE ||--o{ GRADE_CHANGE : historial
+  GRADE ||--o{ AI_GRADING_JOB : "se encola en"
+  GRADE ||--o{ AI_EVALUATION : "evaluada por IA"
+  AI_EVALUATION ||--o{ AI_EVALUATION_CRITERION : "puntúa"
+  ACTIVITY {
+    uuid id PK
+    string kind "TASK, WORKSHOP, EXAM"
+    string status "DRAFT, PUBLISHED"
+    timestamptz opens_at
+    timestamptz closes_at
+    int max_attempts "1 a 10"
+    numeric weight_percent "opcional"
+  }
+  SUBMISSION {
+    uuid id PK
+    uuid activity_id FK
+    uuid student_id FK
+    int attempt "UK con actividad y estudiante"
+    text text_answer
+    bool late
+  }
+  GRADE {
+    uuid id PK
+    uuid submission_id FK "UK"
+    uuid rubric_version_id FK
+    string status "PROCESSING, PENDING_REVIEW, PUBLISHED"
+    numeric score "0,0 a 5,0"
+    string source "TEACHER, AI, AUTOMATIC"
+    string review_reason
+  }
+  AI_GRADING_JOB {
+    uuid id PK
+    uuid grade_id FK
+    string status "PENDING, RUNNING, DONE, FAILED"
+    int attempts
+    uuid claim_token
+  }
+  AI_EVALUATION {
+    uuid id PK
+    uuid grade_id FK
+    string outcome "PUBLISHED, ILLEGIBLE, LOW_CONFIDENCE, FAILED"
+    int confidence "0 a 100"
+    numeric proposed_score
+  }

@@ -48,7 +48,7 @@ Verificadas el 27 de octubre en Docker sobre una base limpia con los datos de de
 
 ### Restauración
 
-1. En `/admin` → Respaldos, "Hacer un respaldo ahora". Al minuto aparece con la prueba de restauración en `OK`.
+1. En `/admin` → Respaldos, **Crear respaldo ahora**. Al minuto aparece la copia con "Restauración probada".
 2. Crear algo después del respaldo, por ejemplo un hilo en el foro.
 3. Restaurar:
    ```bash
