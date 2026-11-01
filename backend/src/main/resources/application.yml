@@ -70,8 +70,16 @@ logicode:
         full-name: ${INITIAL_ADMIN_2_NAME:}
         email: ${INITIAL_ADMIN_2_EMAIL:}
   files:
-    # Almacenamiento local de archivos (volumen file-storage en Docker). Ver docs/decisiones.md (P-05).
+    # local: carpeta storage-dir. minio: MinIO (docker-compose.yml, P-05); la carpeta queda para las cargas en curso.
+    storage: ${LOGICODE_FILES_STORAGE:local}
     storage-dir: ${LOGICODE_FILES_DIR:file-storage}
+    minio:
+      endpoint: ${LOGICODE_MINIO_URL:http://localhost:9000}
+      bucket: ${LOGICODE_MINIO_BUCKET:logicode}
+      access-key: ${MINIO_ROOT_USER:}
+      secret-key: ${MINIO_ROOT_PASSWORD:}
+      # MinIO no usa regiones, pero la firma S3 lleva una.
+      region: us-east-1
     # RN-21 / RNF-12: mínimo 6 meses.
     retention-months: ${LOGICODE_FILE_RETENTION_MONTHS:6}
   backups:

@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.springframework.core.io.Resource;
 
-/** Puerto hacia donde se guarda el contenido de los archivos (volumen local hoy; S3/MinIO si se decide). */
+/** Puerto hacia donde se guarda el contenido de los archivos: MinIO en Docker (P-05) o una carpeta local. */
 public interface BinaryStorage {
 
     /**

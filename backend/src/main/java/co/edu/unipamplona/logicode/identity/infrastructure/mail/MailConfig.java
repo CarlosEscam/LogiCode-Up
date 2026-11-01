@@ -11,8 +11,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.client.RestClient;
 
 /**
- * Elige el proveedor de correo. Con {@code logicode.mail.provider=brevo} exige los secretos
- * {@code brevo_api_key} y {@code brevo_sender_email} (archivos en {@code /run/secrets}).
+ * Elige el proveedor de correo. Con {@code logicode.mail.provider=brevo} exige el secreto {@code brevo_api_key}
+ * (archivo en {@code /run/secrets}) y el remitente: {@code BREVO_SENDER_EMAIL} o, como antes, el secreto
+ * {@code brevo_sender_email}, que tiene prioridad (P-06).
  */
 @Configuration(proxyBeanMethods = false)
 class MailConfig {
@@ -20,12 +21,12 @@ class MailConfig {
     @Bean
     EmailSender emailSender(MailProperties properties, Clock clock, TaskExecutor applicationTaskExecutor,
             @Value("${brevo_api_key:}") String brevoApiKey,
-            @Value("${brevo_sender_email:}") String brevoSenderEmail) {
+            @Value("${brevo_sender_email:${BREVO_SENDER_EMAIL:}}") String brevoSenderEmail) {
         EmailProvider provider = switch (properties.provider()) {
             case "brevo" -> {
                 if (brevoApiKey.isBlank() || brevoSenderEmail.isBlank()) {
                     throw new IllegalStateException(
-                            "logicode.mail.provider=brevo requiere los secretos brevo_api_key y brevo_sender_email");
+                            "logicode.mail.provider=brevo requiere el secreto brevo_api_key y BREVO_SENDER_EMAIL");
                 }
                 yield new BrevoEmailProvider(RestClient.builder(), properties.brevoBaseUrl(), brevoApiKey.trim(),
                         brevoSenderEmail.trim(), properties.senderName());

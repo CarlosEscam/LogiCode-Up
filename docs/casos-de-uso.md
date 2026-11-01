@@ -93,8 +93,8 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 | CU-01 | Registrarse como estudiante | Visitante | RF-01, RN-01 | Implementado |
 | CU-02 | Solicitar cuenta docente | Visitante | RF-02, RN-02 | Implementado |
 | CU-03 | Iniciar y cerrar sesión | Cualquier cuenta | RF-03 | Implementado |
-| CU-04 | Verificar el correo | Cualquier cuenta | RF-29, RN-24 | Implementado (envío real con Brevo **Pendiente**, P-06) |
-| CU-05 | Recuperar la contraseña | Cualquier cuenta | RF-04, RN-23 | Implementado (envío real con Brevo **Pendiente**, P-06) |
+| CU-04 | Verificar el correo | Cualquier cuenta | RF-29, RN-24 | Implementado (remitente decidido en P-06; falta activar Brevo y probar un envío real) |
+| CU-05 | Recuperar la contraseña | Cualquier cuenta | RF-04, RN-23 | Implementado (remitente decidido en P-06; falta activar Brevo y probar un envío real) |
 | CU-06 | Cambiar el correo sin acceso al anterior | Cualquier cuenta | RF-30, RN-25 | Implementado |
 | CU-07 | Cambiar la contraseña | Cualquier cuenta | RNF-02 | Implementado |
 | CU-08 | Aprobar un docente | Administrador | RF-02, RF-28, RN-02 | Implementado |
@@ -158,7 +158,7 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 
 ### CU-04 Verificar el correo
 
-- **Actor:** cualquier cuenta; secundario: servicio de correo. **Requisitos:** RF-29, RN-24. **Estado:** Implementado; el envío real con Brevo espera el remitente verificado (P-06, **Pendiente**).
+- **Actor:** cualquier cuenta; secundario: servicio de correo. **Requisitos:** RF-29, RN-24. **Estado:** Implementado; remitente decidido (P-06, `logicode.notificaciones@gmail.com`); falta activar Brevo y probar un envío real.
 - **Precondición:** cuenta con correo sin verificar.
 - **Flujo principal:** el sistema genera un token aleatorio de un solo uso (guarda solo su hash) y envía el enlace; el usuario lo abre; el sistema marca el correo como verificado y consume el token.
 - **Alternativos:** el enlace vence a las 24 horas (T-13) → se pide otro desde **Mi cuenta** ("reenviar"). Para una cuenta inicial sin contraseña, el enlace indica que falta crearla y se crea con CU-05.
@@ -166,7 +166,7 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 
 ### CU-05 Recuperar la contraseña
 
-- **Actor:** cualquier cuenta; secundario: servicio de correo. **Requisitos:** RF-04, RN-23, RNF-02. **Estado:** Implementado (envío real **Pendiente**, P-06).
+- **Actor:** cualquier cuenta; secundario: servicio de correo. **Requisitos:** RF-04, RN-23, RNF-02. **Estado:** Implementado (remitente decidido en P-06; falta activar Brevo y probar un envío real).
 - **Precondición:** correo verificado.
 - **Flujo principal:**
   1. En **¿Olvidaste tu contraseña?** el usuario escribe su correo.

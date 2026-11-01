@@ -19,7 +19,7 @@ En esta guía, `<carpeta del proyecto>` es la carpeta donde está LogiCode en ca
 |---|---|
 | Toda la carpeta del proyecto, incluidas `.git`, `datos-demo`, `ia-pruebas`, `.local` (correos de prueba) y, si existe, `certificados` (llaves del piloto) | **`.env`** y **`secrets\`**: tienen contraseñas, cédulas y la clave de Brevo. Se copian a mano por separado |
 | La base de datos: copia exacta del volumen de Docker y, además, un respaldo `pg_dump` (plan B) | `node_modules` y compilados (`backend\target`, `frontend\dist`): Docker los vuelve a generar |
-| Los archivos subidos y los respaldos diarios (volúmenes `file-storage` y `backups`) | El modelo de IA de Ollama (~6 GB): se vuelve a descargar, salvo que se exporte con `-ConIA` |
+| Los archivos subidos y los respaldos diarios (volúmenes `minio-data`, `file-storage` y `backups`) | El modelo de IA de Ollama (~6 GB): se vuelve a descargar, salvo que se exporte con `-ConIA` |
 
 > El paquete tiene la base completa: datos personales, notas y hashes de contraseñas. Trátalo como confidencial, igual que los respaldos. Si no necesitas `.local\` ni `certificados\` en el otro PC, bórralos de la carpeta del proyecto antes de exportar o del zip después.
 
@@ -52,7 +52,8 @@ En esta guía, `<carpeta del proyecto>` es la carpeta donde está LogiCode en ca
      importar.ps1
      volumenes\
        db-data.tgz                base de datos
-       file-storage.tgz           archivos subidos
+       minio-data.tgz             archivos subidos (MinIO)
+       file-storage.tgz           cargas en curso
        backups.tgz                respaldos diarios
        ollama-models.tgz          solo con -ConIA
    ```

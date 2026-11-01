@@ -25,11 +25,30 @@ services:
       timeout: 5s
       retries: 10
 
+  # Archivos cargados (P-05): MinIO, almacenamiento de objetos compatible con S3. Solo lo usa el backend; no se
+  # publica fuera de Docker. La imagen oficial dejó de publicarse en 2026; esta es el fork comunitario de MinIO (T-85).
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-logicode}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Define MINIO_ROOT_PASSWORD en el archivo .env (mínimo 8 caracteres)}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   backend:
     build: ./backend
     restart: unless-stopped
     depends_on:
       db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     environment:
       DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-logicode}
@@ -46,8 +65,13 @@ services:
       # Para enviar con Brevo, ver docker-compose.brevo.yml.
       LOGICODE_MAIL_PROVIDER: ${LOGICODE_MAIL_PROVIDER:-outbox}
       LOGICODE_MAIL_OUTBOX_DIR: /var/lib/logicode/mail-outbox
-      # Archivos de materiales en el volumen file-storage; se conservan como mínimo 6 meses (RN-21).
+      # Archivos de materiales y entregas en MinIO; se conservan como mínimo 6 meses (RN-21). La carpeta
+      # file-storage queda para las cargas en curso; lo que tenía antes de MinIO se sube solo al arrancar.
+      LOGICODE_FILES_STORAGE: minio
       LOGICODE_FILES_DIR: /var/lib/logicode/files
+      LOGICODE_MINIO_URL: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-logicode}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Define MINIO_ROOT_PASSWORD en el archivo .env (mínimo 8 caracteres)}
       LOGICODE_FILE_RETENTION_MONTHS: ${LOGICODE_FILE_RETENTION_MONTHS:-6}
       # Carpeta compartida con el servicio backup: el panel lista las copias y deja ahí las solicitudes.
       LOGICODE_BACKUPS_DIR: /var/lib/logicode/backups
@@ -85,7 +109,7 @@ services:
       - ollama-models:/root/.ollama
 
   # Respaldos (RNF-09): copia diaria de la base y de los archivos, prueba de restauración y retención por días.
-  # Restaurar: `docker compose stop backend` y `docker compose run --rm --no-deps backup restaurar <copia>` (respaldos/README.md).
+  # Restaurar: `docker compose stop backend minio` y `docker compose run --rm --no-deps backup restaurar <copia>` (respaldos/README.md).
   backup:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -105,6 +129,7 @@ services:
     volumes:
       - ./respaldos/respaldo.sh:/opt/logicode/respaldo.sh:ro
       - file-storage:/archivos
+      - minio-data:/minio
       - backups:/respaldos
 
   frontend:
@@ -118,7 +143,9 @@ services:
 
 volumes:
   db-data:
-  # Archivos cargados (materiales y entregas). El servicio backup lo copia junto con la base.
+  # Datos de MinIO: los archivos cargados (materiales y entregas). El servicio backup lo copia junto con la base.
+  minio-data:
+  # Cargas en curso y archivos de antes de MinIO, que el backend sube a MinIO al arrancar.
   file-storage:
   # Copias de la base y de los archivos. Para guardarlas fuera del equipo: respaldos/README.md.
   backups:

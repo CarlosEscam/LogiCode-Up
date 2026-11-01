@@ -69,7 +69,7 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 
 | # | Decisión | Motivo |
 | --- | --- | --- |
-| T-22 | Archivos en un volumen local de Docker (`file-storage`) detrás del puerto `BinaryStorage`, en vez de MinIO | Opción por defecto mientras se responde P-05: no agrega un servicio más al equipo de presentación. Cambiar a MinIO o S3 es escribir otro adaptador; el resto del código no cambia |
+| T-22 | Archivos en un volumen local de Docker (`file-storage`) detrás del puerto `BinaryStorage`, en vez de MinIO | Opción por defecto mientras se respondía P-05: no agregaba un servicio más al equipo de presentación. **Reemplazada por T-85** el 1 de noviembre de 2026; el adaptador local sigue para ejecutar el backend fuera de Docker y para las pruebas |
 | T-23 | Módulo `files` aparte: valida extensión, tamaño y firma real, guarda solo metadatos en `stored_file` y usa claves aleatorias | Las Etapas 5 a 8 (entregas, fotos) reutilizan la misma validación. El nombre original nunca se usa como ruta |
 | T-24 | Inscripción por cédula en `course_enrollment` | El docente puede inscribir antes de que el estudiante se registre; al registrarse ya ve el contenido privado |
 | T-25 | El primer curso que se crea inscribe todas las cédulas ya habilitadas | Los estudiantes habilitados en la Etapa 3 no pierden acceso al crear el curso |
@@ -177,13 +177,25 @@ Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hace
 | T-76 | Exportación `.xlsx` en `/gradebook/export/xlsx`, con las mismas filas del CSV; notas y porcentajes como números (notas con formato `0.0`; porcentajes en la fila "Porcentaje (%)"), textos como texto, y encabezado fijo al desplazarse | En Excel se puede ordenar y promediar sin convertir. Una celda de texto no se ejecuta como fórmula, así que no hace falta el apóstrofo del CSV (T-64) |
 | T-77 | La IA recibe de cada PDF su texto (si lo tiene) y cada página como imagen (110 ppp, lado mayor hasta 2000 px; luego se reduce como una foto). Un PDF de más de 5 páginas, de más de 25 MB, con contraseña o dañado manda la entrega completa al docente ("Formato que la IA no lee"), y también una entrega con más de 10 imágenes en total. Reemplaza la parte de PDF de T-41 | El texto evita errores de lectura en un PDF exportado; la imagen cubre un escaneo o una foto convertida a PDF. Los límites mantienen el tiempo de CPU parecido al de unas pocas fotos |
 
+## Decisiones aprobadas el 1 de noviembre de 2026 (P-05 y P-06)
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| P-05 | Los archivos cargados se guardan en MinIO, en Docker Compose, en lugar del disco local | Lo pide la especificación (capa 7: almacenamiento de objetos compatible con S3, MinIO en local) y prepara la publicación en línea (P-09) |
+| P-06 | El remitente de los correos de Brevo es `logicode.notificaciones@gmail.com` | Lo eligió Carlos; es una cuenta propia del proyecto |
+
+## Decisiones técnicas de MinIO y Brevo
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-85 | P-05: los archivos se guardan en MinIO (servicio `minio`, volumen `minio-data`, sin puerto publicado) con la misma clave aleatoria de T-22. La carga se recibe primero en `file-storage` para medirla, calcular su SHA-256 y revisar el formato; luego se sube y MinIO rechaza la carga si el SHA-256 no coincide. La vista previa y la descarga siguen pasando por el backend, que revisa los permisos; los `Range` de los videos piden a MinIO solo desde esa posición. Al arrancar, el backend sube a MinIO los archivos que había en `file-storage` y borra cada copia local después de comprobar su tamaño en MinIO; mientras tanto los entrega desde la carpeta. El cliente S3 es propio (`S3ObjectClient`, firma AWS V4 comparada con la de botocore en `S3ObjectClientTest`). La imagen es `pgsty/minio`, el fork comunitario de MinIO | Carlos decidió MinIO el 1 de noviembre. LogiCode usa cinco operaciones de S3; el SDK de MinIO traería unas diez bibliotecas (OkHttp, Kotlin, Guava, Bouncy Castle, Jackson 2) para eso. La imagen oficial `minio/minio` ya no está en Docker Hub (septiembre de 2026) y el repositorio de MinIO está archivado; el fork es el mismo programa con parches. Por ser S3 estándar, cambiar a otro servidor compatible es cambiar la imagen en `docker-compose.yml` |
+| T-86 | P-06: el remitente de Brevo es `logicode.notificaciones@gmail.com`, en `BREVO_SENDER_EMAIL` de `.env` (antes, el secreto `brevo_sender_email`, que si existe sigue teniendo prioridad). La API key sigue siendo secreto de Docker | Carlos lo decidió el 1 de noviembre. El remitente no es secreto. Brevo no puede autenticar un dominio gratuito como gmail.com, así que puede mostrar el correo con un dominio de Brevo o mandarlo a spam; se comprueba con un envío real antes del piloto, y un dominio propio lo resolvería |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
 | --- | --- | --- | --- |
-| P-05 | Almacenamiento de archivos en local: MinIO (mencionado en la especificación) o volumen de Docker | Publicación en línea | Implementado con volumen local (T-22). Si se prefiere MinIO, se agrega como adaptador sin cambiar el resto |
-| P-06 | Dominio y remitente de Brevo | Envío real de correos; **conviene antes del piloto** | Lo define el equipo. Todo está listo: se ponen la API key y el remitente en `secrets/` y se arranca con `docker-compose.brevo.yml`. Sin Brevo, los estudiantes del piloto se registran e ingresan, pero los correos de verificación y de recuperación quedan en la bandeja local del equipo servidor y no les llegan |
-| P-09 | Proveedor de alojamiento y de almacenamiento de objetos para publicar en línea | Publicación en línea (fuera del piloto) | En observación según la especificación. El despliegue seguirá siendo con Docker y los mismos archivos de Compose; el almacenamiento cambiaría con otro adaptador de `BinaryStorage` (P-05) |
+| P-09 | Proveedor de alojamiento y de almacenamiento de objetos para publicar en línea | Publicación en línea (fuera del piloto) | En observación según la especificación. El despliegue seguirá siendo con Docker y los mismos archivos de Compose; los archivos irían al almacenamiento S3 del proveedor con el mismo adaptador de MinIO (T-85) |
 
 ## Observaciones de la especificación (no bloquean la base)
 

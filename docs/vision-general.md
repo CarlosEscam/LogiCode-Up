@@ -96,11 +96,11 @@ El detalle de cada paso está en los [casos de uso](casos-de-uso.md). El flujo d
 | API | REST con JSON bajo `/api/v1`, errores RFC 9457, OpenAPI con springdoc |
 | Backend | Java 21 y Spring Boot 4.1 (4.1.2), monolito modular con capas `api`, `application`, `domain` e `infrastructure` verificadas con ArchUnit; Spring Security, Spring Session JDBC, BCrypt |
 | Base de datos | PostgreSQL 17 con migraciones Flyway (`V1` a `V8`) |
-| Archivos | Volumen local de Docker (`file-storage`) |
+| Archivos | MinIO (almacenamiento de objetos compatible con S3) en Docker |
 | IA (opcional) | Ollama 0.35.1 con Qwen2.5-VL 7B (Q4_K_M), local, perfil `ia` de Docker Compose |
 | Excel y PDF | Apache POI 5.5.1 (importar lista y exportar planilla `.xlsx`), Apache PDFBox 3.0.8 (la IA lee PDF) |
 | Correo | Brevo para el envío real; bandeja local `.local/mail-outbox` en desarrollo |
-| Despliegue | Docker Compose: `db`, `backend`, `frontend`, `backup` y `ollama` (opcional) |
+| Despliegue | Docker Compose: `db`, `minio`, `backend`, `frontend`, `backup` y `ollama` (opcional) |
 | Pruebas | JUnit 5, Testcontainers, ArchUnit; Vitest y Testing Library; oxlint; axe-core para accesibilidad |
 
 Arquitectura completa en [arquitectura.md](arquitectura.md).
@@ -117,7 +117,7 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 
 | Pendiente | Detalle |
 | --- | --- |
-| Remitente verificado de Brevo (P-06) | Sin él, los correos de verificación y recuperación quedan en el equipo servidor y no llegan a los estudiantes |
+| Activar Brevo con `logicode.notificaciones@gmail.com` (P-06 decidido) | Falta verificar el remitente en Brevo, poner la API key y probar un envío real. Sin eso, los correos quedan en el equipo servidor y no llegan a los estudiantes |
 | Pruebas de aceptación de Qwen2.5-VL en el equipo de referencia | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md); no hay resultados todavía |
 | Piloto con el docente y acta firmada | Plan y acta en [piloto.md](piloto.md) |
 | Revisión de Carlos de las ampliaciones | Retos de bloques, Excel y PDF, rediseño, catálogo y niveles nuevos de los juegos ([estado.md](estado.md)) |

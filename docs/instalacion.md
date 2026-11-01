@@ -38,6 +38,7 @@ Edítalo y cambia como mínimo:
 | Variable | Qué poner |
 | --- | --- |
 | `DB_PASSWORD` | Una contraseña larga y propia para la base de datos. PostgreSQL la toma cuando crea la base por primera vez |
+| `MINIO_ROOT_PASSWORD` | Una contraseña propia para MinIO, donde se guardan los archivos (mínimo 8 caracteres). Sin ella LogiCode no arranca. MinIO la toma la primera vez; para cambiarla después hay que crear el volumen `minio-data` de nuevo |
 | `INITIAL_ADMIN_1_CEDULA`, `INITIAL_ADMIN_1_NAME`, `INITIAL_ADMIN_1_EMAIL` | Cédula, nombre y correo de la primera cuenta inicial (privilegio completo) |
 | `INITIAL_ADMIN_2_*` | Los de la segunda cuenta inicial. Para una prueba se pueden dejar vacíos |
 | `LOGICODE_PUBLIC_URL` | La dirección con la que se abre la interfaz (por defecto `http://localhost:3000`); aparece en los enlaces de los correos |
@@ -122,14 +123,15 @@ En CPU cada foto puede tardar varios minutos. Las pruebas de aceptación del mod
 
 Sin Brevo, los correos de verificación y recuperación quedan como archivos en `.local/mail-outbox/` del equipo servidor y no les llegan a los usuarios.
 
-1. Crea `secrets/brevo_api_key.txt` con la API key y `secrets/brevo_sender_email.txt` con el remitente verificado en Brevo. La carpeta `secrets/` está fuera de Git; las credenciales se manejan como secretos de Docker, nunca en `.env`.
-2. Arranca con el archivo adicional:
+1. En Brevo, agrega y verifica el remitente `logicode.notificaciones@gmail.com` (Brevo envía un código a ese correo). Es el valor de `BREVO_SENDER_EMAIL` en `.env`.
+2. Crea `secrets/brevo_api_key.txt` con la API key. La carpeta `secrets/` está fuera de Git; la API key se maneja como secreto de Docker, nunca en `.env`.
+3. Arranca con el archivo adicional:
 
    ```bash
    docker compose -f docker-compose.yml -f docker-compose.brevo.yml up -d --build --wait
    ```
 
-El remitente verificado de Brevo (P-06) está **Pendiente**: lo define el equipo.
+4. Pide una recuperación de contraseña con un correo real y revisa que llegue. Brevo no puede autenticar una dirección de Gmail, así que puede mostrar el remitente con un dominio de Brevo o el correo puede llegar a spam; si pasa, la solución es un dominio propio verificado en Brevo (T-86).
 
 ## 9. Modo piloto con HTTPS
 
@@ -207,6 +209,7 @@ Precauciones:
 | Síntoma | Qué hacer |
 | --- | --- |
 | *"Define DB_PASSWORD en el archivo .env"* | Falta el `.env` o no está en la raíz del proyecto |
+| *"Define MINIO_ROOT_PASSWORD en el archivo .env"* | Desde P-05 los archivos van en MinIO: agrega `MINIO_ROOT_PASSWORD` (mínimo 8 caracteres) a `.env` |
 | *"port is already allocated"* | Cambia `DB_PORT`, `BACKEND_PORT` o `FRONTEND_PORT` en `.env` y vuelve a arrancar |
 | El backend queda `unhealthy` | `docker compose logs backend`: base no disponible, `DB_PASSWORD` distinta de la que tenía el volumen al crearse, o una migración que falló |
 | No aparece el correo de verificación | Mira `.local/mail-outbox/`; si no está, `docker compose restart backend`. En Linux revisa los permisos de la carpeta (sección 4) |

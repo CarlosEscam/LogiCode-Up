@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 1 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`**
+Última actualización: 1 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y remitente de Brevo (P-06) entregados el 1 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -11,8 +11,8 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
 | 1 · Análisis y diseño | Diseño técnico hecho; casos de uso e historias de usuario entregados | [Casos de uso](casos-de-uso.md) e [historias de usuario](historias-de-usuario.md) con criterios Dado/Cuando/Entonces, escritos sobre lo implementado (1 de noviembre). Siguen **pendientes**: maquetas, rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen en `ia-pruebas/`) |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
-| 3 · Acceso y permisos | Implementada y aprobada | Falta: envío real con Brevo (P-06). La carga desde Excel llegó con P-07 |
-| 4 · Curso, temas y biblioteca | Implementada y aprobada | Almacenamiento local como opción por defecto mientras se decide P-05 |
+| 3 · Acceso y permisos | Implementada y aprobada | Remitente de Brevo decidido (P-06); falta activarlo y probar un envío real. La carga desde Excel llegó con P-07 |
+| 4 · Curso, temas y biblioteca | Implementada y aprobada | Desde el 1 de noviembre los archivos van en MinIO (P-05) |
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
 | 7 · Quizzes, PSeInt y juegos | Implementada y aprobada | Falta que Carlos revise niveles y notas automáticas de los datos demo |
@@ -23,13 +23,36 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
 | Ampliación · juegos con más niveles y personajes del robot | Implementada; Carlos aprobó los 20 niveles y los personajes y pidió más niveles en todos los juegos (27 de octubre) | Detalle abajo |
 | Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
+| Ampliación · archivos en MinIO (P-05) y remitente de Brevo (P-06) | Implementada, pendiente de revisión | Carlos decidió las dos el 1 de noviembre. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
 | Documentación completa del proyecto | Entregada, pendiente de revisión | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre). Detalle abajo |
 
 ## Datos de demostración
 
-Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base; el 1 de noviembre, con los archivos en MinIO); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Archivos en MinIO (P-05) y remitente de Brevo (P-06) · detalle
+
+Sin cambio de base de datos (sigue en la versión 8) ni de interfaz.
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Servicio `minio` en Docker Compose, sin puerto publicado, con usuario y contraseña en `.env` | Implementado | `docker-compose.yml`, `.env.example` (T-85) |
+| Adaptador de `BinaryStorage` para MinIO: la carga se valida en `file-storage` y se sube con su SHA-256; vista previa y descarga pasan por el backend con los mismos permisos; los `Range` piden a MinIO desde esa posición | Implementado | `files/infrastructure/S3BinaryStorage.java`, `S3ObjectClient.java` |
+| Paso automático a MinIO de los archivos que había en el disco, sin cortar el servicio | Implementado | `S3BinaryStorage.migrateLocalFiles()` |
+| Respaldos con los datos de MinIO; restauración de copias nuevas y de copias de antes de MinIO | Implementado | `respaldos/respaldo.sh`, `respaldos/README.md` |
+| Remitente `logicode.notificaciones@gmail.com` en `BREVO_SENDER_EMAIL` | Implementado | `docker-compose.brevo.yml`, `.env.example` (T-86) |
+| Remitente verificado en Brevo, API key y envío real de prueba | **Pendiente** | Lo hace Carlos en su cuenta de Brevo ([instalación](instalacion.md), sección 8) |
+
+### Verificación realizada (MinIO y Brevo)
+
+- Backend: todas las pruebas anteriores en verde, más `S3ObjectClientTest` (la firma coincide con la de botocore, la biblioteca oficial de AWS) y `MinioStorageIT` contra la imagen real de MinIO: guardar, leer desde una posición, borrar, rechazo de una carga con SHA-256 distinto, rechazo de credenciales equivocadas y paso de archivos locales.
+- Actualización real: una instalación de la versión anterior (`1d08059`) con los datos demo (14 archivos en el disco) se actualizó a esta versión; el backend pasó 14 de 14 archivos a MinIO, dejó vacía la carpeta y las descargas por la API dieron el mismo SHA-256 guardado en la base.
+- Video de 60 MB: carga en unos 4 s, petición `Range` del último kilobyte en 37 ms (`206`, bytes correctos) y descarga completa idéntica.
+- Respaldos: la copia nueva pasó la prueba de restauración ("15 archivos legibles"); `restaurar` se negó con MinIO en marcha; se restauraron una copia de antes de MinIO (el backend volvió a pasar los 14 archivos) y una copia nueva (15 objetos de vuelta, video idéntico).
+- Instalación limpia con datos demo: carga completa sin errores; 14 archivos en MinIO y 14 en la base.
+- No se probó: el envío real con Brevo (falta la API key y verificar el remitente) ni Windows con Docker Desktop.
 
 ## Documentación del proyecto · detalle
 
@@ -354,7 +377,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Formatos, límites y validación del tipo real (RNF-04, RN-21) | Implementado | Lista de formatos aprobada; 500 MB y 1 GB para videos; se revisa la firma del archivo, no solo la extensión |
 | Retención mínima de seis meses (RNF-12) | Implementado en datos | Cada archivo guarda `retain_until`; nada se borra, los temas y materiales se archivan. La limpieza automática después de la retención está pendiente |
 | Administrador ordinario: publicar biblioteca, sin crear temas ni materiales (RN-04) | Implementado | Puede cambiar visibilidad y archivar; crear o editar responde `403` |
-| Almacenamiento de archivos | Implementado (local) | Volumen `file-storage` detrás de un puerto; MinIO queda como alternativa (P-05) |
+| Almacenamiento de archivos | Implementado en MinIO (P-05, T-85) | Servicio `minio` detrás del puerto `BinaryStorage`; los archivos que había en `file-storage` se pasan solos a MinIO al arrancar |
 
 ### Verificación realizada (Etapa 4)
 
@@ -384,7 +407,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Roles y autorización (RF-28, RN-04, RN-15, RN-22) | Implementado | `AccessPolicy` + verificación en cada caso de uso; matriz en [permisos.md](permisos.md) |
 | Privilegio completo solo para las 2 cuentas iniciales (D-03, RN-16) | Implementado | Se crean desde `INITIAL_ADMIN_*` en `.env`; nadie más puede tenerlo; no se puede quedar la plataforma sin una activa |
 | Auditoría de acceso | Implementado | Tabla `audit_event`; `GET /admin/audit-events`; pantalla `/admin/auditoria` |
-| Envío de correo con Brevo | Implementado, sin probar con la cuenta real | `docker-compose.brevo.yml` + secretos; falta el remitente verificado (P-06). En desarrollo se usa la bandeja local `.local/mail-outbox` |
+| Envío de correo con Brevo | Implementado, sin probar con la cuenta real | `docker-compose.brevo.yml`; remitente `logicode.notificaciones@gmail.com` en `BREVO_SENDER_EMAIL` (P-06, T-86) y API key como secreto. Falta verificar el remitente en Brevo y probar un envío real. En desarrollo se usa la bandeja local `.local/mail-outbox` |
 
 ### Verificación realizada (Etapa 3)
 
@@ -412,7 +435,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | PostgreSQL y migraciones versionadas | Implementado | Flyway, `V1` a `V3` |
 | Docker Compose | Implementado | `docker-compose.yml` (db, backend, frontend) |
 | Configuración por entorno | Implementado | `.env.example`, `application.yml` |
-| Almacenamiento local | Implementado en la Etapa 4 | Volumen `file-storage` (T-22) |
+| Almacenamiento de archivos | Implementado en la Etapa 4 en disco local (T-22); en MinIO desde el 1 de noviembre (T-85) | Servicio `minio`, volumen `minio-data` |
 | CI básico | Implementado (sin ejecutar en GitHub) | `.github/workflows/ci.yml`; el repositorio aún no está publicado en GitHub |
 | Health checks y OpenAPI | Implementado | `/actuator/health/*`, `/api/v1/openapi`, `/swagger-ui.html` |
 

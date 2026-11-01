@@ -68,9 +68,13 @@ Para desarrollar fuera de Docker (opcional):
 | `SESSION_TIMEOUT` | `2h` | Tiempo sin actividad tras el cual se cierra la sesión |
 | `SESSION_COOKIE_SECURE` | `false` | `true` solo cuando la plataforma se sirva por HTTPS |
 | `LOGICODE_MAIL_PROVIDER` | `outbox` | `outbox` guarda los correos en `.local/mail-outbox`; `brevo` los envía (ver abajo) |
+| `BREVO_SENDER_EMAIL` | `logicode.notificaciones@gmail.com` | Remitente de los correos con Brevo (P-06); debe estar verificado en la cuenta de Brevo |
 | `BREVO_SENDER_NAME` | `LogiCode` | Nombre del remitente en Brevo |
+| `MINIO_ROOT_USER` | `logicode` | Usuario de MinIO (solo dentro de Docker) |
+| `MINIO_ROOT_PASSWORD` | *(obligatoria)* | Contraseña de MinIO, mínimo 8 caracteres. Solo en `.env` |
 | `LOGICODE_FILE_RETENTION_MONTHS` | `6` | Meses que se conserva cada archivo cargado (mínimo 6) |
-| `LOGICODE_FILES_DIR` | `file-storage` | Solo al ejecutar el backend fuera de Docker: carpeta de los archivos cargados |
+| `LOGICODE_FILES_STORAGE` | `local` | Solo al ejecutar el backend fuera de Docker: `local` guarda en `LOGICODE_FILES_DIR`; `minio` usa MinIO en `LOGICODE_MINIO_URL`. En Docker siempre es `minio` |
+| `LOGICODE_FILES_DIR` | `file-storage` | Solo al ejecutar el backend fuera de Docker: carpeta de los archivos cargados (o de las cargas en curso con MinIO) |
 | `LOGICODE_AI_ENABLED` | `false` | `true` califica con IA (ver "Calificación con IA") |
 | `LOGICODE_AI_MODEL` | `qwen2.5vl:7b` | Modelo de Ollama |
 | `LOGICODE_AI_TIMEOUT` | `10m` | Tiempo máximo por evaluación |
@@ -80,7 +84,7 @@ Para desarrollar fuera de Docker (opcional):
 | `BACKUP_RETENTION_DAYS` | `30` | Días que se guarda cada respaldo |
 | `LOGICODE_BACKUPS_DIR` | `backups` | Solo al ejecutar el backend fuera de Docker: carpeta donde lee los respaldos |
 
-La API key y el remitente de Brevo son **secretos de Docker**, nunca variables de `.env` (ver "Correo real con Brevo").
+La API key de Brevo es un **secreto de Docker**, nunca una variable de `.env` (ver "Correo real con Brevo"). El remitente no es secreto y va en `.env`.
 
 ## Iniciar
 
@@ -99,7 +103,7 @@ docker compose up --build
 
 Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos y los archivos cargados: `docker compose down -v`.
 
-Los archivos de los materiales se guardan en el volumen `file-storage`. El servicio `backup` respalda cada día la base de datos y esos archivos en el volumen `backups` y prueba que cada copia se pueda restaurar; desde la web (Administración) se ve el estado y se pide un respaldo inmediato. Cómo copiarlos fuera del equipo y cómo restaurar: [respaldos/README.md](respaldos/README.md).
+Los archivos de los materiales y las entregas se guardan en MinIO (servicio `minio`, volumen `minio-data`), que solo es accesible desde el backend; quien los ve o descarga lo sigue decidiendo LogiCode. Al pasar de una versión anterior, el backend sube solo a MinIO los archivos que había en el volumen `file-storage` y los borra de allí cuando comprueba cada uno. El servicio `backup` respalda cada día la base de datos y los archivos en el volumen `backups` y prueba que cada copia se pueda restaurar; desde la web (Administración) se ve el estado y se pide un respaldo inmediato. Cómo copiarlos fuera del equipo y cómo restaurar: [respaldos/README.md](respaldos/README.md).
 
 ### Piloto con HTTPS
 
@@ -121,7 +125,7 @@ En Linux, si el backend no puede escribir en `.local/mail-outbox`, crea la carpe
 
 ### Correo real con Brevo
 
-1. Crea `secrets/brevo_api_key.txt` con la API key y `secrets/brevo_sender_email.txt` con el remitente verificado en Brevo. La carpeta `secrets/` está fuera de Git.
+1. Crea `secrets/brevo_api_key.txt` con la API key. La carpeta `secrets/` está fuera de Git. El remitente es `BREVO_SENDER_EMAIL` en `.env` (`logicode.notificaciones@gmail.com`, P-06) y debe estar verificado como remitente en Brevo (Brevo envía un código a ese correo).
 2. Arranca con el archivo adicional:
 
    ```bash
@@ -208,7 +212,7 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 ├── docs/                            Índice, visión, instalación, diseño técnico, manuales, diagramas, estado y decisiones
 ├── .github/workflows/ci.yml         Integración continua
 ├── docker-compose.yml               db + backend + frontend + backup (+ ollama con el perfil ia)
-├── docker-compose.brevo.yml         Envío real de correos con Brevo (secretos)
+├── docker-compose.brevo.yml         Envío real de correos con Brevo (remitente y API key)
 ├── docker-compose.piloto.yml        Piloto: HTTPS, cookies seguras, API sin documentación pública
 ├── certificados/                    Certificado y autoridad local del piloto (se crean solos, fuera de Git)
 └── .env.example                     Variables de ejemplo (sin secretos)
@@ -223,4 +227,4 @@ La prueba de arquitectura (`LayeredArchitectureTest`) falla si una capa rompe la
 
 ## Siguiente paso
 
-Revisar la Etapa 10: [docs/piloto.md](docs/piloto.md) y los [manuales](docs/manuales/). Después, preparar el equipo servidor, probar allí la restauración y hacer el piloto con el docente hasta firmar el acta de aceptación (entrega objetivo: 10 de diciembre de 2026). Conviene cerrar antes P-06 (remitente de Brevo), porque sin él los correos de verificación y recuperación no llegan a los estudiantes. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y las decisiones P-05 y P-09 de [docs/decisiones.md](docs/decisiones.md). Los retos de bloques (RF-12), Excel y PDF (P-07, P-08) y la documentación completa ([docs/README.md](docs/README.md)) están entregados y esperan revisión.
+Revisar la Etapa 10: [docs/piloto.md](docs/piloto.md) y los [manuales](docs/manuales/). Después, preparar el equipo servidor, probar allí la restauración y hacer el piloto con el docente hasta firmar el acta de aceptación (entrega objetivo: 10 de diciembre de 2026). Antes del piloto conviene activar Brevo con el remitente decidido (P-06, `logicode.notificaciones@gmail.com`): verificarlo en Brevo, poner la API key y probar un envío real; sin eso los correos de verificación y recuperación no llegan a los estudiantes. Los archivos ya se guardan en MinIO (P-05): al actualizar hay que agregar `MINIO_ROOT_PASSWORD` a `.env`. Siguen pendientes las pruebas de aceptación de la IA en el equipo de referencia ([ia-pruebas/README.md](ia-pruebas/README.md)) y la decisión P-09 de [docs/decisiones.md](docs/decisiones.md). Los retos de bloques (RF-12), Excel y PDF (P-07, P-08) y la documentación completa ([docs/README.md](docs/README.md)) están entregados y esperan revisión.

@@ -6,12 +6,16 @@
 #   servicio            ciclo: copia diaria a BACKUP_HOUR (hora de Colombia) y las que se piden desde el panel
 #   crear               una copia ahora
 #   probar <nombre>     restaura la copia en una base temporal y revisa el archivo de archivos
-#   restaurar <nombre>  reemplaza la base y los archivos por los de la copia (con el backend detenido)
+#   restaurar <nombre>  reemplaza la base y los archivos por los de la copia (con el backend y MinIO detenidos)
+#
+# archivos.tar.gz lleva dos carpetas: minio/ (los datos de MinIO, P-05) y archivos/ (cargas en curso y archivos que
+# el backend aún no subió a MinIO). Las copias de antes de MinIO solo traen los archivos sueltos.
 #   listar              copias disponibles
 set -u
 
 DIR=/respaldos
 FILES=/archivos
+MINIO=/minio
 HOUR=${BACKUP_HOUR:-2}
 KEEP=${BACKUP_RETENTION_DAYS:-30}
 
@@ -31,7 +35,10 @@ probar() {
       && version=$(psql -tA -v ON_ERROR_STOP=1 -d "$db" -c "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1" 2>>"$errors") \
       && accounts=$(psql -tA -v ON_ERROR_STOP=1 -d "$db" -c "SELECT count(*) FROM user_account" 2>>"$errors"); then
     if tar -tzf "$folder/archivos.tar.gz" > "$errors.lista" 2>>"$errors"; then
-      files=$(grep -vc '/$' "$errors.lista" || true)
+      # Un objeto de MinIO es una carpeta con su xl.meta; .minio.sys es la configuración de MinIO.
+      objects=$(grep -c '^minio/[^.].*/xl\.meta$' "$errors.lista" || true)
+      loose=$(grep -v '/$' "$errors.lista" | grep -v '^minio/' | grep -vc '\.staging/' || true)
+      files=$((objects + loose))
       result=OK
       detail="Base restaurada en una copia temporal: esquema versión $version, $accounts cuentas; $files archivos legibles. Probada el $(colombia '+%Y-%m-%d %H:%M')."
     else
@@ -54,7 +61,7 @@ crear() {
   if ! pg_dump --format=custom --file="$work/base.dump"; then
     log "Falló pg_dump"; rm -rf "$work"; return 1
   fi
-  if ! tar -czf "$work/archivos.tar.gz" -C "$FILES" .; then
+  if ! tar -czf "$work/archivos.tar.gz" -C / "${FILES#/}" "${MINIO#/}"; then
     log "Falló la copia de archivos"; rm -rf "$work"; return 1
   fi
   probar "$work"
@@ -89,16 +96,26 @@ restaurar() {
   [ -f "$folder/base.dump" ] && [ -f "$folder/archivos.tar.gz" ] || { echo "No existe la copia $1"; exit 1; }
   others=$(psql -tA -c "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()")
   if [ "$others" != 0 ]; then
-    echo "Hay $others conexiones abiertas. Detén el backend primero: docker compose stop backend"
+    echo "Hay $others conexiones abiertas. Detén el backend primero: docker compose stop backend minio"
+    exit 1
+  fi
+  if wget -q -T 3 -O /dev/null http://minio:9000/minio/health/live 2>/dev/null; then
+    echo "MinIO sigue en marcha. Detenlo primero: docker compose stop backend minio"
     exit 1
   fi
   log "Restaurando $1"
   # Todo o nada: si algo falla, la base queda como estaba.
   pg_restore --clean --if-exists --no-owner --single-transaction --exit-on-error --dbname="$PGDATABASE" \
       "$folder/base.dump" || { echo "No se restauró la base; quedó como estaba."; exit 1; }
-  find "$FILES" -mindepth 1 -delete && tar -xzf "$folder/archivos.tar.gz" -C "$FILES" \
-      || { echo "La base se restauró, pero falló la copia de archivos."; exit 1; }
-  log "Restaurada $1. Arranca de nuevo: docker compose start backend"
+  if tar -tzf "$folder/archivos.tar.gz" | grep -q '^minio/'; then
+    find "$FILES" "$MINIO" -mindepth 1 -delete && tar -xzf "$folder/archivos.tar.gz" -C / \
+        || { echo "La base se restauró, pero falló la copia de archivos."; exit 1; }
+  else
+    # Copia de antes de MinIO: los archivos vuelven a la carpeta y el backend los sube a MinIO al arrancar.
+    find "$FILES" "$MINIO" -mindepth 1 -delete && tar -xzf "$folder/archivos.tar.gz" -C "$FILES" \
+        || { echo "La base se restauró, pero falló la copia de archivos."; exit 1; }
+  fi
+  log "Restaurada $1. Arranca de nuevo: docker compose start minio backend"
 }
 
 case "${1:-servicio}" in

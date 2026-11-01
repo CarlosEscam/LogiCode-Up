@@ -88,8 +88,7 @@ class LocalBinaryStorage implements BinaryStorage {
 
     @Override
     public String commit(StagedFile staged) throws IOException {
-        String id = UUID.randomUUID().toString();
-        String key = id.substring(0, 2) + "/" + id.substring(2, 4) + "/" + id;
+        String key = newKey();
         Path target = resolve(key);
         Files.createDirectories(target.getParent());
         Files.move((Path) staged.handle(), target, StandardCopyOption.ATOMIC_MOVE);
@@ -121,6 +120,24 @@ class LocalBinaryStorage implements BinaryStorage {
             throw new IllegalStateException("Falta en el almacenamiento un archivo registrado en la base de datos");
         }
         return new FileSystemResource(path);
+    }
+
+    /** Clave aleatoria repartida en subcarpetas; la usan también los objetos de MinIO. */
+    static String newKey() {
+        String id = UUID.randomUUID().toString();
+        return id.substring(0, 2) + "/" + id.substring(2, 4) + "/" + id;
+    }
+
+    boolean contains(String storageKey) {
+        return Files.isRegularFile(resolve(storageKey));
+    }
+
+    Path root() {
+        return root;
+    }
+
+    Path staging() {
+        return staging;
     }
 
     private Path resolve(String key) {

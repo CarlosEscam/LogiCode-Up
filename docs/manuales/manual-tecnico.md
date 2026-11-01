@@ -9,12 +9,12 @@ Para quien instala, opera y mantiene LogiCode. La instalación paso a paso está
 | Interfaz | React 19 (Vite), servida por Nginx, que además termina HTTPS y reenvía `/api` | `frontend/` |
 | API | Java 21, Spring Boot 4.1, REST JSON con prefijo `/api/v1`, monolito modular por capas | `backend/`, [arquitectura.md](../arquitectura.md), [api/README.md](../api/README.md) |
 | Base de datos | PostgreSQL 17 con migraciones Flyway (versión 8) | [modelo-de-datos.md](../modelo-de-datos.md) |
-| Archivos | Volumen local de Docker `file-storage` (P-05) | |
+| Archivos | MinIO en Docker (servicio `minio`, volumen `minio-data`; P-05) | README, "Iniciar" |
 | Respaldos | Servicio `backup` con copia diaria y prueba de restauración | [respaldos/README.md](../../respaldos/README.md) |
 | IA (opcional) | Ollama + Qwen2.5-VL 7B en Docker, perfil `ia` | README, "Calificación con IA" |
 | Correo | Bandeja local `.local/mail-outbox` o Brevo (`docker-compose.brevo.yml`) | README, "Correo real con Brevo" |
 
-Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `backend`, `frontend`, `backup` y, con IA, `ollama`. Diagramas de despliegue, módulos y flujo de datos: [arquitectura.md](../arquitectura.md) y [diagramas/](../diagramas/).
+Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `minio`, `backend`, `frontend`, `backup` y, con IA, `ollama`. Diagramas de despliegue, módulos y flujo de datos: [arquitectura.md](../arquitectura.md) y [diagramas/](../diagramas/).
 
 ## 2. Equipo servidor
 
@@ -27,7 +27,7 @@ Todo corre con Docker Compose en un solo equipo. Servicios: `db`, `backend`, `fr
 
 1. Instalación y variables: [instalacion.md](../instalacion.md) (Windows y Linux, paso a paso) y el [README](../../README.md), secciones "Configuración local" e "Iniciar". Todo se configura en `.env` (fuera de Git); `.env.example` lista las variables sin secretos.
 2. Modo piloto con HTTPS: [piloto.md](../piloto.md), sección 2.
-3. Secretos: la contraseña de la base va en `.env`; la API key y el remitente de Brevo, en `secrets/` como secretos de Docker; las llaves del certificado, en `certificados/`. Ninguno de los tres se sube al repositorio ni se comparte.
+3. Secretos: las contraseñas de la base y de MinIO van en `.env`; la API key de Brevo, en `secrets/` como secreto de Docker; las llaves del certificado, en `certificados/`. Ninguno de los tres se sube al repositorio ni se comparte.
 
 ### Cuentas iniciales
 
@@ -97,7 +97,8 @@ Para volver atrás: `git checkout` de la versión anterior, `docker compose up -
 
 | Síntoma | Causa probable y solución |
 | --- | --- |
-| `docker compose up` dice que falta `DB_PASSWORD` o `LOGICODE_PUBLIC_URL` | Falta la variable en `.env` |
+| `docker compose up` dice que falta `DB_PASSWORD`, `MINIO_ROOT_PASSWORD` o `LOGICODE_PUBLIC_URL` | Falta la variable en `.env` |
+| El backend queda `unhealthy` con "credenciales de MinIO" o "HTTP 403" | `MINIO_ROOT_PASSWORD` cambió después de crear el volumen `minio-data`; vuelve a poner la anterior |
 | El frontend no arranca: puerto 80 o 443 en uso | Otro programa usa el puerto (IIS, otro proyecto). Detenlo durante el piloto |
 | Los celulares no abren la dirección | Firewall de Windows (piloto.md, paso 4), red marcada como pública, o equipos en otra red o VLAN |
 | "La conexión no es privada" | Normal sin la autoridad instalada. Instala `logicode-ca.crt` (piloto.md, sección 3) |

@@ -196,6 +196,10 @@ Para verlo: Laura abre la actividad (rúbrica con el tablero, "Editar rúbrica" 
 - **PDF con IA:** la entrega de Felipe en el Taller 3 ya no va directo al docente: con la IA encendida, el modelo recibe el texto del PDF y la imagen de su página.
 - Si ya tenías los datos anteriores, el script agrega solo la lista de Excel.
 
+### MinIO y remitente de Brevo (P-05 y P-06)
+
+No agregan datos: el script es el mismo. Los archivos de la demostración (guías, imágenes, programas, fotos de cuaderno, PDF y la lista de Excel) ahora quedan en MinIO en vez del disco. Si ya tenías los datos cargados, al actualizar el backend los pasa solo a MinIO y se siguen viendo y descargando igual; no hace falta volver a cargarlos.
+
 ## Para las etapas siguientes
 
 Cada etapa nueva agrega una función `stageN(...)` al script y una sección aquí, sin cambiar lo anterior salvo que la etapa lo requiera.

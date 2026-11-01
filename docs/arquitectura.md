@@ -11,14 +11,14 @@ flowchart LR
     U[Navegador] -->|HTTP :3000 · HTTPS :443 en el piloto| N[Nginx + React compilado]
     N -->|/api/v1/*| B[Backend Spring Boot :8080]
     B -->|JDBC| P[(PostgreSQL 17)]
-    B -->|disco local| F[(Volumen file-storage)]
+    B -->|S3 :9000| F[(MinIO · volumen minio-data)]
     B -->|HTTPS| M[Brevo · correo transaccional]
     B -.->|HTTP :11434, perfil ia| O[Ollama + Qwen2.5-VL 7B]
     K[Servicio backup] -->|pg_dump| P
     K -->|tar| F
 ```
 
-La línea punteada es opcional: Ollama solo corre con `docker compose --profile ia` y `LOGICODE_AI_ENABLED=true` (T-45). El correo usa `outbox` (archivos `.html` en `.local/mail-outbox`) mientras no se configure el remitente de Brevo (P-06, **Pendiente**).
+La línea punteada es opcional: Ollama solo corre con `docker compose --profile ia` y `LOGICODE_AI_ENABLED=true` (T-45). El correo usa `outbox` (archivos `.html` en `.local/mail-outbox`) hasta arrancar con `docker-compose.brevo.yml`; el remitente es `logicode.notificaciones@gmail.com` (P-06, T-86).
 
 | Capa (especificación) | Implementación en el repositorio | Estado |
 | --- | --- | --- |
@@ -28,8 +28,8 @@ La línea punteada es opcional: Ollama solo corre con `docker compose --profile 
 | 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada (11 módulos de negocio) |
 | 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL (`ai_grading_job`); envío automático de quizzes vencidos; correos en segundo plano | Implementada. RabbitMQ queda como opción de crecimiento (T-38) |
 | 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones `V1` a `V8`) |
-| 7. Almacenamiento | PostgreSQL para datos; archivos en el volumen local `file-storage` detrás del puerto `BinaryStorage` | Implementada en disco local. MinIO/S3 queda en P-05 (**Pendiente de decidir**) |
-| 8. Infraestructura | `docker-compose.yml` con `db`, `backend`, `frontend`, `backup` y, con el perfil `ia`, `ollama` | Implementada. Alojamiento en línea: P-09, en observación |
+| 7. Almacenamiento | PostgreSQL para datos; archivos en MinIO (compatible con S3) detrás del puerto `BinaryStorage`, con claves aleatorias y acceso solo a través del backend | Implementada (P-05, T-85) |
+| 8. Infraestructura | `docker-compose.yml` con `db`, `minio`, `backend`, `frontend`, `backup` y, con el perfil `ia`, `ollama` | Implementada. Alojamiento en línea: P-09, en observación |
 
 ## Despliegue con Docker Compose
 
@@ -40,10 +40,12 @@ flowchart TB
             FE[frontend · Nginx<br/>3000→80 en desarrollo<br/>80 y 443 en el piloto]
             BE[backend · Spring Boot<br/>127.0.0.1:8080]
             DB[(db · postgres:17-alpine<br/>127.0.0.1:5432)]
+            MI[(minio · pgsty/minio<br/>sin puerto publicado)]
             BK[backup · postgres:17-alpine<br/>respaldo.sh]
             OL[ollama · ollama/ollama:0.35.1<br/>perfil ia, sin puerto publicado]
         end
         V1[(db-data)]
+        V5[(minio-data)]
         V2[(file-storage)]
         V3[(backups)]
         V4[(ollama-models)]
@@ -52,6 +54,9 @@ flowchart TB
     end
     FE --> BE
     BE --> DB
+    BE --> MI
+    MI --- V5
+    BK --- V5
     BE -.-> OL
     BK --> DB
     DB --- V1
@@ -67,9 +72,10 @@ flowchart TB
 | Servicio | Imagen | Puerto publicado | Volúmenes | Notas |
 | --- | --- | --- | --- | --- |
 | `db` | `postgres:17-alpine` | `127.0.0.1:${DB_PORT:-5432}` | `db-data` | Nunca se expone a la red (T-11) |
-| `backend` | Se construye desde `backend/` | `127.0.0.1:${BACKEND_PORT:-8080}` | `file-storage`, `backups` (solo lectura de lo que deja `backup` y escritura de la petición), `./.local/mail-outbox` | Arranca cuando `db` está sano; aplica las migraciones Flyway al iniciar |
+| `minio` | `pgsty/minio:RELEASE.2026-08-04T00-00-00Z` (fork comunitario de MinIO, T-85) | Ninguno | `minio-data` | Archivos cargados. Usuario y contraseña en `.env` (`MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`) |
+| `backend` | Se construye desde `backend/` | `127.0.0.1:${BACKEND_PORT:-8080}` | `file-storage` (cargas en curso y archivos de antes de MinIO), `backups` (solo lectura de lo que deja `backup` y escritura de la petición), `./.local/mail-outbox` | Arranca cuando `db` y `minio` están sanos; aplica las migraciones Flyway al iniciar |
 | `frontend` | Se construye desde `frontend/` (Nginx) | `${FRONTEND_PORT:-3000}:80`; en el piloto `80` y `443` | En el piloto, `./certificados` | Crea la autoridad y el certificado locales si faltan (`frontend/nginx/https.sh`, T-67) |
-| `backup` | `postgres:17-alpine` | Ninguno | `file-storage`, `backups` | Copia diaria a la hora `BACKUP_HOUR` (Colombia), prueba de restauración y retención `BACKUP_RETENTION_DAYS` (T-63) |
+| `backup` | `postgres:17-alpine` | Ninguno | `file-storage`, `minio-data`, `backups` | Copia diaria a la hora `BACKUP_HOUR` (Colombia), prueba de restauración y retención `BACKUP_RETENTION_DAYS` (T-63) |
 | `ollama` | `ollama/ollama:0.35.1` | Ninguno | `ollama-models` | Solo con `--profile ia`; un modelo y una petición a la vez |
 
 Archivos de Compose adicionales:
@@ -77,7 +83,7 @@ Archivos de Compose adicionales:
 | Archivo | Qué cambia |
 | --- | --- |
 | `docker-compose.piloto.yml` | `LOGICODE_ENVIRONMENT=piloto`, cookies `Secure`, documentación de la API apagada, HTTPS en los puertos 80 (redirige) y 443. Guía: [piloto.md](piloto.md) |
-| `docker-compose.brevo.yml` | `LOGICODE_MAIL_PROVIDER=brevo` y los secretos de Docker `brevo_api_key` y `brevo_sender_email` (archivos en `secrets/`, fuera de Git) |
+| `docker-compose.brevo.yml` | `LOGICODE_MAIL_PROVIDER=brevo`, el remitente `BREVO_SENDER_EMAIL` y el secreto de Docker `brevo_api_key` (archivo en `secrets/`, fuera de Git) |
 
 ## Recorrido de una petición
 
@@ -85,7 +91,7 @@ Archivos de Compose adicionales:
 2. Nginx sirve los archivos de React y reenvía todo lo que empieza por `/api/` a `http://backend:8080` con `X-Forwarded-Proto`. El cuerpo admite hasta 1,1 GB (videos de 1 GB).
 3. En Spring: `RequestIdFilter` asigna o propaga `X-Request-Id` y deja una línea de log por solicitud; Spring Security valida la sesión (cookie `LOGICODE_SESSION`) y el token CSRF en toda escritura; `ActiveAccountFilter` recarga la cuenta en cada petición, de modo que una cuenta desactivada pierde el acceso de inmediato.
 4. El controlador (`api`) valida el formato y llama a un caso de uso (`application`), que comprueba el permiso (`AccessPolicy`) y la pertenencia al curso, abre la transacción y usa el dominio y los puertos.
-5. Los adaptadores (`infrastructure`) hablan con PostgreSQL, el disco, Brevo u Ollama. La respuesta sale como JSON o como Problem Details (RFC 9457) en español.
+5. Los adaptadores (`infrastructure`) hablan con PostgreSQL, MinIO, Brevo u Ollama. La respuesta sale como JSON o como Problem Details (RFC 9457) en español.
 
 ## Backend: módulos y capas
 
@@ -213,7 +219,7 @@ El dibujo de los DFD sigue vigente. Lo que cambió desde el análisis: el flujo 
 | HTTPS | Modo piloto con certificado local o de la Universidad (T-67); en desarrollo, HTTP en `localhost` |
 | Archivos | Firma real, extensión y tamaño validados; claves aleatorias; descarga con permisos y `nosniff` |
 | Ejecución de código | Intérprete de PSeInt sin instrucciones de archivos, red ni sistema, con límites de tiempo, pasos y memoria (T-49, T-50) |
-| Secretos | `.env`, `secrets/` y `certificados/` fuera de Git; credenciales de Brevo como secretos de Docker |
+| Secretos | `.env`, `secrets/` y `certificados/` fuera de Git; API key de Brevo como secreto de Docker; contraseña de MinIO en `.env` |
 | Puertos | Base y backend solo en `127.0.0.1`; desde la red solo se llega a Nginx |
 
 ## Decisiones transversales ya implementadas
