@@ -323,7 +323,7 @@ Como **estudiante** quiero ejecutar mis programas de PSeInt en el navegador para
 - **Requisitos:** RNF-05. **Estado:** Implementado.
 - **Criterios de aceptación:**
   1. Dado un programa y unas entradas, cuando pulso **Ejecutar**, entonces veo la salida o el error con su línea.
-  2. Dado un programa que usa `Para Cada` o el perfil estricto de PSeInt, cuando lo ejecuto, entonces se indica que la instrucción no está disponible (soporte **Pendiente**).
+  2. Dado un programa que usa el perfil estricto de PSeInt, cuando lo ejecuto, entonces se indica que la instrucción no está disponible (soporte **Pendiente**).
 
 ### HU-30 Encontrar juegos por herramienta y tema
 
