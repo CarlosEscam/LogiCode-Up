@@ -315,7 +315,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Resultado de la IA e historial para el docente (RF-17) | Implementado | Lectura del modelo, legibilidad, confianza, puntos y comentario por criterio, retroalimentación propuesta, duración y evaluaciones anteriores. El estudiante no ve nada de esto |
 | Scratch y Arduino (RN-10) | Parcial | `.ino` se evalúa como texto. `.sb3`, Word, PowerPoint y video pasan al docente ("Formato que la IA no lee"). PDF: lo lee desde P-08 (T-77) |
 | Calificación determinista de PSeInt y quizzes (RF-16) | Implementado en la Etapa 7 | Ver la sección de la Etapa 7 |
-| Pruebas de aceptación con Qwen2.5-VL 7B en el equipo Ryzen 7 5700U | **Pendiente: las ejecuta Carlos** | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md). El modelo no se puede descargar en el entorno de desarrollo de Claude, así que no hay resultados de Qwen todavía; no se inventan |
+| Pruebas de aceptación con Qwen2.5-VL 7B en el equipo Ryzen 7 5700U | **Pendiente con fotos reales** | Arnés en [ia-pruebas/](../ia-pruebas/README.md). Ensayo del 1 de noviembre en el PC de Carlos con las 3 imágenes sintéticas: ver [ia-pruebas/README.md](../ia-pruebas/README.md#ensayo-del-1-de-noviembre-de-2026-imágenes-sintéticas). Decisión de Carlos: la regla del 80 % no cambia hasta medir con fotos manuscritas reales |
 
 ### Verificación realizada (Etapa 6)
 
@@ -330,7 +330,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Confianza ≥ 80 % y contenido legible publica la nota | `AiGradingPolicyTest`, `AiGradingFlowsIT` |
 | Foto ilegible o confianza inferior requiere confirmación docente | `AiGradingFlowsIT` (79 %, ilegible) y pantallas de Por revisar y de la entrega |
 | Un fallo técnico no asigna nota y permite reintento | `AiGradingFlowsIT`, `OllamaGradingAdapterTest` y el recorrido con Ollama real |
-| Lectura manuscrita, coincidencia de notas, confianza, legibilidad, latencia y RAM con Qwen2.5-VL 7B Q4_K_M en el Ryzen 7 5700U | **Pendiente.** `node ia-pruebas/ejecutar-pruebas.mjs ia-pruebas/muestras/muestras.json` en el equipo de presentación; el resumen queda en `ia-pruebas/resultados/` |
+| Lectura manuscrita, coincidencia de notas, confianza, legibilidad, latencia y RAM con Qwen2.5-VL 7B Q4_K_M en el Ryzen 7 5700U | **Pendiente con fotos reales** (ensayo sintético hecho el 1 de noviembre). `node ia-pruebas/ejecutar-pruebas.mjs ia-pruebas/muestras/muestras.json` en el equipo de presentación; el resumen queda en `ia-pruebas/resultados/` |
 
 ## Etapa 5 · detalle
 

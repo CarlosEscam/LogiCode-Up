@@ -11,6 +11,7 @@
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, extname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const BASE = (process.env.LOGICODE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 const API = `${BASE}/api/v1`
@@ -357,7 +358,7 @@ async function main() {
   model ??= 'qwen2.5vl:7b'
   const env = environment(model)
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
-  const out = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), 'resultados', stamp)
+  const out = join(dirname(fileURLToPath(import.meta.url)), 'resultados', stamp)
   mkdirSync(out, { recursive: true })
   writeFileSync(join(out, 'resultados.csv'), csv(rows))
   writeFileSync(join(out, 'resumen.md'), summary(rows, env, model, file))

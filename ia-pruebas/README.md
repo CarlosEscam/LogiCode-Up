@@ -2,7 +2,7 @@
 
 La especificación aprueba Ollama + Qwen2.5-VL 7B Q4_K_M y pide **registrar** en el equipo de referencia (Ryzen 7 5700U, 32 GB, Docker): lectura de símbolos, coincidencia con la nota docente, confianza, falsos automáticos (publicados con 80 % o más pero equivocados), detección de ilegibilidad, latencia y RAM máxima. Estas mediciones no condicionan la elección del modelo.
 
-**Estado: pendiente de ejecutar en el equipo de referencia.** El entorno donde se construyó la Etapa 6 no puede descargar el modelo, así que aquí no hay resultados de Qwen. `ejecutar-pruebas.mjs` sí se ensayó de punta a punta con un modelo de texto pequeño solo para comprobar el arnés; esos números no dicen nada sobre Qwen y no se guardaron.
+**Estado: ensayo con imágenes sintéticas hecho (ver abajo); pendiente con fotos manuscritas reales.** El entorno donde se construyó la Etapa 6 no puede descargar el modelo, así que aquí no hay resultados de Qwen. `ejecutar-pruebas.mjs` sí se ensayó de punta a punta con un modelo de texto pequeño solo para comprobar el arnés; esos números no dicen nada sobre Qwen y no se guardaron.
 
 ## 1. Preparar las muestras (antes de usar la IA)
 
@@ -58,3 +58,15 @@ Cómo leerlos:
 - `SIN_TERMINAR` significa que no terminó dentro de `IA_ESPERA_MAX_MIN`; `FAILED`, un fallo técnico sin nota.
 
 Para conservar los resultados en el repositorio, copia `resumen.md` a `docs/` o agrégalo a `docs/estado.md`, y quita de las transcripciones cualquier dato personal.
+
+## Ensayo del 1 de noviembre de 2026 (imágenes sintéticas)
+
+En el PC de Carlos (Docker: 16 CPU, 15,6 GB), Ollama 0.35.1, qwen2.5vl:7b Q4_K_M, con `muestras.ejemplo.json`. Números del script:
+
+| Muestra | Legible esperado / IA | Confianza | Nota docente / IA | Publicada sola | Modelo |
+| --- | --- | --- | --- | --- | --- |
+| E01 legible, sombra y giro leve | sí / sí | 85 | 5 / 4,5 | sí, dentro de la tolerancia | 52 s |
+| E02 condición invertida | sí / sí | 80 | 3 / 5 | sí, **falso automático** | 100 s |
+| E03 borrosa y oscura | no / **sí** | 80 | — / 1 | sí, debía ir al docente | 85 s |
+
+Lectura de caracteres y de símbolos ambiguos: 100 %. RAM máxima de Ollama: 11,7 GB. Hallazgo: con estas tres imágenes la confianza reportada no separa aciertos de errores. Son sintéticas y pocas, así que no es conclusión; la regla del 80 % se mantiene (T-40) hasta medir con fotos reales.
