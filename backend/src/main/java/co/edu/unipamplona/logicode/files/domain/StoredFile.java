@@ -49,6 +49,9 @@ public class StoredFile {
     @Column(name = "retain_until", nullable = false)
     private Instant retainUntil;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     protected StoredFile() {
     }
 
@@ -100,5 +103,17 @@ public class StoredFile {
 
     public Instant getRetainUntil() {
         return retainUntil;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    /** Anota el borrado del contenido; nunca antes de {@code retainUntil} (RN-21). */
+    public void markDeleted(Instant now) {
+        if (now.isBefore(retainUntil)) {
+            throw new IllegalStateException("Un archivo no se borra antes de cumplir su tiempo de conservación");
+        }
+        this.deletedAt = now;
     }
 }

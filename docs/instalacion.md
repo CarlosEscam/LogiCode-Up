@@ -67,7 +67,7 @@ La primera vez descarga imágenes y compila el backend y el frontend (10 a 20 mi
 
 | Dirección | Qué es |
 | --- | --- |
-| `http://localhost:3000` | La aplicación. En el pie de la página de inicio, "Estado de la plataforma" debe decir que está en línea y con el esquema en la versión 8 |
+| `http://localhost:3000` | La aplicación. En el pie de la página de inicio, "Estado de la plataforma" debe decir que está en línea y con el esquema en la versión 9 |
 | `http://localhost:3000/swagger-ui.html` | Documentación interactiva de la API (solo en desarrollo) |
 | `http://localhost:8080/actuator/health` | Estado del backend (o el `BACKEND_PORT` que hayas puesto) |
 

@@ -2,6 +2,7 @@ package co.edu.unipamplona.logicode.content.infrastructure;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.content.domain.Material;
@@ -15,4 +16,9 @@ interface JpaMaterialRepository extends JpaRepository<Material, UUID>, JpaSpecif
 
     @Query("select coalesce(max(m.position), 0) from Material m where m.topicId = :topicId")
     int maxPosition(UUID topicId);
+
+    /** Un archivo sigue en uso mientras su material y su tema no estén archivados. */
+    @Query("select m.fileId from Material m, Topic t where t.id = m.topicId and m.fileId in :fileIds"
+            + " and m.archivedAt is null and t.archivedAt is null")
+    Set<UUID> fileIdsInUse(Collection<UUID> fileIds);
 }

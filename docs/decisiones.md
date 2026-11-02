@@ -73,7 +73,7 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-23 | Módulo `files` aparte: valida extensión, tamaño y firma real, guarda solo metadatos en `stored_file` y usa claves aleatorias | Las Etapas 5 a 8 (entregas, fotos) reutilizan la misma validación. El nombre original nunca se usa como ruta |
 | T-24 | Inscripción por cédula en `course_enrollment` | El docente puede inscribir antes de que el estudiante se registre; al registrarse ya ve el contenido privado |
 | T-25 | El primer curso que se crea inscribe todas las cédulas ya habilitadas | Los estudiantes habilitados en la Etapa 3 no pierden acceso al crear el curso |
-| T-26 | Temas y materiales se archivan, no se borran | Cumple la retención de seis meses (RNF-12) y permite recuperar contenido. La limpieza de archivos vencidos queda pendiente |
+| T-26 | Temas y materiales se archivan, no se borran | Cumple la retención de seis meses (RNF-12) y permite recuperar contenido. La limpieza de archivos vencidos se agregó después (T-88) |
 | T-27 | Lo que alguien no puede ver responde `404`, no `403` | No revela la existencia de cursos o materiales privados |
 | T-28 | El administrador ordinario puede cambiar visibilidad y archivar materiales (publicar biblioteca), no crearlos ni editarlos | Une "publicar biblioteca" de RF-28 con RN-04 |
 | T-29 | `Role` y `Permission` pasan a `shared.domain`; la anotación `@CurrentActor` pasa a `identity.application` | Otros módulos los necesitan y la regla de módulos solo permite usar la capa `application` de otro módulo |
@@ -209,3 +209,9 @@ Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hace
 2. Tabla de prioridades: P1 y P2 repiten quizzes, PSeInt, juegos de bloques y foro. No afecta las Etapas 1 y 2.
 3. Tabla de etapas: la fila de encabezado repite el texto de la Etapa 0 (error de formato).
 4. El Word `LogiCode - Requerimientos y reglas de negocio.docx` no está en la carpeta del proyecto; se trabajó con el `.md`.
+
+## Decisiones técnicas del borrado de archivos vencidos
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-88 | Un proceso diario (3:30 a. m., hora de Colombia) borra los archivos con `retain_until` vencida que ningún módulo usa. Cada módulo que guarda ids de archivos implementa `FileUsage` (`content`: material y tema sin archivar; `activities`: toda entrega). El registro queda con `deleted_at` y el contenido se borra después de confirmar en la base | Carlos eligió el 2 de noviembre borrar solo lo archivado o sin uso: las entregas son la evidencia de la nota y los materiales activos los sigue usando el docente. RN-21 solo exige no borrar antes de seis meses. El puerto evita que `files` consulte tablas de otros módulos. Corre después del respaldo diario, así que lo borrado se puede recuperar de las copias durante `BACKUP_RETENTION_DAYS` días |
