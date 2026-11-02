@@ -111,7 +111,7 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 
 - Etapas 2 a 10 de la especificación: fundaciones, acceso y permisos, curso y biblioteca, actividades y entregas, calificación con IA en segundo plano, quizzes, PSeInt y juegos, foro, planilla, panel y respaldos, calidad y seguridad, modo piloto con HTTPS, página de inicio y manuales.
 - Ampliaciones después de la Etapa 10: retos de bloques que configura el docente (RF-12, base de datos versión 8); Excel (importar lista y exportar planilla, P-07) y PDF leído por la IA (P-08); juegos con más niveles y personajes del robot; juego "Caza el error"; rediseño visual con el Canva; juegos como catálogo con filtros; juego de Arduino, niveles de matrices y textos en PSeInt y ciclos en "Completa el DFD".
-- Documentación de la Etapa 1: casos de uso e historias de usuario (este conjunto de documentos).
+- Documentación de la Etapa 1: casos de uso, historias de usuario y maquetas (este conjunto de documentos).
 
 ### Pendiente
 
@@ -124,7 +124,7 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 | Niveles de `/juegos` editables por el docente | Los niveles están fijos en el código; el docente configura retos con nota solo con RF-12 |
 | La IA lee Word, PowerPoint, video y Scratch | No aprobado; esas entregas van al docente |
 | Limpieza automática de archivos después de la retención | Hoy nada se borra |
-| Maquetas, rúbricas de referencia y prueba de lectura manuscrita de la Etapa 1 | Ver [estado.md](estado.md) |
+| Rúbricas de referencia y prueba de lectura manuscrita de la Etapa 1 | Ver [estado.md](estado.md) |
 
 ### Decisión aprobada
 

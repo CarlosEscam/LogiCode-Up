@@ -18,6 +18,7 @@ En todos los documentos se usan tres palabras con un sentido fijo:
 | [Estado del proyecto](estado.md) | Qué está implementado, qué falta y cómo se verificó cada etapa |
 | [Casos de uso](casos-de-uso.md) | Actores y casos de uso principales con su estado |
 | [Historias de usuario](historias-de-usuario.md) | Historias por épica con criterios de aceptación Dado/Cuando/Entonces |
+| [Maquetas](maquetas.md) | Las 18 pantallas principales en baja fidelidad (PC y celular), con sus casos de uso e historias |
 | [Decisiones](decisiones.md) | Decisiones aprobadas, decisiones técnicas tomadas y preguntas abiertas |
 | [Especificación](../LogiCode%20-%20Especificacion%20para%20Claude%20Code.md) | Requisitos (RF), no funcionales (RNF), reglas de negocio (RN) y etapas: la fuente de verdad |
 | [Piloto](piloto.md) | Plan del piloto, registro de observaciones y acta de aceptación |
@@ -76,4 +77,4 @@ Además, cada documento técnico tiene sus propios diagramas Mermaid (módulos, 
 
 ## Documentos de la Etapa 1 que siguen pendientes
 
-Maquetas, rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen2.5-VL) siguen **Pendientes**. Detalle en [estado.md](estado.md).
+Casos de uso, historias de usuario y maquetas están entregados. Las rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen2.5-VL) siguen **Pendientes**. Detalle en [estado.md](estado.md).

@@ -13,6 +13,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 DOCS = [  # orden del documento: índice, visión, técnica, uso, operación, estado y anexos
     'docs/README.md', 'docs/vision-general.md', 'docs/arquitectura.md', 'docs/modelo-de-datos.md',
     'docs/api/README.md', 'docs/permisos.md', 'docs/casos-de-uso.md', 'docs/historias-de-usuario.md',
+    'docs/maquetas.md',
     'docs/instalacion.md', 'docs/piloto.md', 'docs/manuales/manual-administrador.md',
     'docs/manuales/manual-docente.md', 'docs/manuales/manual-estudiante.md', 'docs/manuales/manual-tecnico.md',
     'datos-demo/README.md', 'respaldos/README.md', 'docs/calidad.md', 'docs/decisiones.md', 'docs/estado.md',

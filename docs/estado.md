@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 2 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre**
+Última actualización: 2 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -9,7 +9,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Etapa | Estado | Notas |
 | --- | --- | --- |
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
-| 1 · Análisis y diseño | Diseño técnico hecho; casos de uso e historias de usuario entregados | [Casos de uso](casos-de-uso.md) e [historias de usuario](historias-de-usuario.md) con criterios Dado/Cuando/Entonces, escritos sobre lo implementado (1 de noviembre). Siguen **pendientes**: maquetas, rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen en `ia-pruebas/`) |
+| 1 · Análisis y diseño | Diseño técnico hecho; casos de uso, historias de usuario y maquetas entregados | [Casos de uso](casos-de-uso.md) e [historias de usuario](historias-de-usuario.md) con criterios Dado/Cuando/Entonces, escritos sobre lo implementado (1 de noviembre); [maquetas](maquetas.md) de baja fidelidad de las 18 pantallas principales (2 de noviembre). Siguen **pendientes**: rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen en `ia-pruebas/`) |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
 | 3 · Acceso y permisos | Implementada y aprobada | Correo real con Brevo funcionando desde el 1 de noviembre (P-06). La carga desde Excel llegó con P-07 |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Desde el 1 de noviembre los archivos van en MinIO (P-05) |
@@ -71,7 +71,8 @@ Solo documentación: no cambia código de la aplicación. Todo se revisó contra
 | Arquitectura, modelo de datos y API | Actualizados | Doce módulos y sus reglas, procesos en segundo plano, migraciones `V1` a `V8` con diagramas entidad-relación, todos los endpoints y los errores con sus títulos reales |
 | Manuales del docente, del estudiante y técnico | Actualizados | Barra con iconos, importar desde Excel, "Definir rúbrica", PDF leídos por la IA, catálogo de juegos con filtros y niveles, juego de Arduino, ciclos en DFD, cambio de correo con cédula. Capturas nuevas en `manuales/img/` |
 | Textos de la interfaz en otros documentos | Corregidos | "Crear respaldo ahora" en `piloto.md` y `calidad.md` (decía "Hacer un respaldo ahora"); "Exportar a Excel (.xlsx)" y "Exportar a CSV" y "Pendiente" en Estudiantes en `datos-demo/README.md` |
-| Maquetas, rúbricas de referencia y prueba de lectura manuscrita (Etapa 1) | **Pendiente** | No se pueden escribir sin el docente ni sin correr las pruebas de Qwen en el equipo de referencia |
+| [Maquetas](maquetas.md) (Etapa 1) | Nuevo, 2 de noviembre | 18 pantallas principales en baja fidelidad (11 de PC y 7 de celular) con notas numeradas, mapa de navegación y los casos de uso e historias que cubre cada una. Dibujadas en `docs/maquetas/fuente.html` a partir de las pantallas reales; imágenes con `node docs/maquetas/capturar.mjs`. Validarlas con el docente queda para el piloto |
+| Rúbricas de referencia y prueba de lectura manuscrita (Etapa 1) | **Pendiente** | No se pueden escribir sin el docente ni sin correr las pruebas de Qwen en el equipo de referencia |
 | Revisión del 2 de noviembre | Hecha con Carlos | Contra el commit `85dca33`: Brevo pasa a probado, la visión general y el índice muestran el ensayo de la IA, se agrega el acceso temporal con ngrok ([piloto.md](piloto.md#8-mostrar-logicode-fuera-de-la-red-demostraciones)) y el documento único (`.docx` y `.pdf`) se genera con `docs/documento-completo/generar.py`: índice lleno, imágenes ajustadas a la hoja, enlaces internos y anexos con el ensayo de la IA y la migración |
 
 ### Verificación realizada (documentación)

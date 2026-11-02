@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetas de LogiCode</title>
+<!-- Fuente de las maquetas de baja fidelidad. Cada .frame se guarda como docs/maquetas/<id>.png con capturar.mjs.
+     Los números naranjas se explican en docs/maquetas.md. Datos ficticios, los mismos de datos-demo. -->
+<style>
+  body { margin: 0; padding: 24px; background: #d9d9d9; font: 14px/1.4 "DejaVu Sans", Arial, sans-serif; color: #222;
+         display: flex; flex-direction: column; gap: 32px; align-items: flex-start; }
+  .frame { background: #fff; border: 2px solid #333; width: 1024px; }
+  .frame.movil { width: 375px; border-radius: 22px; overflow: hidden; padding-bottom: 14px; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 2px solid #333; flex-wrap: wrap; }
+  .logo { font: bold 15px "DejaVu Sans Mono", monospace; display: flex; align-items: center; gap: 6px; }
+  .logo::before { content: "</>"; font-size: 9px; width: 22px; height: 22px; border: 2px solid #333; border-radius: 50%;
+                  display: inline-flex; align-items: center; justify-content: center; }
+  .nav { display: flex; gap: 2px; flex: 1; }
+  .nav span { padding: 4px 9px; border-radius: 14px; font-size: 12px; color: #555; white-space: nowrap; }
+  .nav span.on { background: #333; color: #fff; }
+  .movil header .nav { order: 3; flex-basis: 100%; overflow: hidden; }
+  .movil header .acc { margin-left: auto; }
+  .who { font-size: 12px; margin-right: 8px; }
+  .btn { display: inline-block; border: 1.5px solid #333; border-radius: 16px; padding: 4px 12px; font-size: 12px; background: #fff; white-space: nowrap; }
+  .btn.pri { background: #333; color: #fff; }
+  .btn.peligro { border-style: dashed; }
+  .btn.off { border-color: #bbb; color: #aaa; }
+  .band { background: #ececec; padding: 18px 40px 0; border-bottom: 1px solid #bbb; }
+  .band.sin-tabs { padding-bottom: 18px; }
+  .band h1 { font: bold 26px Georgia, "DejaVu Serif", serif; margin: 4px 0 6px; }
+  .movil .band h1 { font-size: 22px; }
+  .eyebrow { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #666; }
+  .muted { color: #666; font-size: 12px; }
+  .tabs { display: flex; gap: 2px; margin-top: 12px; flex-wrap: nowrap; overflow: hidden; }
+  .tabs span { padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+  .tabs span.on { background: #fff; border-radius: 8px 8px 0 0; font-weight: bold; }
+  .body { padding: 18px 40px; display: flex; flex-direction: column; gap: 14px; }
+  .movil .band, .movil .body { padding-left: 16px; padding-right: 16px; }
+  .card { border: 1.5px solid #999; border-radius: 10px; padding: 14px; background: #fff; }
+  .card h2 { font: bold 16px Georgia, "DejaVu Serif", serif; margin: 0 0 8px; }
+  .card h3 { font-size: 13px; margin: 10px 0 6px; }
+  .dark { background: #333; color: #fff; border-color: #333; }
+  .field > .n { position: absolute; right: 0; top: -2px; }
+  .field { position: relative; display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; font-weight: bold; }
+  .input { border: 1.5px solid #999; border-radius: 6px; min-height: 26px; background: #fff; font-weight: normal; padding: 4px 8px; box-sizing: border-box; font-size: 12px; color: #555; }
+  .input.alto { min-height: 70px; }
+  .input.sel { position: relative; }
+  .input.sel::after { content: "▾"; position: absolute; right: 8px; top: 4px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row > .field { flex: 1; }
+  .grid { display: grid; gap: 12px; }
+  .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); } .g6 { grid-template-columns: repeat(6, 1fr); }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+  .tag { display: inline-block; border: 1px solid #999; border-radius: 10px; padding: 1px 8px; font-size: 11px; background: #f4f4f4; white-space: nowrap; }
+  .tag.fuerte { background: #333; color: #fff; border-color: #333; }
+  .img { border: 1px solid #bbb; color: #777; font-size: 11px; display: flex; align-items: center; justify-content: center;
+         background: linear-gradient(to top right, transparent 49.5%, #c8c8c8 49.5%, #c8c8c8 50.5%, transparent 50.5%),
+                     linear-gradient(to top left, transparent 49.5%, #c8c8c8 49.5%, #c8c8c8 50.5%, transparent 50.5%), #eee; }
+  .n { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; background: #e4572e; color: #fff; font: bold 11px "DejaVu Sans", sans-serif;
+       align-items: center; justify-content: center; font-style: normal; vertical-align: middle; margin: 0 4px; flex: none; }
+  .code { font: 12px/1.5 "DejaVu Sans Mono", monospace; background: #333; color: #eee; padding: 8px 10px; border-radius: 6px; white-space: pre; }
+  .code.claro { background: #f4f4f4; color: #222; border: 1px solid #ccc; }
+  .linea { height: 8px; background: #ccc; border-radius: 4px; margin: 7px 0; }
+  .stat { border: 1.5px solid #999; border-radius: 8px; padding: 8px; font-size: 12px; }
+  .stat b { display: block; font-size: 20px; }
+  .barra { height: 6px; background: #ddd; border-radius: 3px; margin: 6px 0; }
+  .barra i { display: block; height: 6px; background: #333; border-radius: 3px; }
+  .check::before { content: "☐ "; } .check.si::before { content: "☑ "; }
+  .radio::before { content: "○ "; } .radio.si::before { content: "◉ "; }
+  .celdas { display: grid; grid-template-columns: repeat(5, 34px); gap: 4px; }
+  .celdas i { width: 34px; height: 34px; border-radius: 4px; background: #eee; display: flex; align-items: center; justify-content: center; font-style: normal; }
+  .celdas i.muro { background: #444; }
+  .aviso { border: 1px dashed #999; background: #f6f6f6; border-radius: 6px; padding: 8px; font-size: 12px; }
+  small { font-size: 11px; color: #666; font-weight: normal; }
+</style>
+</head>
+<body>
+
+<!-- M-01 · Página de inicio (visitante, PC) -->
+<section class="frame" id="m01-inicio">
+  <header data-nav="*Inicio|Biblioteca|Juegos|Foro"></header>
+  <div class="band sin-tabs">
+    <div class="row" style="align-items:flex-start">
+      <div style="flex:1">
+        <div class="eyebrow">Plataforma de Pensamiento Computacional · Universidad de Pamplona</div>
+        <h1>LogiCode <i class="n">1</i></h1>
+        <div class="linea" style="width:80%"></div><div class="linea" style="width:60%"></div>
+        <div class="row" style="margin-top:10px"><span class="btn pri">Registrarme como estudiante</span><span class="btn">Solicitar cuenta de docente</span><i class="n">2</i></div>
+      </div>
+      <div class="code" style="width:300px">Algoritmo Promedio
+  Definir n1, n2 Como Real
+  Leer n1, n2
+  Escribir "Nota: ", (n1+n2)/2
+FinAlgoritmo</div>
+    </div>
+  </div>
+  <div class="body">
+    <h2 style="margin:0;font:bold 18px Georgia,serif">Qué puedes hacer <i class="n">3</i></h2>
+    <div class="grid g4">
+      <div class="card"><h2>Aprender</h2><div class="linea"></div><div class="linea" style="width:70%"></div><span class="btn">Ver la biblioteca</span></div>
+      <div class="card"><h2>Practicar</h2><div class="linea"></div><div class="linea" style="width:70%"></div><span class="btn">Jugar</span></div>
+      <div class="card"><h2>Entregar y ver tus notas</h2><div class="linea"></div><div class="linea" style="width:70%"></div></div>
+      <div class="card"><h2>Preguntar</h2><div class="linea"></div><div class="linea" style="width:70%"></div><span class="btn">Ir al foro</span></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h2>Cómo empezar si eres estudiante <i class="n">4</i></h2>
+        <div style="font-size:12px">1. Tu docente habilita tu cédula en el curso.<br>2. Te registras con tu cédula, tu correo y una contraseña.<br>3. Confirmas el correo con el enlace que te llega.<br>4. Inicias sesión y entras a tu curso.</div></div>
+      <div class="grid g2">
+        <div class="card"><h2>Misión <i class="n">5</i></h2><div class="linea"></div><div class="linea"></div><div class="linea" style="width:60%"></div></div>
+        <div class="card"><h2>Visión</h2><div class="linea"></div><div class="linea"></div><div class="linea" style="width:60%"></div></div>
+      </div>
+    </div>
+    <div class="muted">Estado de la plataforma: en línea · versión <i class="n">6</i></div>
+  </div>
+</section>
+
+<!-- M-02 · Iniciar sesión (celular) -->
+<section class="frame movil" id="m02-ingresar">
+  <header data-nav="Inicio|Biblioteca|Juegos|Foro" data-ingresar="on"></header>
+  <div class="band sin-tabs">
+    <div class="eyebrow">Universidad de Pamplona</div>
+    <h1>Iniciar sesión</h1>
+    <div class="muted">Sin cuenta puedes usar la biblioteca pública, los juegos y leer el foro. <i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="field">Cédula <i class="n">2</i><div class="input"></div></div>
+      <div class="field">Contraseña<div class="input">••••••••</div></div>
+      <span class="btn pri">Ingresar</span>
+      <div class="aviso" style="margin-top:10px">Mensaje de error genérico: "Cédula o contraseña incorrectas". Tras 5 intentos fallidos en 15 minutos se bloquea un rato. <i class="n">3</i></div>
+    </div>
+    <div style="font-size:12px;line-height:2">
+      <u>¿Olvidaste tu contraseña?</u> <i class="n">4</i><br><u>¿Ya no tienes acceso a tu correo?</u><br>
+      <u>Registrarme como estudiante</u> · <u>Solicitar cuenta de docente</u>
+    </div>
+  </div>
+</section>
+
+<!-- M-03 · Registro de estudiante (celular) -->
+<section class="frame movil" id="m03-registro">
+  <header data-nav="Inicio|Biblioteca|Juegos|Foro" data-ingresar="si"></header>
+  <div class="band sin-tabs">
+    <h1>Registro de estudiante</h1>
+    <div class="muted">Tu cédula debe estar habilitada por un docente. Después de registrarte verifica tu correo. <i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="field">Cédula<div class="input"></div></div>
+      <div class="field">Nombre completo<div class="input"></div></div>
+      <div class="field">Correo electrónico<div class="input"></div></div>
+      <div class="field">Contraseña <i class="n">2</i><div class="input"></div><small>Mínimo 8 caracteres, con un número y un carácter especial.</small></div>
+      <div class="field">Confirmar contraseña<div class="input"></div></div>
+      <span class="btn pri">Registrarme</span>
+    </div>
+    <div class="aviso">Al terminar: "Revisa tu correo para confirmar la cuenta". Si la cédula no está habilitada: "Pide a tu docente que habilite tu cédula". <i class="n">3</i></div>
+  </div>
+</section>
+
+<!-- M-04 · Curso: Temas (docente, PC) -->
+<section class="frame" id="m04-curso-temas">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro|Habilitar estudiantes" data-who="Laura · Docente"></header>
+  <div class="band">
+    <div class="muted"><u>Cursos</u> · Periodo 2026-2</div>
+    <h1>Pensamiento Computacional · Grupo A</h1>
+    <div class="muted">Docente: Laura Méndez Ríos · 9 inscritos · ▸ Editar datos del curso</div>
+    <div class="tabs"><span class="on">Temas</span><span>Actividades</span><span>Por revisar</span><span>Planilla</span><span>Banco de preguntas</span><span>Estudiantes</span><i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card dark"><h2>Próxima clase <i class="n">2</i></h2><u>Algoritmos y variables en PSeInt</u> · PSeInt</div>
+    <div class="card">
+      <h2>Algoritmos y variables en PSeInt <span class="tag">PSeInt</span> <span class="tag fuerte">Próxima clase</span></h2>
+      <div class="muted">Entrada, proceso y salida; tipos de datos y asignación.</div>
+      <div class="row" style="margin:8px 0"><span class="btn off">Subir</span><span class="btn">Bajar</span><span class="btn">Quitar próxima clase</span><span class="btn">Editar tema</span><span class="btn peligro">Archivar tema</span><i class="n">3</i></div>
+      <table>
+        <tr><td><b>Guía 1: variables y asignación</b><br><span class="muted">Guía · PDF · 868 B</span> <span class="tag">Público</span></td>
+            <td style="text-align:right"><span class="btn">Ver</span> <span class="btn">Descargar</span> <span class="btn">Hacer privado</span> <span class="btn peligro">Archivar</span> <i class="n">4</i></td></tr>
+        <tr><td><b>Ejemplo: promedio de tres notas</b><br><span class="muted">Archivo de herramienta · PSC · 106 B</span> <span class="tag">Privado</span></td>
+            <td style="text-align:right"><span class="btn">Detalles</span> <span class="btn">Descargar</span> <span class="btn">Hacer público</span> <span class="btn peligro">Archivar</span></td></tr>
+        <tr><td><b>Descargar PSeInt</b><br><span class="muted">Enlace</span> <span class="tag">Público</span></td>
+            <td style="text-align:right"><span class="btn">Abrir enlace</span> <span class="btn">Hacer privado</span> <span class="btn peligro">Archivar</span></td></tr>
+      </table>
+      <div style="margin-top:8px;font-size:12px;font-weight:bold">▸ Agregar material a este tema <i class="n">5</i></div>
+    </div>
+    <div class="card"><h2>Diagramas de flujo con DFD <span class="tag">DFD</span></h2><div class="linea" style="width:40%"></div></div>
+    <div class="card"><h2>Nuevo tema <i class="n">6</i></h2>
+      <div class="row"><div class="field">Título<div class="input"></div></div><div class="field">Descripción (opcional)<div class="input"></div></div><div class="field" style="flex:0 0 160px">Herramienta<div class="input sel">PSeInt</div></div></div>
+      <span class="btn pri">Crear tema</span></div>
+  </div>
+</section>
+
+<!-- M-05 · Biblioteca (visitante, PC) -->
+<section class="frame" id="m05-biblioteca">
+  <header data-nav="Inicio|*Biblioteca|Juegos|Foro"></header>
+  <div class="band sin-tabs">
+    <div class="eyebrow">Guías, presentaciones, videos y archivos</div>
+    <h1>Biblioteca</h1>
+    <div class="muted">Materiales públicos. Inicia sesión para ver también los de tu curso. <i class="n">1</i></div>
+    <div class="card row" style="margin-top:10px">
+      <div class="field" style="flex:3">Buscar<div class="input">Título o tema</div></div>
+      <div class="field">Tema<div class="input sel">Todos</div></div>
+      <div class="field">Herramienta<div class="input sel">Todas</div></div>
+      <div class="field">Tipo<div class="input sel">Todos</div></div>
+      <span class="btn pri">Buscar</span><i class="n">2</i>
+    </div>
+  </div>
+  <div class="body">
+    <div class="muted">6 materiales</div>
+    <div class="grid g3">
+      <div class="card"><div class="img" style="height:90px">PDF</div><h2 style="margin-top:8px">Guía 1: variables y asignación</h2><span class="tag">PSeInt</span> <span class="tag">Guía</span><div class="row" style="margin-top:8px"><span class="btn pri">Ver</span><span class="btn">Descargar</span><i class="n">3</i></div></div>
+      <div class="card"><div class="img" style="height:90px">Video</div><h2 style="margin-top:8px">Cómo usar el editor de Scratch</h2><span class="tag">Scratch</span> <span class="tag">Video</span><div class="row" style="margin-top:8px"><span class="btn pri">Ver</span><span class="btn">Descargar</span></div></div>
+      <div class="card"><div class="img" style="height:90px">Enlace</div><h2 style="margin-top:8px">Descargar PSeInt</h2><span class="tag">PSeInt</span> <span class="tag">Enlace</span><div class="row" style="margin-top:8px"><span class="btn pri">Abrir enlace</span></div></div>
+    </div>
+    <div class="card"><h2>Vista previa: Guía 1 <i class="n">4</i></h2><div class="img" style="height:150px">El PDF, la imagen o el video se ve dentro de la página</div></div>
+  </div>
+</section>
+
+<!-- M-06 · Nueva actividad y rúbrica (docente, PC) -->
+<section class="frame" id="m06-nueva-actividad">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro|Habilitar estudiantes" data-who="Laura · Docente"></header>
+  <div class="band">
+    <div class="muted"><u>Cursos</u> · Periodo 2026-2</div>
+    <h1>Pensamiento Computacional · Grupo A</h1>
+    <div class="tabs"><span>Temas</span><span class="on">Actividades</span><span>Por revisar</span><span>Planilla</span><span>Banco de preguntas</span><span>Estudiantes</span></div>
+  </div>
+  <div class="body">
+    <div class="card"><h2>▾ Nueva actividad</h2>
+      <div class="muted" style="margin-bottom:8px">Se crea como borrador. Para publicarla, define antes su rúbrica. <i class="n">1</i></div>
+      <div class="field">Título<div class="input">Taller 3: mayor de dos números</div></div>
+      <div class="field">Enunciado<div class="input alto"></div></div>
+      <div class="row">
+        <div class="field">Tipo<div class="input sel">Taller</div></div>
+        <div class="field">Porcentaje de la nota (opcional) <i class="n">2</i><div class="input">30</div></div>
+        <div class="field">Intentos<div class="input">1</div></div>
+        <div class="field">Apertura (hora de Colombia)<div class="input">01/11/2026 08:00</div></div>
+        <div class="field">Cierre (hora de Colombia)<div class="input">08/11/2026 23:59</div></div>
+      </div>
+      <div class="grid g3">
+        <div class="card"><b style="font-size:12px">Formas de entrega <i class="n">3</i></b><div style="font-size:12px"><div class="check si">Texto</div><div class="check si">Archivos</div><div class="check si">Fotos del trabajo hecho a mano</div></div></div>
+        <div class="card"><b style="font-size:12px">Tipos de archivo aceptados</b><div style="font-size:12px"><div class="check si">Documentos (PDF, Word)</div><div class="check">Presentaciones</div><div class="check si">Imágenes (PNG, JPG)</div><div class="check">Videos (MP4, MOV)</div><div class="check si">Archivos de PSeInt, Arduino o Scratch</div></div></div>
+        <div class="card"><b style="font-size:12px">Quién califica</b><div class="muted">La IA, si está encendida y lee el formato; si no, el docente. PSeInt con casos de prueba y retos de bloques: nota automática.</div><i class="n">4</i></div>
+      </div>
+      <div style="margin-top:10px"><span class="btn pri">Crear borrador</span></div>
+    </div>
+    <div class="card"><h2>Rúbrica <span class="tag">Versión 1</span> <i class="n">5</i></h2>
+      <table><tr><th>Criterio</th><th>Descripción (opcional)</th><th style="width:70px">Puntos</th><th></th></tr>
+        <tr><td><div class="input">Lee los dos números</div></td><td><div class="input"></div></td><td><div class="input">1</div></td><td><span class="btn">Quitar</span></td></tr>
+        <tr><td><div class="input">Compara con Si-Entonces</div></td><td><div class="input"></div></td><td><div class="input">2,5</div></td><td><span class="btn">Quitar</span></td></tr>
+        <tr><td><div class="input">Muestra el mayor</div></td><td><div class="input"></div></td><td><div class="input">1,5</div></td><td><span class="btn">Quitar</span></td></tr>
+        <tr><th>Total</th><th></th><th>5</th><th></th></tr></table>
+      <div class="field" style="margin-top:8px">Respuesta esperada (solo la ven el docente y los Administradores) <i class="n">6</i><div class="input alto" style="min-height:40px"></div></div>
+      <div class="field">Casos de prueba de PSeInt (opcional) <i class="n">7</i><div class="input">Entradas: 3, 8 → Salida esperada: 8</div></div>
+      <div class="field">▸ Reto de bloques (opcional): cuadrícula, meta y máximo de bloques<div></div></div>
+      <div class="row"><span class="btn pri">Guardar rúbrica</span><span class="btn">Publicar actividad</span><i class="n">8</i></div>
+    </div>
+  </div>
+</section>
+
+<!-- M-07 · Actividad y entrega (estudiante, celular) -->
+<section class="frame movil" id="m07-entrega">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro" data-who="Ana · Estudiante"></header>
+  <div class="band sin-tabs">
+    <div class="muted"><u>Pensamiento Computacional · Grupo A</u></div>
+    <h1>Taller 3: mayor de dos números</h1>
+    <div class="row"><span class="tag fuerte">Pendiente</span><span class="muted">Cierra 8/11/2026, 11:59 p. m. · 1 intento</span><i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card"><h2>Enunciado</h2><div class="linea"></div><div class="linea"></div><div class="linea" style="width:50%"></div></div>
+    <div class="card"><h2>Rúbrica <span class="tag">Versión 1</span> <i class="n">2</i></h2>
+      <table><tr><th>Criterio</th><th>Puntos</th></tr><tr><td>Lee los dos números</td><td>1</td></tr><tr><td>Compara con Si-Entonces</td><td>2,5</td></tr><tr><td>Muestra el mayor</td><td>1,5</td></tr><tr><th>Total</th><th>5</th></tr></table></div>
+    <div class="card"><h2>Mi entrega</h2>
+      <div class="field">Respuesta<div class="input alto"></div></div>
+      <div class="field">Fotos o archivos <i class="n">3</i><div class="input">Elegir archivos (en el celular abre la cámara o la galería)</div>
+        <small>Hasta 5 archivos (.png, .jpg, .pdf, .psc). Máximo 500 MB cada uno; videos hasta 1 GB.</small></div>
+      <span class="btn pri">Enviar entrega</span>
+    </div>
+    <div class="aviso">Después de enviar: "Calificando con IA…" y luego la nota, o "En revisión del docente" con el motivo. <i class="n">4</i></div>
+  </div>
+</section>
+
+<!-- M-08 · Por revisar (docente, PC) -->
+<section class="frame" id="m08-por-revisar">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro|Habilitar estudiantes" data-who="Laura · Docente"></header>
+  <div class="band">
+    <div class="muted"><u>Cursos</u> · Periodo 2026-2</div>
+    <h1>Pensamiento Computacional · Grupo A</h1>
+    <div class="tabs"><span>Temas</span><span>Actividades</span><span class="on">Por revisar (7)</span><span>Planilla</span><span>Banco de preguntas</span><span>Estudiantes</span><i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card"><h2>Por revisar</h2>
+      <table>
+        <tr><th>Estudiante</th><th>Actividad</th><th>Entregada</th><th>Intento</th><th>Estado <i class="n">2</i></th><th>Acción</th></tr>
+        <tr><td>David Suárez Mora</td><td>Tarea 1: algoritmo del promedio</td><td>19/10/2026, 7:56 p. m.</td><td>1</td><td><span class="tag">En revisión</span></td><td><span class="btn pri">Calificar</span></td></tr>
+        <tr><td>Camila Peña Gómez</td><td>Taller 3: mayor de dos números</td><td>20/10/2026, 12:31 a. m.</td><td>1</td><td><span class="tag">Foto ilegible</span></td><td><span class="btn pri">Calificar</span></td></tr>
+        <tr><td>Ana Sofía Torres</td><td>Taller 3: mayor de dos números</td><td>20/10/2026, 12:31 a. m.</td><td>1</td><td><span class="tag">Confianza menor al 80 %</span></td><td><span class="btn pri">Calificar</span></td></tr>
+        <tr><td>Bruno Díaz León</td><td>Taller 3: mayor de dos números</td><td>20/10/2026, 12:31 a. m.</td><td>1</td><td><span class="tag">Falló la IA</span> <i class="n">3</i></td><td><span class="btn pri">Calificar</span></td></tr>
+        <tr><td>Felipe Ortiz Cano</td><td>Taller 3: mayor de dos números</td><td>20/10/2026, 12:31 a. m.</td><td>1</td><td><span class="tag">Formato que la IA no lee</span></td><td><span class="btn pri">Calificar</span></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- M-09 · Entrega con resultado de la IA (docente, PC) -->
+<section class="frame" id="m09-entrega-ia">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro|Habilitar estudiantes" data-who="Laura · Docente"></header>
+  <div class="band sin-tabs">
+    <div class="muted"><u>Taller 3: mayor de dos números</u></div>
+    <h1>Entrega de Ana Sofía Torres · intento 1</h1>
+    <div class="muted">Enviada 20/10/2026, 12:31 a. m.</div>
+  </div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card"><h2>Respuesta y archivos <i class="n">1</i></h2><div class="row"><div class="img" style="width:120px;height:90px">foto 1</div><div class="img" style="width:120px;height:90px">foto 2</div></div></div>
+      <div class="card"><h2>Nota <span class="tag">En revisión</span> <i class="n">2</i></h2>
+        <div class="muted" style="margin-bottom:6px">La nota y la retroalimentación vienen de la propuesta de la IA. Puedes ajustarlas antes de confirmar.</div>
+        <div class="field">Nota (0,0 a 5,0)<div class="input" style="width:90px">4,0</div></div>
+        <div class="field">Retroalimentación para el estudiante (opcional)<div class="input alto" style="min-height:40px"></div></div>
+        <span class="btn pri">Confirmar nota</span></div>
+    </div>
+    <div class="card"><h2>Resultado de la IA <span class="tag">Confianza baja</span> <i class="n">3</i></h2>
+      <div class="grid g4" style="font-size:12px"><div>Legible<br><b>Sí</b></div><div>Confianza reportada<br><b>65 %</b></div><div>Nota propuesta<br><b>4,0</b></div><div>Tiempo<br><b>1 min 32 s</b></div></div>
+      <table style="margin-top:8px"><tr><th>Criterio</th><th>Puntos</th><th>Comentario</th></tr>
+        <tr><td>Lee los dos números</td><td>1 de 1</td><td><div class="linea"></div></td></tr>
+        <tr><td>Compara con Si-Entonces</td><td>2 de 2,5</td><td><div class="linea"></div></td></tr>
+        <tr><td>Muestra el mayor</td><td>1 de 1,5</td><td><div class="linea"></div></td></tr></table>
+      <h3>Lo que leyó la IA <i class="n">4</i></h3><div class="code claro">Leer a, b
+Si a &gt; b Entonces Escribir a SiNo Escribir b FinSi</div>
+      <div class="muted" style="margin-top:6px">20/10/2026, 12:33 a. m. · modelo qwen2.5vl:7b</div></div>
+    <div class="grid g2">
+      <div class="card"><h2>Rúbrica de esta entrega <span class="tag">Versión 1</span> <i class="n">5</i></h2><div class="linea"></div><div class="linea"></div></div>
+      <div class="card"><h2>Historial de la nota <i class="n">6</i></h2><table><tr><th>Fecha</th><th>Antes</th><th>Después</th><th>Por</th></tr><tr><td>—</td><td>—</td><td>—</td><td>—</td></tr></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- M-10 · Mis notas (estudiante, celular) -->
+<section class="frame movil" id="m10-mis-notas">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro" data-who="Ana · Estudiante"></header>
+  <div class="band">
+    <div class="muted"><u>Cursos</u> · Periodo 2026-2</div>
+    <h1>Pensamiento Computacional · Grupo A</h1>
+    <div class="tabs"><span>Temas</span><span>Actividades</span><span class="on">Mis notas</span></div>
+  </div>
+  <div class="body">
+    <div class="card dark"><div>Avance parcial <i class="n">1</i></div><b style="font:bold 30px Georgia,serif">4,2</b><div style="font-size:11px">Promedio con pesos de lo que ya tiene nota.</div></div>
+    <div class="card"><div>Nota definitiva <i class="n">2</i></div><b style="font-size:26px">—</b><div class="muted">Aparece cuando todas las actividades tengan resultado.</div></div>
+    <table>
+      <tr><th>Actividad</th><th>%</th><th>Cierre</th><th>Resultado</th></tr>
+      <tr><td><u>Tarea 1: algoritmo del promedio</u></td><td>30 %</td><td>24/10</td><td>4,2</td></tr>
+      <tr><td><u>Quiz 1: ciclos y condiciones</u></td><td>0 % (reparto) <i class="n">3</i></td><td>27/10</td><td>5,0</td></tr>
+      <tr><td><u>Evaluación 1: condicionales</u></td><td>40 %</td><td>30/10</td><td>0,0* <i class="n">4</i></td></tr>
+      <tr><td><u>Taller 3: mayor de dos números</u></td><td>30 %</td><td>8/11</td><td>En revisión</td></tr>
+    </table>
+    <div class="muted">* Vencida sin entrega. Toca una actividad para ver la retroalimentación.</div>
+  </div>
+</section>
+
+<!-- M-11 · Planilla (docente, PC) -->
+<section class="frame" id="m11-planilla">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro|Habilitar estudiantes" data-who="Laura · Docente"></header>
+  <div class="band">
+    <div class="muted"><u>Cursos</u> · Periodo 2026-2</div>
+    <h1>Pensamiento Computacional · Grupo A</h1>
+    <div class="tabs"><span>Temas</span><span>Actividades</span><span>Por revisar</span><span class="on">Planilla</span><span>Banco de preguntas</span><span>Estudiantes</span></div>
+  </div>
+  <div class="body">
+    <div class="card"><h2>Planilla</h2>
+      <div class="muted">Escala 0,0 a 5,0; aprueba con 3,0. Las actividades sin porcentaje se reparten lo que falta para 100 %. Vencida sin entrega = 0,0 (*). <i class="n">1</i></div>
+      <div class="row" style="margin:8px 0"><span class="btn">Exportar a Excel (.xlsx)</span><span class="btn">Exportar a CSV</span><i class="n">2</i></div>
+      <table>
+        <tr><th>Estudiante</th><th>Tarea 1<br><small>30 %</small></th><th>Quiz 1<br><small>0 % (reparto)</small></th><th>Evaluación 1<br><small>40 %</small></th><th>Taller 3<br><small>30 %</small></th><th>Avance parcial</th><th>Definitiva</th></tr>
+        <tr><td><b>Ana Sofía Torres</b></td><td><u>4,2</u></td><td><u>5,0</u></td><td>Pendiente</td><td><u>En revisión</u></td><td>4,4</td><td>—</td></tr>
+        <tr><td><b>Bruno Díaz León</b></td><td><u>3,0</u></td><td><u>3,6</u></td><td>Pendiente</td><td><u>En revisión</u></td><td>3,2</td><td>—</td></tr>
+        <tr><td><b>Elena Vargas Ruiz</b></td><td>0,0*</td><td>0,0*</td><td>Pendiente</td><td>Pendiente</td><td>0,0</td><td>—</td></tr>
+        <tr><td><b>Gabriela Ruiz Peña</b><br><small>Sin registrarse</small> <i class="n">3</i></td><td>0,0*</td><td>0,0*</td><td>Pendiente</td><td>Pendiente</td><td>0,0</td><td>—</td></tr>
+      </table>
+      <h3>Estadísticas <i class="n">4</i></h3>
+      <table><tr><th>Actividad</th><th>Entregaron</th><th>Calificadas</th><th>En revisión</th><th>Vencidas</th><th>Promedio</th><th>Mín.</th><th>Máx.</th><th>Aprueban</th></tr>
+        <tr><td>Tarea 1</td><td>4</td><td>3</td><td>1</td><td>2</td><td>2,4</td><td>0,0</td><td>5,0</td><td>3</td></tr></table>
+    </div>
+  </div>
+</section>
+
+<!-- M-12 · Presentar un quiz (estudiante, celular) -->
+<section class="frame movil" id="m12-quiz">
+  <header data-nav="Inicio|*Cursos|Biblioteca|Juegos|PSeInt|Foro" data-who="Ana · Estudiante"></header>
+  <div class="band sin-tabs"><h1>Quiz 1: ciclos y condiciones · intento 1</h1></div>
+  <div class="body">
+    <div class="aviso" style="position:sticky;top:0"><b>Tiempo restante: 4:52</b> · 1 de 4 respondidas · Respuestas guardadas <i class="n">1</i></div>
+    <div class="card"><b style="font-size:12px">1. ¿Qué tipo de dato guarda Verdadero o Falso?</b> <small>(Selección única, 1 punto)</small>
+      <div style="font-size:12px;margin-top:6px"><div class="radio">Entero</div><div class="radio">Real</div><div class="radio si">Lógico</div><div class="radio">Caracter</div></div></div>
+    <div class="card"><b style="font-size:12px">2. ¿Qué tipo de dato usarías para guardar un nombre?</b> <small>(Respuesta corta, 1 punto)</small> <i class="n">2</i><div class="input" style="margin-top:6px"></div></div>
+    <div class="card"><b style="font-size:12px">3. Un algoritmo debe terminar después de un número finito de pasos.</b> <small>(Falso o verdadero)</small>
+      <div style="font-size:12px;margin-top:6px"><div class="radio">Verdadero</div><div class="radio">Falso</div></div></div>
+    <span class="btn pri" style="align-self:flex-start">Enviar intento</span>
+    <div class="aviso">Al enviar (o al acabarse el tiempo) se califica solo. El quiz de repaso muestra la revisión al terminar; el calificable, cuando cierra. El ranking ordena por nota y tiempo. <i class="n">3</i></div>
+  </div>
+</section>
+
+<!-- M-13 · Editor de PSeInt (PC) -->
+<section class="frame" id="m13-pseint">
+  <header data-nav="Inicio|Cursos|Biblioteca|Juegos|*PSeInt|Foro" data-who="Felipe · Estudiante"></header>
+  <div class="band sin-tabs"><div class="eyebrow">Practica tus algoritmos</div><h1>Editor de PSeInt</h1>
+    <div class="muted">Escribe tu algoritmo, pon las entradas que leería con Leer y ejecútalo. Es el mismo intérprete que califica las actividades con casos de prueba. <i class="n">1</i></div></div>
+  <div class="body">
+    <div class="field">Ejemplo<div class="input sel" style="width:320px">Saludo (Leer y Escribir)</div></div>
+    <div class="grid g2">
+      <div class="field">Programa <i class="n">2</i><div class="code claro" style="min-height:170px">Algoritmo Saludo
+  Definir nombre Como Caracter
+  Leer nombre
+  Escribir "Hola, ", nombre
+FinAlgoritmo</div></div>
+      <div>
+        <div class="field">Entradas para probar (una por línea) <i class="n">3</i><div class="input alto">Felipe</div></div>
+        <span class="btn">Ejecutar</span>
+        <div class="muted" style="margin:6px 0">Terminó · 4 pasos · 2 ms</div>
+        <div class="code">Hola, Felipe</div>
+        <div class="aviso" style="margin-top:8px"><b>Error en la línea 3:</b> mensaje en español si el programa falla o no termina. <i class="n">4</i></div>
+      </div>
+    </div>
+    <div style="font-size:12px">▸ Qué entiende el intérprete</div>
+  </div>
+</section>
+
+<!-- M-14 · Catálogo de juegos (PC) -->
+<section class="frame" id="m14-juegos">
+  <header data-nav="Inicio|Biblioteca|*Juegos|Foro"></header>
+  <div class="band sin-tabs">
+    <div class="eyebrow">Practica sin presión: no dan nota</div><h1>Juegos de lógica</h1>
+    <div class="muted">Tu avance queda guardado en este navegador. <i class="n">1</i></div>
+    <div class="card row" style="margin-top:10px"><div class="field" style="flex:3">Buscar<div class="input">Nombre del juego o tema</div></div><div class="field">Herramienta<div class="input sel">Todas</div></div><div class="field">Tema<div class="input sel">Todos</div></div><span class="btn pri">Buscar</span><i class="n">2</i></div>
+  </div>
+  <div class="body">
+    <div class="muted">6 juegos · 99 niveles</div>
+    <div class="grid g3">
+      <div class="card"><div class="img" style="height:70px">Cuadrícula del robot</div><h2 style="margin-top:8px">Bloques</h2><span class="tag">Scratch</span> <span class="tag">Secuencias</span> <span class="tag">Ciclos</span> <span class="tag">Depuración</span>
+        <div class="muted" style="margin-top:6px">3 de 24 niveles resueltos <i class="n">3</i></div><div class="barra"><i style="width:12%"></i></div><span class="btn pri">Seguir jugando</span></div>
+      <div class="card"><div class="code" style="height:54px">Para i ← 1 Hasta 3
+  Escribir i * 2</div><h2 style="margin-top:8px">¿Qué imprime?</h2><span class="tag">PSeInt</span> <span class="tag">Ciclos</span>
+        <div class="muted" style="margin-top:6px">0 de 16 niveles resueltos</div><div class="barra"><i style="width:0"></i></div><span class="btn pri">Jugar</span></div>
+      <div class="card"><div class="code claro" style="height:54px">area ← base + altura</div><h2 style="margin-top:8px">Caza el error</h2><span class="tag">PSeInt</span> <span class="tag">Depuración</span>
+        <div class="muted" style="margin-top:6px">0 de 12 niveles resueltos</div><div class="barra"><i style="width:0"></i></div><span class="btn pri">Jugar</span></div>
+      <div class="card"><h2>Ordena el algoritmo</h2><span class="tag">PSeInt</span></div>
+      <div class="card"><h2>Completa el DFD</h2><span class="tag">DFD</span></div>
+      <div class="card"><h2>Arduino</h2><span class="tag">Arduino</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- M-15 · Juego de bloques (celular) -->
+<section class="frame movil" id="m15-bloques">
+  <header data-nav="Inicio|Biblioteca|*Juegos|Foro" data-ingresar="si"></header>
+  <div class="band sin-tabs">
+    <div class="muted"><u>← Juegos</u> · Scratch</div><h1>Bloques</h1>
+    <div class="muted">3 de 24 niveles resueltos</div><div class="barra"><i style="width:12%"></i></div>
+    <div class="row" style="gap:4px;margin-bottom:12px"><span class="tag fuerte">1 ✓</span><span class="tag fuerte">2 ✓</span><span class="tag fuerte">3 ✓</span><span class="tag">4</span><span class="tag">5</span><span class="tag">6</span><span class="tag">7</span><span class="tag">…</span><span class="tag">24</span><i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card"><h2>Secuencia: Zigzag</h2>
+      <div class="muted" style="margin-bottom:8px">El robot empieza mirando hacia abajo. Llega a la estrella.</div>
+      <div class="row" style="align-items:flex-start"><div class="celdas"><i>▼</i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i></i><i></i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i></i><i></i><i></i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i class="muro"></i><i>★</i><i class="muro"></i></div><i class="n">2</i></div>
+      <h3>Bloques (3 de 9) <i class="n">3</i></h3>
+      <div style="font-size:12px;line-height:1.9">1. Avanzar<br>2. Girar a la izquierda<br>3. Repetir 2 veces [ Avanzar ]</div>
+      <div class="row"><span class="btn pri">+ Avanzar</span><span class="btn pri">+ Girar a la izquierda</span><span class="btn pri">+ Girar a la derecha</span><span class="btn pri">+ Repetir</span><span class="btn pri">+ Si hay camino adelante</span></div>
+      <div class="row" style="margin-top:10px"><span class="btn pri">Ejecutar</span><span class="btn">Paso a paso</span><span class="btn">Reiniciar</span><i class="n">4</i></div>
+      <div class="field" style="margin-top:10px">Personaje del robot <i class="n">5</i><div style="font-size:12px;font-weight:normal"><span class="radio si">Flecha</span> <span class="radio">Lápiz</span> <span class="radio">Cerebro</span> <span class="radio">Fantasma</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- M-16 · Hilo del foro (estudiante, celular) -->
+<section class="frame movil" id="m16-foro">
+  <header data-nav="Inicio|Cursos|Biblioteca|Juegos|PSeInt|*Foro" data-who="Ana · Estudiante"></header>
+  <div class="band sin-tabs">
+    <div class="muted"><u>Foro</u> · PSeInt</div><h1>¿Por qué mi Mientras no termina?</h1>
+    <div class="muted">Ana Sofía Torres · 25/10/2026 <span class="tag">Fijado</span> <i class="n">1</i></div>
+  </div>
+  <div class="body">
+    <div class="card"><div class="linea"></div><div class="linea"></div><div class="code claro">Mientras i &lt;= 10 Hacer
+  Escribir i
+FinMientras</div></div>
+    <div class="card"><b style="font-size:12px">Laura Méndez Ríos · Docente</b> <i class="n">2</i><div class="linea"></div><div class="linea" style="width:70%"></div></div>
+    <div class="card"><b style="font-size:12px">Bruno Díaz León · Estudiante</b><div class="linea"></div></div>
+    <div class="card"><div class="field">Tu respuesta <i class="n">3</i><div class="input alto"></div></div><span class="btn pri">Responder</span></div>
+    <div class="aviso">El docente ve además: Fijar arriba · Cerrar a respuestas · Eliminar hilo o respuesta. <i class="n">4</i></div>
+  </div>
+</section>
+
+<!-- M-17 · Panel de administración (administrador, PC) -->
+<section class="frame" id="m17-admin">
+  <header data-nav="Inicio|Biblioteca|Juegos|Foro|*Administración|Usuarios|Habilitar estudiantes|Auditoría" data-who="Diana · Administrador"></header>
+  <div class="band sin-tabs"><h1>Administración</h1><div class="muted"><u>Usuarios y docentes</u> · <u>Habilitar estudiantes</u> · <u>Auditoría</u> · <u>Biblioteca</u> · <u>Foro</u></div></div>
+  <div class="body">
+    <div class="grid g6">
+      <div class="stat">Estudiantes activos<b>7</b></div><div class="stat">Docentes activos<b>1</b></div><div class="stat">Docentes por aprobar<b>1</b></div>
+      <div class="stat">Administradores<b>2</b></div><div class="stat">Cuentas desactivadas<b>0</b></div><div class="stat">Cursos<b>1</b></div>
+      <div class="stat">Actividades publicadas<b>7</b></div><div class="stat">Entregas<b>21</b></div><div class="stat">En revisión docente<b>11</b></div>
+      <div class="stat">Calificando con IA<b>0</b></div><div class="stat">Archivos cargados<b>200 KB</b></div><div class="stat">Hilos del foro<b>5</b></div>
+    </div><div><i class="n">1</i></div>
+    <div class="card"><h2>Respaldos <i class="n">2</i></h2>
+      <div class="muted">Copia diaria de la base de datos y de los archivos a las 2:00 (hora de Colombia); se conservan 30 días. Después de cada copia se prueba restaurarla.</div>
+      <div style="margin:8px 0"><span class="btn pri">Crear respaldo ahora</span></div>
+      <table><tr><th>Copia (hora de Colombia)</th><th>Base de datos</th><th>Archivos</th><th>Prueba de restauración <i class="n">3</i></th></tr>
+        <tr><td>26/10/2026, 9:01 p. m.</td><td>107 KB</td><td>158 KB</td><td><span class="tag">Restauración probada</span></td></tr>
+        <tr><td>25/10/2026, 2:00 a. m.</td><td>82 KB</td><td>116 B</td><td><span class="tag">Restauración probada</span></td></tr></table>
+    </div>
+  </div>
+</section>
+
+<!-- M-18 · Usuarios (administrador inicial, PC) -->
+<section class="frame" id="m18-usuarios">
+  <header data-nav="Inicio|Biblioteca|Juegos|Foro|Administración|*Usuarios|Habilitar estudiantes|Auditoría" data-who="Carlos · Administrador"></header>
+  <div class="band sin-tabs"><h1>Usuarios</h1>
+    <div class="card row" style="margin-top:6px"><div class="field" style="flex:3">Buscar<div class="input">Cédula, nombre o correo</div></div><div class="field">Rol<div class="input sel">Todos</div></div><div class="field">Estado<div class="input sel">Pendiente de aprobación</div></div><i class="n">1</i></div></div>
+  <div class="body">
+    <table>
+      <tr><th>Cédula</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
+      <tr><td>1000000001</td><td>Mario Gil Pardo</td><td>docente.nuevo@ejemplo.edu.co</td><td>Docente</td><td><span class="tag">Pendiente de aprobación</span></td><td><span class="btn pri">Aprobar</span> <i class="n">2</i></td></tr>
+      <tr><td>1000000002</td><td>Laura Méndez Ríos</td><td>laura@ejemplo.edu.co</td><td><div class="input sel" style="width:120px">Docente</div> <i class="n">3</i></td><td><span class="tag">Activa</span></td><td><span class="btn">Desactivar</span> <i class="n">4</i></td></tr>
+      <tr><td>1000000003</td><td>Ana Sofía Torres</td><td>ana@ejemplo.edu.co <small>sin verificar</small></td><td><div class="input sel" style="width:120px">Estudiante</div></td><td><span class="tag">Activa</span></td><td><span class="btn">Desactivar</span></td></tr>
+    </table>
+    <div class="aviso">El selector de rol solo aparece para las dos cuentas de administrador inicial; un administrador ordinario ve el rol como texto. <i class="n">5</i></div>
+  </div>
+</section>
+
+<script>
+  // Arma la barra superior de cada maqueta: data-nav con "*" marca la página actual; data-who es la cuenta con sesión.
+  for (const h of document.querySelectorAll('header[data-nav]')) {
+    const items = h.dataset.nav.split('|').map((t) => `<span class="${t.startsWith('*') ? 'on' : ''}">${t.replace('*', '')}</span>`).join('')
+    const acc = h.dataset.who ? `<span class="who"><b>${h.dataset.who.split(' · ')[0]}</b> · ${h.dataset.who.split(' · ')[1]}</span><span class="btn">Cerrar sesión</span>` : '<span class="btn">Iniciar sesión</span>'
+    h.innerHTML = `<span class="logo">LogiCode_</span><nav class="nav">${items}</nav><span class="acc">${acc}</span>`
+  }
+</script>
+</body>
+</html>

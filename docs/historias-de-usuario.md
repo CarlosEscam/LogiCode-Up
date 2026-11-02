@@ -5,7 +5,7 @@ Documento de la Etapa 1 (análisis y diseño), escrito después de construir el 
 - **Implementado**: existe en el código y los criterios tienen prueba automática o verificación registrada en [estado.md](estado.md).
 - **Pendiente**: no existe o no se ha ejecutado.
 
-Los casos de uso que detallan los flujos están en [casos-de-uso.md](casos-de-uso.md).
+Los casos de uso que detallan los flujos están en [casos-de-uso.md](casos-de-uso.md) y las pantallas, en [maquetas.md](maquetas.md).
 
 ## Épica 1 · Acceso y cuentas
 

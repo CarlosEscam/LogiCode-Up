@@ -5,7 +5,7 @@ Documento de la Etapa 1 (análisis y diseño), escrito después de construir el 
 - **Implementado**: existe en el código y tiene prueba o verificación ([estado.md](estado.md)).
 - **Pendiente**: no existe o no se ha ejecutado.
 
-Las historias de usuario con criterios de aceptación están en [historias-de-usuario.md](historias-de-usuario.md).
+Las historias de usuario con criterios de aceptación están en [historias-de-usuario.md](historias-de-usuario.md) y las pantallas de cada caso, en [maquetas.md](maquetas.md).
 
 ## Actores
 
