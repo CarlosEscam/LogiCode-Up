@@ -90,7 +90,7 @@ Para volver atrás: `git checkout` de la versión anterior, `docker compose up -
 - La base (`DB_PORT`) y el backend (`BACKEND_PORT`) solo escuchan en `127.0.0.1`; desde la red solo se llega a Nginx.
 - Contraseñas con BCrypt; solo se guardan el hash actual y el anterior. Cinco intentos fallidos bloquean la cédula 15 minutos.
 - Los datos de demostración usan una contraseña pública (`Demo#2026`): nunca se cargan en la instalación del piloto.
-- Revisión de dependencias contra vulnerabilidades conocidas antes de cada entrega: `npm audit` en `frontend/` y, para Java, la base OSV de Maven contra `./mvnw dependency:list` ([calidad.md](../calidad.md), R9-05). La de la Etapa 10 subió Spring Boot a 4.1.2 y terminó sin hallazgos; la de Excel y PDF (Apache POI 5.5.1 y PDFBox 3.0.8) también.
+- Revisión de dependencias contra vulnerabilidades conocidas antes de cada entrega: `npm audit` en `frontend/` y, para Java, la base OSV de Maven contra `./mvnw dependency:list` ([calidad.md](../calidad.md), R9-05). La de la Etapa 10 subió Spring Boot a 4.1.2 y terminó sin hallazgos; la de Excel y PDF (Apache POI 5.5.1 y PDFBox 3.0.8) también. La del 2 de noviembre (179 dependencias, con MinIO y Brevo) también dio 0 avisos.
 - Riesgos aceptados y su decisión: [calidad.md](../calidad.md).
 
 ## 9. Problemas frecuentes

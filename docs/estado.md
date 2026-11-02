@@ -228,7 +228,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Permisos | Implementado | `ApiSecurityIT` recorre todos los endpoints sin sesión y sin CSRF; las pruebas por rol y por curso de las Etapas 3 a 8 siguen en verde |
 | Carga de archivos | Revisado, sin cambios | Pruebas de las Etapas 4 y 5 (tipo real, tamaño, nombre, formatos no aceptados) |
 | Móvil y accesibilidad (RNF-01, RNF-11) | Implementado | axe-core en 37 vistas a 1280 y 390 px: 0 hallazgos tras corregir D9-01; ninguna vista se desborda a lo ancho |
-| Seguridad | Implementado | Cabeceras de seguridad y CSP en Nginx (D9-02); `npm audit` en 0. **Pendiente:** revisar las dependencias Java contra vulnerabilidades (R9-05) y HTTPS en el despliegue (R9-01, Etapa 10) |
+| Seguridad | Implementado | Cabeceras de seguridad y CSP en Nginx (D9-02); `npm audit` en 0; dependencias Java sin avisos en la base OSV (R9-05, repetida el 2 de noviembre); HTTPS en el modo piloto (R9-01, Etapa 10) |
 | Restauración | Demostrado | Respaldo pedido desde el panel, cambio posterior, restauración por consola: el cambio desaparece |
 | Observabilidad | Implementado | Línea de log por solicitud con estado, duración e identificador (D9-03); `/actuator/metrics` solo desde el PC |
 
