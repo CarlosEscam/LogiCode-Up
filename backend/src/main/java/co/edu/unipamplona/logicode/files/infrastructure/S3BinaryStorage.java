@@ -64,6 +64,7 @@ class S3BinaryStorage implements BinaryStorage {
 
     @Override
     public void delete(String storageKey) {
+        local.delete(storageKey); // por si aún no se había pasado a MinIO
         try {
             s3.delete(storageKey);
         } catch (IOException e) {

@@ -348,6 +348,7 @@ Como **estudiante** quiero niveles que vayan de lo fácil a lo difícil en cada 
   4. Dado **Completa el DFD** (14 niveles), cuando completo las casillas, entonces se comprueba el diagrama; del 11 al 14 tienen ciclos (rombo con flecha de regreso).
   5. Dado **¿Qué hace este código?** de Arduino (12 niveles), cuando leo el programa, entonces elijo entre cuatro descripciones de lo que pasa en la placa (LED, botón, sensor, Monitor Serie).
   6. Dado el juego de bloques, cuando elijo el personaje del robot (flecha, lápiz, cerebro o fantasma), entonces se ve hacia dónde mira y el texto de posición no cambia.
+  7. Dado **Prueba de escritorio** (12 niveles), cuando lleno la tabla de valores de un programa y pulso Comprobar, entonces se marcan las casillas equivocadas y me dice en qué fila empezar a revisar; si todo está bien veo la explicación.
 
 ### HU-32 Editar los niveles de los juegos
 

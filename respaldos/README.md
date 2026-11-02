@@ -10,7 +10,7 @@ Implementa RNF-09: copias diarias de PostgreSQL y de los archivos cargados, rete
   - `archivos.tar.gz`: los archivos cargados (materiales y entregas). Lleva `minio/`, los datos de MinIO (volumen `minio-data`), y `archivos/`, el volumen `file-storage` con las cargas en curso y lo que el backend aún no haya pasado a MinIO.
   - `prueba-restauracion.txt`: resultado de restaurar la copia en una base temporal y leer el archivo de archivos. Se hace después de **cada** copia; el panel muestra `OK` o `ERROR`.
 - Si el servicio arranca después de la hora del día y aún no hay copia de ese día, la hace de una vez.
-- Borra las copias de más de `BACKUP_RETENTION_DAYS` días (por defecto 30). Los archivos cargados siguen guardándose al menos seis meses en MinIO (RN-21); la retención de aquí es la de las copias.
+- Borra las copias de más de `BACKUP_RETENTION_DAYS` días (por defecto 30). Los archivos cargados siguen guardándose al menos seis meses en MinIO (RN-21); después, el backend borra cada noche a las 3:30 a. m. los de materiales archivados y los que nada usa (T-88). Como corre después de la copia, lo borrado se recupera de las copias durante estos días.
 - Desde **Administración → Respaldos** (`/admin`), una cuenta Administrador ve las copias y pide una inmediata; el servicio la toma en menos de un minuto.
 
 ## Acceso

@@ -87,7 +87,7 @@ GET /api/v1/system/info
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
-  "schemaVersion": "8"
+  "schemaVersion": "9"
 }
 ```
 

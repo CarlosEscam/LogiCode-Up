@@ -46,7 +46,7 @@ Matriz completa en [permisos.md](permisos.md).
 | Actividades y entregas | Tareas, talleres, evaluaciones, quizzes; apertura, cierre, porcentaje, intentos; rúbrica versionada; entrega por texto, archivos o fotos; excepciones de plazo; bandeja Por revisar | Implementado |
 | Calificación | Manual con historial; automática por casos de prueba de PSeInt, por reto de bloques (RF-12) y por quiz; con IA (Ollama + Qwen2.5-VL 7B) para fotos, texto, `.psc`, `.ino` y PDF | Implementado. Pruebas de aceptación de Qwen en el equipo de referencia: **Pendiente** |
 | Quizzes | Banco de preguntas de cuatro tipos, quiz calificable y de repaso, tiempo total con envío automático, ranking | Implementado |
-| Práctica | Editor e intérprete de PSeInt con límites; seis juegos con 99 niveles en un catálogo con filtros por herramienta y tema | Implementado. Niveles de `/juegos` editables por el docente: **Pendiente** (no pedido) |
+| Práctica | Editor e intérprete de PSeInt con límites; siete juegos con 111 niveles en un catálogo con filtros por herramienta y tema | Implementado. Niveles de `/juegos` editables por el docente: **Pendiente** (no pedido) |
 | Notas | Planilla con porcentajes, avance parcial y nota definitiva; estadísticas; exportación `.xlsx` y CSV; "Mis notas" para el estudiante | Implementado |
 | Comunidad | Foro por herramienta con moderación | Implementado |
 | Operación | Panel de administración, respaldos diarios con prueba de restauración, modo piloto con HTTPS | Implementado. Piloto con el docente y acta firmada: **Pendiente** |
@@ -123,7 +123,6 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 | Alojamiento en línea (P-09) | En observación; todo despliegue futuro será con Docker |
 | Niveles de `/juegos` editables por el docente | Los niveles están fijos en el código; el docente configura retos con nota solo con RF-12 |
 | La IA lee Word, PowerPoint, video y Scratch | No aprobado; esas entregas van al docente |
-| Limpieza automática de archivos después de la retención | Hoy nada se borra |
 | Rúbricas de referencia y prueba de lectura manuscrita de la Etapa 1 | Ver [estado.md](estado.md) |
 
 ### Decisión aprobada

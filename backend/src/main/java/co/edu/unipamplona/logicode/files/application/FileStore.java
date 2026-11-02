@@ -101,6 +101,9 @@ public class FileStore {
     @Transactional(readOnly = true)
     public FileContent open(UUID fileId) {
         StoredFile file = files.findById(fileId).orElseThrow(() -> ApplicationException.notFound("El archivo no existe."));
+        if (file.isDeleted()) {
+            throw ApplicationException.notFound("El archivo se borró al cumplir su tiempo de conservación.");
+        }
         return new FileContent(StoredFileInfo.of(file), storage.open(file.getStorageKey()));
     }
 

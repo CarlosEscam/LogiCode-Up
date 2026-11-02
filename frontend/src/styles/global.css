@@ -936,6 +936,43 @@ td .console {
   white-space: pre-line;
 }
 
+/* Prueba de escritorio: la tabla se desplaza de lado en el celular */
+.desk-table th,
+.desk-table td {
+  padding: 0.35rem 0.5rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* El paso queda fijo a la izquierda mientras la tabla se desplaza */
+.desk-table tbody th,
+.desk-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+.desk-table__empty {
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.desk-table__input {
+  width: 11ch;
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid var(--color-input);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-code);
+}
+
+.desk-table__input--wrong {
+  border-color: var(--color-error);
+  background: #fee2e2;
+}
+
 .blocks-game {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
@@ -1666,6 +1703,10 @@ td .console {
   border-radius: 4px;
   background: #f7b9bd;
   color: inherit;
+}
+
+.game-art--escritorio {
+  background: #e8e2fb;
 }
 
 .game-art--orden {

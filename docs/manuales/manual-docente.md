@@ -120,7 +120,7 @@ En **Foro** respondes como cualquier usuario y, como docente, moderas: dentro de
 ## 9. Otras herramientas
 
 - **PSeInt** (menú): el mismo intérprete que califica; útil para preparar los casos de prueba.
-- **Juegos** (menú): seis juegos de práctica con 99 niveles para recomendar en clase; no dan nota y no piden cuenta. El catálogo se filtra por **Herramienta** y **Tema** (detalle en el [manual del estudiante](manual-estudiante.md#8-juegos)). Los niveles de los juegos vienen con la plataforma y **no** se editan desde la web; para un reto con nota, usa el reto de bloques de la rúbrica (sección 5).
+- **Juegos** (menú): siete juegos de práctica con 111 niveles para recomendar en clase; no dan nota y no piden cuenta. El catálogo se filtra por **Herramienta** y **Tema** (detalle en el [manual del estudiante](manual-estudiante.md#8-juegos)). Los niveles de los juegos vienen con la plataforma y **no** se editan desde la web; para un reto con nota, usa el reto de bloques de la rúbrica (sección 5).
 - **Biblioteca** (menú): los materiales públicos de todos los cursos.
 
 ## 10. Recomendaciones para el piloto

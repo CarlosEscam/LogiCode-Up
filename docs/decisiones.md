@@ -73,7 +73,7 @@ Tres categorías, para no confundir lo aprobado con lo propuesto:
 | T-23 | Módulo `files` aparte: valida extensión, tamaño y firma real, guarda solo metadatos en `stored_file` y usa claves aleatorias | Las Etapas 5 a 8 (entregas, fotos) reutilizan la misma validación. El nombre original nunca se usa como ruta |
 | T-24 | Inscripción por cédula en `course_enrollment` | El docente puede inscribir antes de que el estudiante se registre; al registrarse ya ve el contenido privado |
 | T-25 | El primer curso que se crea inscribe todas las cédulas ya habilitadas | Los estudiantes habilitados en la Etapa 3 no pierden acceso al crear el curso |
-| T-26 | Temas y materiales se archivan, no se borran | Cumple la retención de seis meses (RNF-12) y permite recuperar contenido. La limpieza de archivos vencidos queda pendiente |
+| T-26 | Temas y materiales se archivan, no se borran | Cumple la retención de seis meses (RNF-12) y permite recuperar contenido. La limpieza de archivos vencidos se agregó después (T-88) |
 | T-27 | Lo que alguien no puede ver responde `404`, no `403` | No revela la existencia de cursos o materiales privados |
 | T-28 | El administrador ordinario puede cambiar visibilidad y archivar materiales (publicar biblioteca), no crearlos ni editarlos | Une "publicar biblioteca" de RF-28 con RN-04 |
 | T-29 | `Role` y `Permission` pasan a `shared.domain`; la anotación `@CurrentActor` pasa a `identity.application` | Otros módulos los necesitan y la regla de módulos solo permite usar la capa `application` de otro módulo |
@@ -191,6 +191,12 @@ Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hace
 | T-85 | P-05: los archivos se guardan en MinIO (servicio `minio`, volumen `minio-data`, sin puerto publicado) con la misma clave aleatoria de T-22. La carga se recibe primero en `file-storage` para medirla, calcular su SHA-256 y revisar el formato; luego se sube y MinIO rechaza la carga si el SHA-256 no coincide. La vista previa y la descarga siguen pasando por el backend, que revisa los permisos; los `Range` de los videos piden a MinIO solo desde esa posición. Al arrancar, el backend sube a MinIO los archivos que había en `file-storage` y borra cada copia local después de comprobar su tamaño en MinIO; mientras tanto los entrega desde la carpeta. El cliente S3 es propio (`S3ObjectClient`, firma AWS V4 comparada con la de botocore en `S3ObjectClientTest`). La imagen es `pgsty/minio`, el fork comunitario de MinIO | Carlos decidió MinIO el 1 de noviembre. LogiCode usa cinco operaciones de S3; el SDK de MinIO traería unas diez bibliotecas (OkHttp, Kotlin, Guava, Bouncy Castle, Jackson 2) para eso. La imagen oficial `minio/minio` ya no está en Docker Hub (septiembre de 2026) y el repositorio de MinIO está archivado; el fork es el mismo programa con parches. Por ser S3 estándar, cambiar a otro servidor compatible es cambiar la imagen en `docker-compose.yml` |
 | T-86 | P-06: el remitente de Brevo es `logicode.notificaciones@gmail.com`, en `BREVO_SENDER_EMAIL` de `.env` (antes, el secreto `brevo_sender_email`, que si existe sigue teniendo prioridad). La API key sigue siendo secreto de Docker | Carlos lo decidió el 1 de noviembre. El remitente no es secreto. Brevo no puede autenticar un dominio gratuito como gmail.com, así que puede mostrar el correo con un dominio de Brevo o mandarlo a spam; se comprueba con un envío real antes del piloto, y un dominio propio lo resolvería |
 
+## Decisiones técnicas del juego Prueba de escritorio (2 de noviembre de 2026)
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-87 | "Prueba de escritorio" es un juego más de `/juegos`, solo en el navegador. Cada fila es una línea o una vuelta del ciclo con el valor de cada variable después de ella (Verdadero o Falso en la columna de una condición y lo que sale en Pantalla); las casillas que no aplican muestran "—" y la primera fila viene llena. La respuesta se compara sin mayúsculas, tildes, comillas ni espacios de más, 3,5 vale como 3.5 y V/F como Verdadero/Falso | Carlos pidió uno de los dos juegos opcionales (2 de noviembre) y se eligió este; el traductor DFD↔PSeInt sigue pendiente. Poner el valor completo en cada fila evita la duda de si una casilla vacía significa "no cambió" o "no sé" |
+
 ## Pendiente de decidir
 
 | # | Pregunta | Necesaria antes de | Propuesta |
@@ -203,3 +209,9 @@ Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hace
 2. Tabla de prioridades: P1 y P2 repiten quizzes, PSeInt, juegos de bloques y foro. No afecta las Etapas 1 y 2.
 3. Tabla de etapas: la fila de encabezado repite el texto de la Etapa 0 (error de formato).
 4. El Word `LogiCode - Requerimientos y reglas de negocio.docx` no está en la carpeta del proyecto; se trabajó con el `.md`.
+
+## Decisiones técnicas del borrado de archivos vencidos
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-88 | Un proceso diario (3:30 a. m., hora de Colombia) borra los archivos con `retain_until` vencida que ningún módulo usa. Cada módulo que guarda ids de archivos implementa `FileUsage` (`content`: material y tema sin archivar; `activities`: toda entrega). El registro queda con `deleted_at` y el contenido se borra después de confirmar en la base | Carlos eligió el 2 de noviembre borrar solo lo archivado o sin uso: las entregas son la evidencia de la nota y los materiales activos los sigue usando el docente. RN-21 solo exige no borrar antes de seis meses. El puerto evita que `files` consulte tablas de otros módulos. Corre después del respaldo diario, así que lo borrado se puede recuperar de las copias durante `BACKUP_RETENTION_DAYS` días |
