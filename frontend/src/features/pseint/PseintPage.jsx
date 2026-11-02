@@ -28,9 +28,20 @@ FinAlgoritmo`,
         Escribir b
     FinSi
 FinAlgoritmo`,
+  paraCada: `Algoritmo Notas
+    Dimension notas[4]
+    Para i <- 1 Hasta 4 Hacer
+        Leer notas[i]
+    FinPara
+    suma <- 0
+    Para Cada nota De notas Hacer
+        suma <- suma + nota
+    FinPara
+    Escribir "Promedio: ", suma / 4
+FinAlgoritmo`,
 }
 
-const EXAMPLE_INPUTS = { saludo: 'Ana', promedio: '3\n4\n3.5\n5', mayor: '7\n12' }
+const EXAMPLE_INPUTS = { saludo: 'Ana', promedio: '3\n4\n3.5\n5', mayor: '7\n12', paraCada: '3\n4.5\n5\n2.5' }
 
 // Editor de PSeInt para practicar sin instalar nada (RF-12). El servidor ejecuta el programa con límites
 // de tiempo, pasos, memoria y salida; el intérprete no tiene acceso a archivos ni a la red.
@@ -57,6 +68,7 @@ export default function PseintPage() {
           <option value="saludo">Saludo (Leer y Escribir)</option>
           <option value="promedio">Promedio de notas (Para)</option>
           <option value="mayor">El mayor de dos números (Si)</option>
+          <option value="paraCada">Promedio de un arreglo (Para Cada)</option>
         </select>
       </div>
       <div className="field">
@@ -77,9 +89,8 @@ export default function PseintPage() {
         <summary>Qué entiende el intérprete</summary>
         <p>
           Algoritmo/Proceso, Definir, Dimension (posiciones 0 a n), Leer, Escribir (con Sin Saltar), asignación con &lt;- o =, Si,
-          Segun, Mientras, Repetir, Para con Paso, SubProceso/Funcion con parámetros por valor o por referencia, operadores Y, O, NO,
-          MOD y ^, y funciones como RC, ABS, TRUNC, REDON, AZAR, LONGITUD, SUBCADENA, MAYUSCULAS y CONVERTIRANUMERO. Para Cada aún
-          no está disponible.
+          Segun, Mientras, Repetir, Para con Paso, Para Cada (recorre un arreglo), SubProceso/Funcion con parámetros por valor o por referencia, operadores Y, O, NO,
+          MOD y ^, y funciones como RC, ABS, TRUNC, REDON, AZAR, LONGITUD, SUBCADENA, MAYUSCULAS y CONVERTIRANUMERO.
         </p>
         <p>Límites por ejecución: 2 segundos, un millón de pasos, 20 000 caracteres de salida y 10 000 posiciones en arreglos.</p>
       </details>

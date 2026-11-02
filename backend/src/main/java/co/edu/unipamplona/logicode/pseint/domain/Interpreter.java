@@ -84,6 +84,7 @@ final class Interpreter {
                     } while (condition(r.condition(), frame) != r.untilTrue());
                 }
                 case Ast.For f -> loop(f, frame);
+                case Ast.ForEach f -> forEach(f, frame);
                 case Ast.CallStatement c -> call(c.call(), frame, false);
                 case Ast.Nothing n -> {
                     // Sin pantalla que borrar ni tecla que esperar.
@@ -196,6 +197,58 @@ final class Interpreter {
             step(f.line());
             slot.value = number(slot.value, f.line()) + increment;
         }
+    }
+
+    /**
+     * Recorre las posiciones del arreglo en orden (por filas si tiene varias dimensiones). Como el arreglo admite
+     * índices 0 a n, se toman las posiciones 1 a n salvo que el programa ya haya usado alguna posición 0: entonces
+     * 0 a n-1. Lo que el ciclo asigne al elemento se guarda en su posición, como en PSeInt.
+     */
+    private void forEach(Ast.ForEach f, Map<String, Slot> frame) {
+        if (f.variable().equals(f.array().name())) {
+            throw runtime(f.line(), "el elemento y el arreglo de «Para Cada» deben tener nombres distintos.");
+        }
+        ArrayValue array = array(frame.getOrDefault(f.array().name(), new Slot()), f.array());
+        int[] sizes = array.sizes();
+        Object[] cells = array.cells();
+        int base = usesIndexZero(sizes, cells) ? 0 : 1;
+        Slot element = frame.computeIfAbsent(f.variable(), n -> new Slot());
+        for (int offset = 0; offset < cells.length; offset++) {
+            if (!inRange(sizes, offset, base)) {
+                continue;
+            }
+            Object before = cells[offset];
+            element.value = before;
+            execute(f.body(), frame);
+            step(f.line());
+            if (element.value != before) {
+                if (element.value instanceof ArrayValue) {
+                    throw runtime(f.line(), "no se puede guardar un arreglo dentro de otro.");
+                }
+                cells[offset] = element.value;
+            }
+        }
+    }
+
+    private static boolean usesIndexZero(int[] sizes, Object[] cells) {
+        for (int offset = 0; offset < cells.length; offset++) {
+            if (cells[offset] != null && !inRange(sizes, offset, 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Si cada índice de la posición {@code offset} está entre {@code base} y {@code base + tamaño - 1}. */
+    private static boolean inRange(int[] sizes, int offset, int base) {
+        for (int i = sizes.length - 1; i >= 0; i--) {
+            int index = offset % (sizes[i] + 1);
+            offset /= sizes[i] + 1;
+            if (index < base || index > sizes[i] - 1 + base) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Object evaluate(Ast.Expression expression, Map<String, Slot> frame) {

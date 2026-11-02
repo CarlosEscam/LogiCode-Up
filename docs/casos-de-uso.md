@@ -329,7 +329,7 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 
 - **Actor:** Estudiante, Docente (con sesión). **Requisitos:** RNF-05. **Estado:** Implementado.
 - **Flujo principal:** **PSeInt** del menú: escribir un programa, entradas (una por línea), **Ejecutar**; ver la salida o el error con su línea.
-- **Excepciones:** ciclo infinito, demasiados pasos, salida enorme o recursión sin fin → se corta con un mensaje; intérprete ocupado → `429`. `Para Cada` y el perfil estricto de PSeInt: **Pendiente**.
+- **Excepciones:** ciclo infinito, demasiados pasos, salida enorme o recursión sin fin → se corta con un mensaje; intérprete ocupado → `429`. El perfil estricto de PSeInt: **Pendiente**.
 
 ### CU-25 Jugar en el catálogo de juegos
 
