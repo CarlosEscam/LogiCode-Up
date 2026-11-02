@@ -185,15 +185,16 @@ async function ensureCourse(teacher) {
 
 async function runSample(teacher, student, course, sample, activity, folder, container) {
   const now = Date.now()
+  const pdf = extname(sample.archivo).toLowerCase() === '.pdf'
   const created = await teacher.request('POST', `/courses/${course.id}/activities`, {
     json: {
       title: `[${sample.id}] ${activity.titulo}`.slice(0, 150),
       kind: 'TASK',
       statement: activity.enunciado,
       acceptsText: false,
-      acceptsFiles: false,
-      acceptsPhotos: true,
-      fileGroups: [],
+      acceptsFiles: pdf,
+      acceptsPhotos: !pdf,
+      fileGroups: pdf ? ['DOCUMENTS'] : [],
       maxAttempts: 1,
       opensAt: new Date(now - 60e3).toISOString(),
       closesAt: new Date(now + 7 * 24 * 3600e3).toISOString(),
@@ -205,7 +206,7 @@ async function runSample(teacher, student, course, sample, activity, folder, con
   await teacher.request('POST', `/activities/${created.id}/publish`)
 
   const path = resolve(folder, sample.archivo)
-  const type = extname(path).toLowerCase() === '.png' ? 'image/png' : 'image/jpeg'
+  const type = pdf ? 'application/pdf' : extname(path).toLowerCase() === '.png' ? 'image/png' : 'image/jpeg'
   const form = new FormData()
   form.append('files', new Blob([readFileSync(path)], { type }), `muestra${extname(path).toLowerCase()}`)
   const started = Date.now()

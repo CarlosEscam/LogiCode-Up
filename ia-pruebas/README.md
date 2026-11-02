@@ -70,3 +70,24 @@ En el PC de Carlos (Docker: 16 CPU, 15,6 GB), Ollama 0.35.1, qwen2.5vl:7b Q4_K_M
 | E03 borrosa y oscura | no / **sí** | 80 | — / 1 | sí, debía ir al docente | 85 s |
 
 Lectura de caracteres y de símbolos ambiguos: 100 %. RAM máxima de Ollama: 11,7 GB. Hallazgo: con estas tres imágenes la confianza reportada no separa aciertos de errores. Son sintéticas y pocas, así que no es conclusión; la regla del 80 % se mantiene (T-40) hasta medir con fotos reales.
+
+## Prueba con un PDF real (P-08)
+
+El arnés también acepta muestras `.pdf`: crea la actividad con entrega de documentos y sube el PDF como lo haría un estudiante, así pasa por PDFBox (texto y páginas como imágenes) antes de llegar a Qwen. Los PDF y las subcarpetas de `muestras/` quedan fuera de Git.
+
+**Estado: preparada, pendiente de correr en el PC de Carlos.** Las muestras están en la carpeta compartida del proyecto (`ia/prueba-pdf/`): un informe KDD del Titanic que aportó Carlos, sin datos personales.
+
+| Muestra | Qué prueba | Resultado esperado |
+| --- | --- | --- |
+| P02 | Páginas 1 a 3 exportadas de Word (texto + 3 imágenes) | Nota 4,0 (los puntos del docente están en `muestras-pdf.json`) |
+| P03 | Las mismas 3 páginas solo como imagen, como un escaneo | Nota 4,0; compara la lectura sin capa de texto |
+| P01 | Informe completo de 19 páginas | Por revisar con `UNSUPPORTED`: supera el límite de 5 páginas y no se envía al modelo |
+
+Comprobado en la nube con la clase `PdfContent` real y PDFBox 3.0.8 (sin Qwen): P02 da 6.043 caracteres de texto y 3 imágenes, P03 da 0 caracteres y 3 imágenes, y P01 no se lee.
+
+```powershell
+$env:IA_ESPERA_MAX_MIN = "60"
+node ia-pruebas/ejecutar-pruebas.mjs ia-pruebas/muestras/prueba-pdf/muestras-pdf.json
+```
+
+Con 3 páginas por entrega cada respuesta puede tardar varios minutos. Si una muestra termina en `FAILED` porque el modelo no respondió a tiempo, es un hallazgo de la prueba; se puede subir `LOGICODE_AI_TIMEOUT` (10m por defecto) en `.env` y repetir.

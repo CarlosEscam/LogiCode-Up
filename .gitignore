@@ -36,6 +36,8 @@ backend/file-storage/
 ia-pruebas/muestras/*.jpg
 ia-pruebas/muestras/*.jpeg
 ia-pruebas/muestras/*.png
+ia-pruebas/muestras/*.pdf
+ia-pruebas/muestras/*/
 ia-pruebas/muestras/muestras.json
 ia-pruebas/resultados/
 
