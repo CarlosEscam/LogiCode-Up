@@ -26,6 +26,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · archivos en MinIO (P-05) y remitente de Brevo (P-06) | Implementada y en uso | Carlos decidió las dos y las instaló en su equipo el 1 de noviembre; los correos de Brevo llegan. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
+| Ampliación · juego "Prueba de escritorio" | Implementada, **pendiente de revisión de Carlos** | Carlos pidió el 2 de noviembre uno de los dos juegos opcionales; se eligió este. El traductor DFD↔PSeInt sigue **pendiente**. Detalle abajo |
 | Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
 
 ## Datos de demostración
@@ -100,11 +101,25 @@ Solo documentación: no cambia código de la aplicación. Todo se revisó contra
 - Con backend y datos demo en una base limpia: axe sin hallazgos (WCAG 2.1 AA y buenas prácticas) en 24 pantallas (inicio, ingreso, registro, biblioteca, foro, hilo, juegos, Caza el error, mi cuenta, las seis pestañas del curso, Mis notas, PSeInt, una actividad, panel de administración, usuarios y auditoría) a 1366 px y a 390 px, sin desborde lateral. Capturas en `capturas-rediseno/`.
 - Solo se pudo ver la parte de arriba del diseño de Canva (está en otra cuenta); el resto de las pantallas siguen el mismo estilo.
 
+## Juego "Prueba de escritorio" · detalle
+
+| Elemento | Estado | Notas |
+| --- | --- | --- |
+| Juego "Prueba de escritorio" (12 niveles) | Implementado | Tarjeta nueva en `/juegos` (`games/DeskGame.jsx`, niveles en `DESK_LEVELS`). El estudiante sigue un programa de PSeInt y llena la tabla: cada fila es una línea o una vuelta del ciclo, con el valor de cada variable después de ella, Verdadero o Falso en la columna de una condición y lo que sale en Pantalla. La primera fila viene llena como ejemplo y "—" marca lo que no se llena. **Comprobar** pinta en rojo las casillas equivocadas y dice en qué fila empezar; al acertar todo se ve la explicación. En el teléfono la tabla se desplaza de lado y la columna Paso queda fija (T-87) |
+| Niveles | Implementado | Intercambio, una variable que cambia de valor, precio con descuento, el mayor de dos (con `Leer`), Si dentro de otro Si, sumar con Para, Mientras que se triplica, contar pares, Repetir hasta que (factorial), el mayor de un arreglo, palabra al revés y una función que se usa dentro de un Para |
+| Traductor DFD↔PSeInt | **Pendiente** | El otro juego opcional; no se hizo |
+
+### Verificación realizada (prueba de escritorio)
+
+- Los 12 programas se ejecutaron con el intérprete de PSeInt del backend (`pseint/domain`, compilado aparte): lo que sale en la columna Pantalla coincide con la salida del programa en todos. Los valores intermedios de la tabla se revisaron a mano.
+- `games.test.jsx`: cada fila tiene una casilla por columna, la primera trae ejemplo y no hay casillas vacías por llenar; la comparación acepta 3,5, V/F, tildes y comillas y rechaza lo que no coincide; una prueba de interfaz llena un nivel con una casilla mala, ve el aviso y la casilla marcada, la corrige y guarda el avance. Interfaz: 72 pruebas, oxlint sin hallazgos y `vite build`. El backend no cambió.
+- Recorrido en Chromium con Vite (sin backend): catálogo con siete juegos y 111 niveles, un nivel con casillas por revisar a 1280 px y un nivel resuelto a 390 px sin desborde lateral; axe sin hallazgos (WCAG 2.1 AA y buenas prácticas) con casillas marcadas en rojo a 1366 y 390 px. Capturas en `capturas-prueba-escritorio/`.
+
 ## Juegos como catálogo · detalle
 
 | Elemento | Estado | Notas |
 | --- | --- | --- |
-| Catálogo de juegos | Implementado | `/juegos` muestra los seis juegos como tarjetas, igual que la biblioteca muestra materiales: dibujo del juego, herramienta (Scratch, PSeInt, DFD o Arduino), temas, descripción y "N de M niveles resueltos". El botón dice "Jugar" o "Seguir jugando" y abre el primer nivel sin resolver |
+| Catálogo de juegos | Implementado | `/juegos` muestra los juegos (siete desde el 2 de noviembre) como tarjetas, igual que la biblioteca muestra materiales: dibujo del juego, herramienta (Scratch, PSeInt, DFD o Arduino), temas, descripción y "N de M niveles resueltos". El botón dice "Jugar" o "Seguir jugando" y abre el primer nivel sin resolver |
 | Filtros | Implementado | Buscar por nombre o descripción, Herramienta y Tema (Secuencias, Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones, Rutas, Depuración, Sensores y actuadores), en la franja lavanda como en la biblioteca. Si ningún juego coincide lo dice |
 | Página de cada juego | Implementado | `/juegos?juego=<clave>&nivel=<id>`: enlace "← Juegos", herramienta y temas, avance y los niveles resueltos marcados con ✓. Los juegos y sus niveles no cambian |
 | Agregar juegos | Implementado | Un juego nuevo es una entrada más en la lista `GAMES` de `GamesPage.jsx` (clave, nombre, herramienta, temas, niveles, componente y descripción); la tarjeta y los filtros salen solos (T-83) |

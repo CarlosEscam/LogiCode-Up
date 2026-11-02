@@ -105,7 +105,7 @@ Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero
 
 ## 8. Juegos
 
-**Juegos** del menú abre el catálogo **Juegos de lógica**: seis juegos con 99 niveles para practicar. No necesitan cuenta y no dan nota.
+**Juegos** del menú abre el catálogo **Juegos de lógica**: siete juegos con 111 niveles para practicar. No necesitan cuenta y no dan nota.
 
 <img src="img/juegos-catalogo.jpg" alt="Catálogo de juegos filtrado por la herramienta Arduino" width="640">
 
@@ -119,6 +119,7 @@ Algunas actividades son un reto de bloques: en **Mi entrega** aparece el tablero
 | Bloques | Scratch | 24 | Programas un robot con bloques para llegar a la meta | Secuencias, Rutas, Ciclos, Condiciones, Depuración |
 | ¿Qué imprime? | PSeInt | 21 | Lees el programa y eliges lo que muestra en pantalla | Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones |
 | Caza el error | PSeInt | 14 | Eliges la línea que falla (**Comprobar línea**) y cómo corregirla (**Comprobar corrección**) | Depuración, Variables, Condiciones, Ciclos, Arreglos, Matrices, Textos, Funciones |
+| Prueba de escritorio | PSeInt | 12 | Sigues el programa paso a paso y llenas la tabla: el valor de cada variable después de cada línea o vuelta, Verdadero o Falso en las condiciones y lo que sale en **Pantalla**. La primera fila viene llena como ejemplo; **Comprobar** marca en rojo las casillas por revisar | Variables, Condiciones, Ciclos, Arreglos, Textos, Funciones |
 | Ordena el algoritmo | PSeInt | 14 | Pones las instrucciones en el orden correcto | Secuencias, Condiciones, Ciclos, Arreglos, Matrices, Textos |
 | Completa el DFD | DFD | 14 | Completas las casillas del diagrama de flujo; los últimos niveles tienen ciclos | Secuencias, Condiciones, Ciclos |
 | ¿Qué hace este código? | Arduino | 12 | Lees el programa y eliges qué pasa en la placa: LED, botón, sensor o Monitor Serie | Sensores y actuadores, Variables, Condiciones, Ciclos |
