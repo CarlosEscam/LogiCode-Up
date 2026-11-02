@@ -41,7 +41,7 @@ Matriz completa en [permisos.md](permisos.md).
 
 | Área | Funciones | Estado |
 | --- | --- | --- |
-| Acceso y cuentas | Registro de estudiante con cédula habilitada, solicitud y aprobación de docentes, ingreso con cédula, verificación de correo, recuperación de contraseña, cambio asistido de correo, roles, auditoría | Implementado. El envío real con Brevo espera el remitente verificado (P-06, **Pendiente**) |
+| Acceso y cuentas | Registro de estudiante con cédula habilitada, solicitud y aprobación de docentes, ingreso con cédula, verificación de correo, recuperación de contraseña, cambio asistido de correo, roles, auditoría | Implementado. Correos reales con Brevo desde `logicode.notificaciones@gmail.com` (P-06) |
 | Curso y contenidos | Cursos, inscripción por cédula o lista `.xlsx`/`.csv`, temas ordenados, próxima clase, materiales con vista previa y descarga, biblioteca pública con filtros | Implementado |
 | Actividades y entregas | Tareas, talleres, evaluaciones, quizzes; apertura, cierre, porcentaje, intentos; rúbrica versionada; entrega por texto, archivos o fotos; excepciones de plazo; bandeja Por revisar | Implementado |
 | Calificación | Manual con historial; automática por casos de prueba de PSeInt, por reto de bloques (RF-12) y por quiz; con IA (Ollama + Qwen2.5-VL 7B) para fotos, texto, `.psc`, `.ino` y PDF | Implementado. Pruebas de aceptación de Qwen en el equipo de referencia: **Pendiente** |
@@ -117,8 +117,7 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 
 | Pendiente | Detalle |
 | --- | --- |
-| Activar Brevo con `logicode.notificaciones@gmail.com` (P-06 decidido) | Falta verificar el remitente en Brevo, poner la API key y probar un envío real. Sin eso, los correos quedan en el equipo servidor y no llegan a los estudiantes |
-| Pruebas de aceptación de Qwen2.5-VL en el equipo de referencia | Arnés listo en [ia-pruebas/](../ia-pruebas/README.md); no hay resultados todavía |
+| Pruebas de aceptación de Qwen2.5-VL en el equipo de referencia | Arnés en [ia-pruebas/](../ia-pruebas/README.md). Ensayo del 1 de noviembre con 3 imágenes sintéticas: lee bien, pero la confianza reportada no separó aciertos de errores. Falta medir con fotos manuscritas reales; la regla del 80 % se mantiene |
 | Piloto con el docente y acta firmada | Plan y acta en [piloto.md](piloto.md) |
 | Revisión de Carlos de las ampliaciones | Retos de bloques, Excel y PDF, rediseño, catálogo y niveles nuevos de los juegos ([estado.md](estado.md)) |
 | Alojamiento en línea (P-09) | En observación; todo despliegue futuro será con Docker |

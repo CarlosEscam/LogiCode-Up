@@ -1,6 +1,6 @@
 # Documentación de LogiCode
 
-Mapa de toda la documentación del proyecto: qué documento leer según lo que se necesite. Todos los documentos están en español y se revisaron contra el código el 1 de noviembre de 2026 (commit `344801c` y base de datos en la versión 8).
+Mapa de toda la documentación del proyecto: qué documento leer según lo que se necesite. Todos los documentos están en español y se revisaron contra el código el 2 de noviembre de 2026 (commit `85dca33`, con MinIO, Brevo, el ensayo de la IA y la revisión de dependencias; base de datos en la versión 8).
 
 En todos los documentos se usan tres palabras con un sentido fijo:
 
@@ -55,10 +55,11 @@ En todos los documentos se usan tres palabras con un sentido fijo:
 | [Modelo de datos](modelo-de-datos.md) | Tablas de las migraciones `V1` a `V8` con diagramas entidad-relación |
 | [API REST](api/README.md) | Convenciones, formato de errores y todos los endpoints de `/api/v1` |
 | [Calidad y seguridad](calidad.md) | Defectos, riesgos aceptados, revisión de seguridad, observabilidad y demostraciones |
-| [Piloto](piloto.md) | Modo HTTPS para usar LogiCode desde otros equipos y celulares |
-| [Pruebas de aceptación de la IA](../ia-pruebas/README.md) | Arnés para medir Qwen2.5-VL en el equipo de referencia (**Pendiente** de ejecutar) |
+| [Piloto](piloto.md) | Modo HTTPS para usar LogiCode desde otros equipos y celulares; acceso temporal desde fuera de la red para demostraciones (ngrok) |
+| [Pruebas de aceptación de la IA](../ia-pruebas/README.md) | Arnés para medir Qwen2.5-VL en el equipo de referencia y resultados del ensayo del 1 de noviembre (con fotos reales: **Pendiente**) |
 | [Migración entre equipos](../migracion/Guia-pasar-LogiCode-a-otro-PC.md) | Llevar una instalación con sus datos a otro PC (`exportar.ps1` e `importar.ps1`) |
 | [CLAUDE.md](../CLAUDE.md) | Reglas para el asistente de desarrollo |
+| [Documento único](documento-completo/generar.py) | Genera `LogiCode-Documentacion-completa.docx` y `.pdf` con todos estos documentos, índice y anexos: `python3 docs/documento-completo/generar.py <carpeta>` (necesita pandoc, LibreOffice y mermaid-cli) |
 
 ## Diagramas
 

@@ -1,6 +1,6 @@
 # Arquitectura técnica de LogiCode
 
-> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 1 de noviembre de 2026 (commit `344801c` y migraciones `V1` a `V8`).
+> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 2 de noviembre de 2026 (commit `85dca33` y migraciones `V1` a `V8`).
 
 ## Vista general
 

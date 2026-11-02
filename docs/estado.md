@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 1 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y remitente de Brevo (P-06) entregados el 1 de noviembre**
+Última actualización: 2 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -11,7 +11,7 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | 0 · Aprobación de alcance | Aprobada (especificación) | |
 | 1 · Análisis y diseño | Diseño técnico hecho; casos de uso e historias de usuario entregados | [Casos de uso](casos-de-uso.md) e [historias de usuario](historias-de-usuario.md) con criterios Dado/Cuando/Entonces, escritos sobre lo implementado (1 de noviembre). Siguen **pendientes**: maquetas, rúbricas de referencia del docente y la prueba de lectura de código manuscrito (pruebas de aceptación de Qwen en `ia-pruebas/`) |
 | 2 · Fundaciones técnicas | Implementada | Detalle en la sección de la Etapa 2 |
-| 3 · Acceso y permisos | Implementada y aprobada | Remitente de Brevo decidido (P-06); falta activarlo y probar un envío real. La carga desde Excel llegó con P-07 |
+| 3 · Acceso y permisos | Implementada y aprobada | Correo real con Brevo funcionando desde el 1 de noviembre (P-06). La carga desde Excel llegó con P-07 |
 | 4 · Curso, temas y biblioteca | Implementada y aprobada | Desde el 1 de noviembre los archivos van en MinIO (P-05) |
 | 5 · Actividades y entregas | Implementada y aprobada | Calificación manual del docente |
 | 6 · Calificación determinista e IA | Implementada y aprobada; faltan las pruebas de aceptación de Qwen en el equipo de presentación | La parte determinista (PSeInt y quizzes, RF-16) se hizo en la Etapa 7 (T-48) |
@@ -23,10 +23,10 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · Excel y PDF (P-07, P-08) | Implementada, pendiente de revisión | Aprobada el 27 de octubre junto con RF-12. Detalle abajo |
 | Ampliación · juegos con más niveles y personajes del robot | Implementada; Carlos aprobó los 20 niveles y los personajes y pidió más niveles en todos los juegos (27 de octubre) | Detalle abajo |
 | Ampliación · rediseño visual con el Canva | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 27 de octubre. Detalle abajo |
-| Ampliación · archivos en MinIO (P-05) y remitente de Brevo (P-06) | Implementada, pendiente de revisión | Carlos decidió las dos el 1 de noviembre. Detalle abajo |
+| Ampliación · archivos en MinIO (P-05) y remitente de Brevo (P-06) | Implementada y en uso | Carlos decidió las dos y las instaló en su equipo el 1 de noviembre; los correos de Brevo llegan. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
-| Documentación completa del proyecto | Entregada, pendiente de revisión | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre). Detalle abajo |
+| Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
 
 ## Datos de demostración
 
@@ -43,7 +43,7 @@ Sin cambio de base de datos (sigue en la versión 8) ni de interfaz.
 | Paso automático a MinIO de los archivos que había en el disco, sin cortar el servicio | Implementado | `S3BinaryStorage.migrateLocalFiles()` |
 | Respaldos con los datos de MinIO; restauración de copias nuevas y de copias de antes de MinIO | Implementado | `respaldos/respaldo.sh`, `respaldos/README.md` |
 | Remitente `logicode.notificaciones@gmail.com` en `BREVO_SENDER_EMAIL` | Implementado | `docker-compose.brevo.yml`, `.env.example` (T-86) |
-| Remitente verificado en Brevo, API key y envío real de prueba | **Pendiente** | Lo hace Carlos en su cuenta de Brevo ([instalación](instalacion.md), sección 8) |
+| Remitente verificado en Brevo, API key y envío real de prueba | Hecho por Carlos el 1 de noviembre | En su cuenta de Brevo ([instalación](instalacion.md), sección 8) |
 
 ### Verificación realizada (MinIO y Brevo)
 
@@ -52,7 +52,7 @@ Sin cambio de base de datos (sigue en la versión 8) ni de interfaz.
 - Video de 60 MB: carga en unos 4 s, petición `Range` del último kilobyte en 37 ms (`206`, bytes correctos) y descarga completa idéntica.
 - Respaldos: la copia nueva pasó la prueba de restauración ("15 archivos legibles"); `restaurar` se negó con MinIO en marcha; se restauraron una copia de antes de MinIO (el backend volvió a pasar los 14 archivos) y una copia nueva (15 objetos de vuelta, video idéntico).
 - Instalación limpia con datos demo: carga completa sin errores; 14 archivos en MinIO y 14 en la base.
-- No se probó: el envío real con Brevo (falta la API key y verificar el remitente) ni Windows con Docker Desktop.
+- No se probó en este entorno: el envío real con Brevo (necesita la API key) ni Windows con Docker Desktop. Carlos instaló esta versión en su equipo con Windows el 1 de noviembre: MinIO y los correos de Brevo funcionan.
 
 ## Documentación del proyecto · detalle
 
@@ -72,6 +72,7 @@ Solo documentación: no cambia código de la aplicación. Todo se revisó contra
 | Manuales del docente, del estudiante y técnico | Actualizados | Barra con iconos, importar desde Excel, "Definir rúbrica", PDF leídos por la IA, catálogo de juegos con filtros y niveles, juego de Arduino, ciclos en DFD, cambio de correo con cédula. Capturas nuevas en `manuales/img/` |
 | Textos de la interfaz en otros documentos | Corregidos | "Crear respaldo ahora" en `piloto.md` y `calidad.md` (decía "Hacer un respaldo ahora"); "Exportar a Excel (.xlsx)" y "Exportar a CSV" y "Pendiente" en Estudiantes en `datos-demo/README.md` |
 | Maquetas, rúbricas de referencia y prueba de lectura manuscrita (Etapa 1) | **Pendiente** | No se pueden escribir sin el docente ni sin correr las pruebas de Qwen en el equipo de referencia |
+| Revisión del 2 de noviembre | Hecha con Carlos | Contra el commit `85dca33`: Brevo pasa a probado, la visión general y el índice muestran el ensayo de la IA, se agrega el acceso temporal con ngrok ([piloto.md](piloto.md#8-mostrar-logicode-fuera-de-la-red-demostraciones)) y el documento único (`.docx` y `.pdf`) se genera con `docs/documento-completo/generar.py`: índice lleno, imágenes ajustadas a la hoja, enlaces internos y anexos con el ensayo de la IA y la migración |
 
 ### Verificación realizada (documentación)
 
@@ -407,7 +408,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Roles y autorización (RF-28, RN-04, RN-15, RN-22) | Implementado | `AccessPolicy` + verificación en cada caso de uso; matriz en [permisos.md](permisos.md) |
 | Privilegio completo solo para las 2 cuentas iniciales (D-03, RN-16) | Implementado | Se crean desde `INITIAL_ADMIN_*` en `.env`; nadie más puede tenerlo; no se puede quedar la plataforma sin una activa |
 | Auditoría de acceso | Implementado | Tabla `audit_event`; `GET /admin/audit-events`; pantalla `/admin/auditoria` |
-| Envío de correo con Brevo | Implementado, sin probar con la cuenta real | `docker-compose.brevo.yml`; remitente `logicode.notificaciones@gmail.com` en `BREVO_SENDER_EMAIL` (P-06, T-86) y API key como secreto. Falta verificar el remitente en Brevo y probar un envío real. En desarrollo se usa la bandeja local `.local/mail-outbox` |
+| Envío de correo con Brevo | Implementado y probado con la cuenta real (1 de noviembre) | `docker-compose.brevo.yml`; remitente `logicode.notificaciones@gmail.com` en `BREVO_SENDER_EMAIL` (P-06, T-86) y API key como secreto. En desarrollo se usa la bandeja local `.local/mail-outbox` |
 
 ### Verificación realizada (Etapa 3)
 

@@ -121,3 +121,21 @@ Decisión: ☐ Piloto aceptado ☐ Aceptado con observaciones ☐ No aceptado
 | Docente | | | |
 | Equipo LogiCode | | | |
 | Equipo LogiCode | | | |
+
+## 8. Mostrar LogiCode fuera de la red (demostraciones)
+
+Para enseñar LogiCode a alguien que no está en la misma red, mientras la publicación en línea (P-09) sigue en observación, se usa un túnel gratuito de [ngrok](https://ngrok.com). No es el piloto: es una instalación normal (sin `docker-compose.piloto.yml`) que se abre a internet solo mientras dura la demostración.
+
+1. Crea una cuenta gratis en ngrok. En el panel copia el **Authtoken** y, en **Domains**, el dominio fijo gratuito que te asigna (algo como `nombre-asignado.ngrok-free.dev`). El token es secreto: no lo escribas en el repositorio ni en `.env`.
+2. En `.env` pon `LOGICODE_PUBLIC_URL=https://<tu-dominio-de-ngrok>` y corre `docker compose up -d --wait`, para que los enlaces de los correos lleven esa dirección. Se hace una sola vez porque el dominio no cambia.
+3. Abre el túnel con ngrok dentro de Docker (en Windows, Smart App Control puede bloquear `ngrok.exe`; no hace falta desactivarlo):
+
+   ```
+   docker run -it --rm -e NGROK_AUTHTOKEN=<tu-token> ngrok/ngrok:latest http --url=<tu-dominio-de-ngrok> host.docker.internal:3000
+   ```
+
+   `host.docker.internal:3000` es LogiCode visto desde Docker (puerto `FRONTEND_PORT`); en el navegador se entra por la dirección de ngrok o por `http://localhost:3000`.
+4. La primera vez que alguien abre el enlace, ngrok muestra un aviso; se toca **Visit Site**. Al abrir la página sin sesión, `GET /api/v1/me` responde `401` y la página muestra al visitante: es lo esperado.
+5. Cierra la ventana con Ctrl+C al terminar. Mientras está abierta, cualquiera con el enlace llega a LogiCode, y esta instalación usa la configuración de desarrollo (documentación de la API visible y cookie de sesión sin `Secure`).
+
+Probado el 1 de noviembre de 2026 en el equipo de Carlos: LogiCode abre desde la dirección de ngrok.

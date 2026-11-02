@@ -45,7 +45,7 @@ Como **usuario** quiero iniciar y cerrar sesión con mi cédula y mi contraseña
 
 Como **usuario** quiero confirmar que el correo es mío para poder recuperar mi contraseña si la olvido.
 
-- **Requisitos:** RF-29, RN-24. **Estado:** Implementado; remitente decidido (P-06, `logicode.notificaciones@gmail.com`); falta activar Brevo y probar un envío real.
+- **Requisitos:** RF-29, RN-24. **Estado:** Implementado; envío real con Brevo probado el 1 de noviembre en el equipo de Carlos con `logicode.notificaciones@gmail.com` (P-06).
 - **Criterios de aceptación:**
   1. Dado que recibí el enlace de confirmación, cuando lo abro dentro de 24 horas, entonces mi correo queda verificado.
   2. Dado que ya usé el enlace o pasaron 24 horas, cuando lo abro, entonces se rechaza y puedo pedir otro desde **Mi cuenta**.
@@ -54,7 +54,7 @@ Como **usuario** quiero confirmar que el correo es mío para poder recuperar mi 
 
 Como **usuario** quiero recibir un enlace en mi correo verificado para crear una contraseña nueva cuando la olvide.
 
-- **Requisitos:** RF-04, RN-23, RNF-02. **Estado:** Implementado (remitente decidido en P-06; falta activar Brevo y probar un envío real).
+- **Requisitos:** RF-04, RN-23, RNF-02. **Estado:** Implementado; envío real con Brevo probado el 1 de noviembre en el equipo de Carlos con `logicode.notificaciones@gmail.com` (P-06).
 - **Criterios de aceptación:**
   1. Dado que escribo un correo, cuando pido la recuperación, entonces la respuesta es la misma exista o no una cuenta con ese correo.
   2. Dado una cuenta con el correo verificado, cuando pido la recuperación, entonces recibo un enlace de un solo uso válido durante 60 minutos.
