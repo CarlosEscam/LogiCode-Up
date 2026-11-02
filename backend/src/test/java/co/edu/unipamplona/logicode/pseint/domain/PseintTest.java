@@ -104,8 +104,51 @@ class PseintTest {
         RunResult missingInput = run("Algoritmo A\n Leer x\n Leer y\nFinAlgoritmo", "1");
         assertThat(missingInput.error()).contains("faltan datos de entrada");
 
-        RunResult unsupported = run("Algoritmo A\n Dimension v[2]\n Para Cada x de v\n FinPara\nFinAlgoritmo", "");
-        assertThat(unsupported.errorKind()).isEqualTo(PseintError.Kind.UNSUPPORTED);
+    }
+
+    @Test
+    void runsForEachOverArraysInBothIndexBases() {
+        RunResult result = run("""
+                Algoritmo Notas
+                    Dimension notas[3], cero[2], m[2,2]
+                    Para i <- 1 Hasta 3 Hacer
+                        Leer notas[i]
+                    FinPara
+                    suma <- 0
+                    Para Cada nota De notas Hacer
+                        suma <- suma + nota
+                    FinPara
+                    Escribir "Promedio: ", suma / 3
+                    Para Cada nota de notas
+                        nota <- nota * 2
+                    Fin Para
+                    Escribir notas[1], " ", notas[3]
+                    cero[0] <- "a"
+                    cero[1] <- "b"
+                    Para Cada letra De cero Hacer
+                        Escribir Sin Saltar letra
+                    FinPara
+                    Escribir ""
+                    k <- 0
+                    Para Cada celda De m Hacer
+                        k <- k + 1
+                        celda <- k
+                    FinPara
+                    Escribir m[1,1], m[1,2], m[2,1], m[2,2]
+                FinAlgoritmo
+                """, "3\n4\n5\n");
+        assertThat(result.error()).isNull();
+        assertThat(result.output()).isEqualTo("Promedio: 4\n6 10\nab\n1234\n");
+
+        RunResult empty = run("Algoritmo A\n Dimension v[2]\n Para Cada x De v\n  Escribir x\n FinPara\nFinAlgoritmo", "");
+        assertThat(empty.errorKind()).isEqualTo(PseintError.Kind.RUNTIME);
+        assertThat(empty.error()).contains("«x» no tiene valor");
+        assertThat(run("Algoritmo A\n x <- 1\n Para Cada e De x\n FinPara\nFinAlgoritmo", "").error())
+                .contains("no es un arreglo");
+        assertThat(run("Algoritmo A\n Dimension v[2]\n Para Cada e De v[1]\n FinPara\nFinAlgoritmo", "").errorKind())
+                .isEqualTo(PseintError.Kind.SYNTAX);
+        assertThat(run("Algoritmo A\n Dimension v[2]\n Para Cada e De v\nFinAlgoritmo", "").errorKind())
+                .isEqualTo(PseintError.Kind.SYNTAX);
     }
 
     @Test

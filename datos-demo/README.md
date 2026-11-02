@@ -114,6 +114,8 @@ Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, 
 
 En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar casos de prueba" para ver caso por caso. El editor está en **PSeInt** del menú (con sesión).
 
+Desde el 2 de noviembre el intérprete entiende `Para Cada elemento De arreglo`. Para mostrarlo no hace falta cargar nada: en el editor, el ejemplo "Promedio de un arreglo (Para Cada)" lee 4 notas en un arreglo y las recorre (con 3, 4.5, 5 y 2.5 escribe `Promedio: 3.75`).
+
 **Juegos** (`/juegos`, sin sesión): no cargan datos en el servidor; el avance y el personaje del robot se guardan en el navegador de cada quien. Desde el 27 de octubre hay 24 niveles de bloques, 21 de "¿Qué imprime?", 14 de "Caza el error", 14 de "Ordena el algoritmo", 14 de "Completa el DFD" (del 11 al 14 con ciclos) y, desde el 28 de octubre, 12 de "¿Qué hace este código?" de Arduino. En bloques, para la presentación sirven el 11 (ciclos anidados, 4 bloques: Repetir 3 veces [Repetir 4 veces Avanzar, Girar a la derecha]) y el 24 (desafío final, 7 bloques: Mientras no llegue [Si hay camino: Avanzar; si no: Girar a la derecha y Si hay camino: nada; si no: Girar a la izquierda dos veces]).
 
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo lo de la Etapa 7 (y lo de la 6 si faltaba).

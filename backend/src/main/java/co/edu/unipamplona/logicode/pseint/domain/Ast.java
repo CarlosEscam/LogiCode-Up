@@ -21,7 +21,7 @@ final class Ast {
     }
 
     sealed interface Statement permits Define, Dimension, Assign, Write, Read, If, Switch, While, Repeat, For,
-            CallStatement, Nothing {
+            ForEach, CallStatement, Nothing {
         int line();
     }
 
@@ -58,6 +58,10 @@ final class Ast {
 
     record For(String variable, Expression from, Expression to, Expression step, List<Statement> body, int line)
             implements Statement {
+    }
+
+    /** «Para Cada elemento De arreglo»: {@code array} es una variable sin índices. */
+    record ForEach(String variable, Variable array, List<Statement> body, int line) implements Statement {
     }
 
     record CallStatement(Call call, int line) implements Statement {

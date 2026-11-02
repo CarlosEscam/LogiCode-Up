@@ -12,7 +12,7 @@ import co.edu.unipamplona.logicode.pseint.domain.Lexer.Type;
 
 /**
  * Lee un programa PSeInt en su perfil flexible: Algoritmo/Proceso, SubProceso y Funcion, Definir, Dimension,
- * asignación con {@code <-}, {@code =} o {@code :=}, Escribir, Leer, Si, Segun, Mientras, Repetir y Para.
+ * asignación con {@code <-}, {@code =} o {@code :=}, Escribir, Leer, Si, Segun, Mientras, Repetir, Para y Para Cada.
  * «Entonces» y «Hacer» son opcionales y «;» separa instrucciones como un salto de línea.
  */
 final class Parser {
@@ -208,9 +208,20 @@ final class Parser {
             }
             case "para" -> {
                 next();
-                if (peek().is("cada")) {
-                    throw new PseintError(PseintError.Kind.UNSUPPORTED, line,
-                            "«Para Cada» aún no se puede ejecutar en LogiCode; usa «Para i <- 1 Hasta n».");
+                if (accept("cada")) {
+                    Token element = word("la variable de cada elemento");
+                    if (!(accept("de") || accept("en"))) {
+                        throw syntax(peek(), "se esperaba «De» y se encontró «" + peek().text() + "».");
+                    }
+                    Ast.Variable array = variable(word("el nombre del arreglo"));
+                    if (!array.indices().isEmpty()) {
+                        throw syntax(peek(), "«Para Cada» recorre el arreglo completo: escribe su nombre sin «[ ]».");
+                    }
+                    accept("hacer");
+                    List<Ast.Statement> body = block(() -> peek().is("finpara"), "FinPara");
+                    next();
+                    out.add(new Ast.ForEach(element.key(), array, body, line));
+                    return;
                 }
                 Token variable = word("la variable del ciclo");
                 assignment();
