@@ -119,7 +119,7 @@ Solo documentación: no cambia código de la aplicación. Todo se revisó contra
 | --- | --- | --- |
 | Importar estudiantes desde Excel (RF-05, P-07) | Implementado | "Importar lista" en la pestaña Estudiantes del curso y en "Habilitar estudiantes": `.xlsx` (primera hoja, cédula en A y nombre en B) o `.csv`, con las mismas reglas (T-75). `StudentListReader` |
 | Exportar la planilla a Excel (RF-18, P-07) | Implementado | "Exportar a Excel (.xlsx)" en la Planilla: notas y porcentajes como números (T-76). "Exportar a CSV" sigue |
-| La IA lee entregas en PDF (P-08) | Implementado | Texto del PDF y cada página como imagen, hasta 5 páginas (T-77). `PdfContent` |
+| La IA lee entregas en PDF (P-08) | Implementado | Texto del PDF y cada página como imagen, hasta 5 páginas (T-77). `PdfContent`. Probado con un PDF real y Qwen el 1 de noviembre: notas iguales a la del docente, 8 a 9 min por PDF de 3 páginas (`ia-pruebas/README.md`) |
 | La IA lee Word y PowerPoint | Pendiente | No aprobado: siguen con el docente como "Formato que la IA no lee" |
 | Pruebas de aceptación de la IA con PDF en el equipo de referencia | Pendiente | El modelo no corre en el entorno de Claude; la prueba de integración usa un proveedor simulado y comprueba lo que recibe el modelo |
 

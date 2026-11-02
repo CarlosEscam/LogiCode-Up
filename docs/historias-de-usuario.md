@@ -242,7 +242,7 @@ Como **docente** quiero que la IA publique sola solo las notas de entregas legib
 
 Como **estudiante** quiero entregar mi trabajo en PDF y que la IA lo lea para recibir la nota sin esperar al docente cuando sea posible.
 
-- **Requisitos:** RF-14 (P-08). **Estado:** Implementado; prueba con PDF real y Qwen en el equipo de referencia **Pendiente**.
+- **Requisitos:** RF-14 (P-08). **Estado:** Implementado; prueba con PDF real y Qwen hecha el 1 de noviembre de 2026 en el PC de Carlos: dos notas iguales a la del docente, 8 a 9 minutos por PDF de 3 páginas ([ia-pruebas/README.md](../ia-pruebas/README.md)).
 - **Criterios de aceptación:**
   1. Dado un PDF de hasta 5 páginas y 25 MB, cuando la IA lo evalúa, entonces recibe su texto (si lo tiene) y cada página como imagen.
   2. Dado un PDF escaneado sin texto, cuando la IA lo evalúa, entonces recibe las imágenes de las páginas.
