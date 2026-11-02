@@ -374,7 +374,7 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 
 ### CU-32 Editar los niveles de `/juegos`
 
-- **Actor:** Docente. **Requisitos:** RF-22. **Estado:** **Pendiente**. No fue pedido: los niveles de los seis juegos están fijos en `frontend/src/features/games/levels.js` (T-59, T-78). Lo que sí configura el docente son retos de bloques calificables dentro de una actividad (CU-16).
+- **Actor:** Docente. **Requisitos:** RF-22. **Estado:** **Pendiente**. No fue pedido: los niveles de los siete juegos están fijos en `frontend/src/features/games/levels.js` (T-59, T-78). Lo que sí configura el docente son retos de bloques calificables dentro de una actividad (CU-16).
 
 ## Estados de una entrega
 

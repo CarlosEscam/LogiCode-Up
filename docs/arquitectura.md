@@ -273,6 +273,7 @@ Regla: la interfaz muestra estado y recoge acciones; **no decide permisos, notas
 | Bloques (`bloques`) | Scratch | 24 | `BlocksGame.jsx` + intérprete `blocks.js` (tope de 400 pasos) |
 | ¿Qué imprime? (`salida`) | PSeInt | 21 | `OutputGame.jsx` |
 | Caza el error (`error`) | PSeInt | 14 | `ErrorGame.jsx` |
+| Prueba de escritorio (`escritorio`) | PSeInt | 12 | `DeskGame.jsx` (tabla de valores; `sameDeskValue` compara las respuestas) |
 | Ordena el algoritmo (`orden`) | PSeInt | 14 | `OrderGame.jsx` |
 | Completa el DFD (`dfd`) | DFD | 14 | `DfdGame.jsx` (diagrama en SVG, con figura de ciclo) |
 | ¿Qué hace este código? (`arduino`) | Arduino | 12 | `OutputGame.jsx` con una pregunta propia por nivel |

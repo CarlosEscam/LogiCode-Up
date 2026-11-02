@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { DIRECTIONS, MAX_STEPS, boardProblem, countBlocks, parseLevel, programText, runProgram } from './blocks.js'
-import { ARDUINO_LEVELS, BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, shuffle } from './levels.js'
+import { ARDUINO_LEVELS, BLOCK_LEVELS, DESK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS, dfdBlanks, sameDeskValue, shuffle } from './levels.js'
 
 // Menor número de bloques Avanzar/Girar (sin ciclos ni condiciones) que lleva el robot a la meta.
 function shortestSequence(level) {
@@ -91,6 +91,32 @@ describe('Niveles de los juegos', () => {
     })
   })
 
+  it('cada tabla de la prueba de escritorio tiene una casilla por columna, un ejemplo y algo que llenar', () => {
+    expect(DESK_LEVELS).toHaveLength(12)
+    expect(new Set(DESK_LEVELS.map((level) => level.id)).size).toBe(DESK_LEVELS.length)
+    DESK_LEVELS.forEach((level) => {
+      level.rows.forEach((row) => expect(row, level.id).toHaveLength(level.columns.length + 1))
+      expect(level.rows[0].slice(1).some((value) => value != null), level.id).toBe(true)
+      const toFill = level.rows.slice(1).flatMap((row) => row.slice(1)).filter((value) => value != null)
+      expect(toFill.length, level.id).toBeGreaterThan(0)
+      toFill.forEach((value) => expect(String(value).trim(), level.id).not.toBe(''))
+      expect(level.columns.at(-1), level.id).toBe('Pantalla')
+    })
+  })
+
+  it('la prueba de escritorio acepta la respuesta escrita de varias formas', () => {
+    expect(sameDeskValue(' 3,5 ', 3.5)).toBe(true)
+    expect(sameDeskValue('3.50', 3.5)).toBe(true)
+    expect(sameDeskValue('v', 'Verdadero')).toBe(true)
+    expect(sameDeskValue('FALSO', 'Falso')).toBe(true)
+    expect(sameDeskValue('aprobo', 'Aprobó')).toBe(true)
+    expect(sameDeskValue('"los"', 'los')).toBe(true)
+    expect(sameDeskValue('total:  18000', 'Total: 18000')).toBe(true)
+    expect(sameDeskValue('', 0)).toBe(false)
+    expect(sameDeskValue('Verdadero', 'Falso')).toBe(false)
+    expect(sameDeskValue('85', '8 5')).toBe(false)
+  })
+
   it('las respuestas de los otros juegos están entre sus opciones', () => {
     ;[...OUTPUT_LEVELS, ...ARDUINO_LEVELS].forEach((level) => expect(level.options[level.answer], level.id).toBeDefined())
     ARDUINO_LEVELS.forEach((level) => expect(level.question, level.id).toBeTruthy())
@@ -114,13 +140,13 @@ describe('Página de juegos', () => {
     render(<App />)
 
     const list = await screen.findByRole('region', { name: 'Juegos' })
-    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(6)
-    expect(screen.getByRole('status')).toHaveTextContent('6 juegos · 99 niveles')
+    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(7)
+    expect(screen.getByRole('status')).toHaveTextContent('7 juegos · 111 niveles')
     // Con un nivel resuelto, el botón lleva al primero que falta.
     expect(screen.getByRole('link', { name: 'Seguir jugando: ¿Qué imprime?' })).toHaveAttribute('href', `/juegos?juego=salida&nivel=${OUTPUT_LEVELS[1].id}`)
 
     fireEvent.change(screen.getByLabelText('Tema'), { target: { value: 'Funciones' } })
-    expect(within(list).getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual(['¿Qué imprime?', 'Caza el error'])
+    expect(within(list).getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual(['¿Qué imprime?', 'Caza el error', 'Prueba de escritorio'])
     fireEvent.change(screen.getByLabelText('Herramienta'), { target: { value: 'DFD' } })
     expect(screen.getByText('No hay juegos con estos filtros.')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Tema'), { target: { value: '' } })
@@ -242,6 +268,30 @@ describe('Página de juegos', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comprobar corrección' }))
     expect(screen.getByRole('status')).toHaveTextContent('¡Corregido!')
     expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ error: ['error-1'] })
+  })
+
+  it('en la prueba de escritorio se llena la tabla y se marcan las casillas equivocadas', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => respond(401, { title: 'Sin sesión' })))
+    window.history.replaceState(null, '', '/juegos?juego=escritorio&nivel=escritorio-4')
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'El mayor de dos' })).toBeInTheDocument()
+    const answers = {
+      'Leer b, a': '7', 'Leer b, b': '12',
+      'Si a > b Entonces, a': '7', 'Si a > b Entonces, b': '12', 'Si a > b Entonces, a > b': 'Verdadero',
+      'mayor <- b, a': '7', 'mayor <- b, b': '12', 'mayor <- b, mayor': '12',
+      'Escribir "Mayor: ", mayor, a': '7', 'Escribir "Mayor: ", mayor, b': '12', 'Escribir "Mayor: ", mayor, mayor': '12', 'Escribir "Mayor: ", mayor, Pantalla': 'mayor: 12',
+    }
+    for (const [name, value] of Object.entries(answers)) fireEvent.change(screen.getByLabelText(name), { target: { value } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Hay 1 casilla por revisar (en rojo). La primera está en la fila «Si a > b Entonces»')
+    expect(screen.getByLabelText('Si a > b Entonces, a > b')).toHaveAttribute('aria-invalid', 'true')
+    expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1') ?? '{}')).toEqual({})
+
+    fireEvent.change(screen.getByLabelText('Si a > b Entonces, a > b'), { target: { value: 'falso' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar' }))
+    expect(screen.getByRole('status')).toHaveTextContent('¡Tabla completa!')
+    expect(JSON.parse(window.localStorage.getItem('logicode.juegos.v1'))).toEqual({ escritorio: ['escritorio-4'] })
   })
 
   it('cambia el personaje del robot, lo recuerda y sigue diciendo hacia dónde mira', async () => {

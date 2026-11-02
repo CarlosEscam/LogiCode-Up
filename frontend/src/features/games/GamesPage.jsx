@@ -3,11 +3,12 @@ import { Link } from '../../shared/router/Link.jsx'
 import { navigate, useLocation } from '../../shared/router/router.js'
 import { TOOL_LABELS } from '../content/labels.js'
 import BlocksGame from './BlocksGame.jsx'
+import DeskGame from './DeskGame.jsx'
 import DfdGame from './DfdGame.jsx'
 import ErrorGame from './ErrorGame.jsx'
 import OrderGame from './OrderGame.jsx'
 import OutputGame from './OutputGame.jsx'
-import { ARDUINO_LEVELS, BLOCK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
+import { ARDUINO_LEVELS, BLOCK_LEVELS, DESK_LEVELS, DFD_LEVELS, ERROR_LEVELS, ORDER_LEVELS, OUTPUT_LEVELS } from './levels.js'
 import { loadProgress, markSolved } from './progress.js'
 
 // Para agregar un juego basta otra entrada aquí: herramienta y temas alimentan los filtros del catálogo.
@@ -38,6 +39,15 @@ const GAMES = [
     levels: ERROR_LEVELS,
     Game: ErrorGame,
     about: 'Cada programa tiene un error: encuentra la línea que falla y elige cómo corregirla.',
+  },
+  {
+    key: 'escritorio',
+    label: 'Prueba de escritorio',
+    tool: 'PSEINT',
+    topics: ['Variables', 'Condiciones', 'Ciclos', 'Arreglos', 'Textos', 'Funciones'],
+    levels: DESK_LEVELS,
+    Game: DeskGame,
+    about: 'Sigue el programa paso a paso y llena la tabla con el valor de cada variable y lo que sale en pantalla.',
   },
   {
     key: 'orden',
@@ -213,6 +223,7 @@ function GameArt({ gameKey }) {
         {'\nEscribir area'}
       </code>
     ),
+    escritorio: <code>{'Paso     i  suma\nVuelta 1 1  1\nVuelta 2 2  3\nVuelta 3 3  ?'}</code>,
     orden: <code>{'1. Leer a, b\n2. suma <- a + b\n3. Escribir suma'}</code>,
     dfd: (
       <svg viewBox="0 0 150 96" width="150" height="96" focusable="false">

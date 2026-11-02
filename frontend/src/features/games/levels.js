@@ -1108,6 +1108,222 @@ export const ARDUINO_LEVELS = [
   },
 ]
 
+// Prueba de escritorio: se sigue el programa y se llena la tabla. Cada fila es una línea (o una vuelta del ciclo) con el
+// valor de cada variable después de ella; en una condición va Verdadero o Falso y en Pantalla lo que muestra.
+// null es una casilla que no aplica. La primera fila viene llena como ejemplo.
+export const DESK_LEVELS = [
+  {
+    id: 'escritorio-1',
+    topic: 'Variables',
+    title: 'Intercambio',
+    goal: 'Anota cuánto vale cada variable después de cada línea.',
+    code: 'Algoritmo Cambio\n    a <- 5\n    b <- 8\n    aux <- a\n    a <- b\n    b <- aux\n    Escribir a, " ", b\nFinAlgoritmo',
+    columns: ['a', 'b', 'aux', 'Pantalla'],
+    rows: [
+      ['a <- 5', 5, null, null, null],
+      ['b <- 8', 5, 8, null, null],
+      ['aux <- a', 5, 8, 5, null],
+      ['a <- b', 8, 8, 5, null],
+      ['b <- aux', 8, 5, 5, null],
+      ['Escribir a, " ", b', 8, 5, 5, '8 5'],
+    ],
+    explanation: 'aux guarda el 5 antes de que a lo pierda; así b puede recibirlo al final.',
+  },
+  {
+    id: 'escritorio-2',
+    topic: 'Variables',
+    title: 'Una variable cambia de valor',
+    goal: 'Una asignación usa el valor que la variable tiene en ese momento.',
+    code: 'Algoritmo Cambios\n    x <- 4\n    z <- x * 3\n    x <- z - x\n    z <- z MOD 5\n    Escribir x + z\nFinAlgoritmo',
+    columns: ['x', 'z', 'Pantalla'],
+    rows: [
+      ['x <- 4', 4, null, null],
+      ['z <- x * 3', 4, 12, null],
+      ['x <- z - x', 8, 12, null],
+      ['z <- z MOD 5', 8, 2, null],
+      ['Escribir x + z', 8, 2, 10],
+    ],
+    explanation: 'x <- z - x usa el 4 viejo de x: 12 − 4 = 8. Y 12 MOD 5 es el residuo de 12 / 5, que es 2.',
+  },
+  {
+    id: 'escritorio-3',
+    topic: 'Variables',
+    title: 'Precio con descuento',
+    goal: 'El descuento es el 10 % del precio.',
+    code: 'Algoritmo Descuento\n    precio <- 20000\n    desc <- precio * 0.1\n    total <- precio - desc\n    Escribir "Total: ", total\nFinAlgoritmo',
+    columns: ['precio', 'desc', 'total', 'Pantalla'],
+    rows: [
+      ['precio <- 20000', 20000, null, null, null],
+      ['desc <- precio * 0.1', 20000, 2000, null, null],
+      ['total <- precio - desc', 20000, 2000, 18000, null],
+      ['Escribir "Total: ", total', 20000, 2000, 18000, 'Total: 18000'],
+    ],
+    explanation: 'El 10 % de 20000 es 2000, y el total es 20000 − 2000 = 18000. Escribir junta el texto y el valor.',
+  },
+  {
+    id: 'escritorio-4',
+    topic: 'Condiciones',
+    title: 'El mayor de dos',
+    goal: 'El usuario escribe 7 y luego 12. En la columna de la condición escribe Verdadero o Falso.',
+    code: 'Algoritmo Mayor\n    Leer a\n    Leer b\n    Si a > b Entonces\n        mayor <- a\n    SiNo\n        mayor <- b\n    FinSi\n    Escribir "Mayor: ", mayor\nFinAlgoritmo',
+    columns: ['a', 'b', 'a > b', 'mayor', 'Pantalla'],
+    rows: [
+      ['Leer a', 7, null, null, null, null],
+      ['Leer b', 7, 12, null, null, null],
+      ['Si a > b Entonces', 7, 12, 'Falso', null, null],
+      ['mayor <- b', 7, 12, null, 12, null],
+      ['Escribir "Mayor: ", mayor', 7, 12, null, 12, 'Mayor: 12'],
+    ],
+    explanation: '7 > 12 es falso, así que se salta mayor <- a y se ejecuta la rama SiNo.',
+  },
+  {
+    id: 'escritorio-5',
+    topic: 'Condiciones',
+    title: 'Si dentro de otro Si',
+    goal: 'Escribe Verdadero o Falso en cada condición que se revisa.',
+    code: 'Algoritmo Nota\n    nota <- 3.5\n    Si nota >= 4 Entonces\n        Escribir "Excelente"\n    SiNo\n        Si nota >= 3 Entonces\n            Escribir "Aprobó"\n        SiNo\n            Escribir "Reprobó"\n        FinSi\n    FinSi\nFinAlgoritmo',
+    columns: ['nota', 'nota >= 4', 'nota >= 3', 'Pantalla'],
+    rows: [
+      ['nota <- 3.5', 3.5, null, null, null],
+      ['Si nota >= 4 Entonces', 3.5, 'Falso', null, null],
+      ['Si nota >= 3 Entonces', 3.5, null, 'Verdadero', null],
+      ['Escribir "Aprobó"', 3.5, null, null, 'Aprobó'],
+    ],
+    explanation: 'Como 3,5 >= 4 es falso, se entra al SiNo, donde se revisa la segunda condición: 3,5 >= 3 es verdadero.',
+  },
+  {
+    id: 'escritorio-6',
+    topic: 'Ciclos',
+    title: 'Sumar con Para',
+    goal: 'En cada vuelta anota cómo quedan las variables al terminarla.',
+    code: 'Algoritmo Suma\n    suma <- 0\n    Para i <- 1 Hasta 4 Hacer\n        suma <- suma + i\n    FinPara\n    Escribir suma\nFinAlgoritmo',
+    columns: ['i', 'suma', 'Pantalla'],
+    rows: [
+      ['suma <- 0', null, 0, null],
+      ['Vuelta 1', 1, 1, null],
+      ['Vuelta 2', 2, 3, null],
+      ['Vuelta 3', 3, 6, null],
+      ['Vuelta 4', 4, 10, null],
+      ['Escribir suma', null, 10, 10],
+    ],
+    explanation: 'suma acumula: 0 + 1 = 1, 1 + 2 = 3, 3 + 3 = 6 y 6 + 4 = 10.',
+  },
+  {
+    id: 'escritorio-7',
+    topic: 'Ciclos',
+    title: 'Mientras que se triplica',
+    goal: 'La condición se revisa al empezar cada vuelta. La última fila es la revisión que saca del ciclo.',
+    code: 'Algoritmo Triple\n    n <- 1\n    c <- 0\n    Mientras n < 20 Hacer\n        n <- n * 3\n        c <- c + 1\n    FinMientras\n    Escribir c, " ", n\nFinAlgoritmo',
+    columns: ['n', 'c', 'n < 20', 'Pantalla'],
+    rows: [
+      ['n <- 1', 1, null, null, null],
+      ['c <- 0', 1, 0, null, null],
+      ['Vuelta 1', 3, 1, 'Verdadero', null],
+      ['Vuelta 2', 9, 2, 'Verdadero', null],
+      ['Vuelta 3', 27, 3, 'Verdadero', null],
+      ['Mientras n < 20', 27, 3, 'Falso', null],
+      ['Escribir c, " ", n', 27, 3, null, '3 27'],
+    ],
+    explanation: 'Con n = 9 la condición todavía es verdadera, así que hay una tercera vuelta y n llega a 27, que ya no es menor que 20.',
+  },
+  {
+    id: 'escritorio-8',
+    topic: 'Ciclos',
+    title: 'Contar los pares',
+    goal: 'En cada vuelta anota i, si la condición se cumple y cómo queda pares.',
+    code: 'Algoritmo Pares\n    pares <- 0\n    Para i <- 1 Hasta 5 Hacer\n        Si i MOD 2 = 0 Entonces\n            pares <- pares + 1\n        FinSi\n    FinPara\n    Escribir pares\nFinAlgoritmo',
+    columns: ['i', 'i MOD 2 = 0', 'pares', 'Pantalla'],
+    rows: [
+      ['pares <- 0', null, null, 0, null],
+      ['Vuelta 1', 1, 'Falso', 0, null],
+      ['Vuelta 2', 2, 'Verdadero', 1, null],
+      ['Vuelta 3', 3, 'Falso', 1, null],
+      ['Vuelta 4', 4, 'Verdadero', 2, null],
+      ['Vuelta 5', 5, 'Falso', 2, null],
+      ['Escribir pares', null, null, 2, 2],
+    ],
+    explanation: 'Solo 2 y 4 dejan residuo 0 al dividir entre 2; en las demás vueltas pares no cambia.',
+  },
+  {
+    id: 'escritorio-9',
+    topic: 'Ciclos',
+    title: 'Repetir hasta que',
+    goal: 'Repetir revisa la condición al terminar cada vuelta: si es verdadera, sale.',
+    code: 'Algoritmo Factorial\n    f <- 1\n    k <- 1\n    Repetir\n        f <- f * k\n        k <- k + 1\n    Hasta Que k > 4\n    Escribir f\nFinAlgoritmo',
+    columns: ['f', 'k', 'k > 4', 'Pantalla'],
+    rows: [
+      ['f <- 1', 1, null, null, null],
+      ['k <- 1', 1, 1, null, null],
+      ['Vuelta 1', 1, 2, 'Falso', null],
+      ['Vuelta 2', 2, 3, 'Falso', null],
+      ['Vuelta 3', 6, 4, 'Falso', null],
+      ['Vuelta 4', 24, 5, 'Verdadero', null],
+      ['Escribir f', 24, 5, null, 24],
+    ],
+    explanation: 'f se multiplica por 1, 2, 3 y 4: es el factorial de 4, 24. Cuando k llega a 5, k > 4 es verdadero y el ciclo termina.',
+  },
+  {
+    id: 'escritorio-10',
+    topic: 'Arreglos',
+    title: 'El mayor del arreglo',
+    goal: 'La tabla empieza después de llenar el arreglo. v[i] es el valor de la casilla i en esa vuelta.',
+    code: 'Algoritmo MayorArreglo\n    Dimension v[4]\n    v[1] <- 6\n    v[2] <- 11\n    v[3] <- 4\n    v[4] <- 8\n    mayor <- v[1]\n    Para i <- 2 Hasta 4 Hacer\n        Si v[i] > mayor Entonces\n            mayor <- v[i]\n        FinSi\n    FinPara\n    Escribir mayor\nFinAlgoritmo',
+    columns: ['i', 'v[i]', 'v[i] > mayor', 'mayor', 'Pantalla'],
+    rows: [
+      ['mayor <- v[1]', null, null, null, 6, null],
+      ['Vuelta 1', 2, 11, 'Verdadero', 11, null],
+      ['Vuelta 2', 3, 4, 'Falso', 11, null],
+      ['Vuelta 3', 4, 8, 'Falso', 11, null],
+      ['Escribir mayor', null, null, null, 11, 11],
+    ],
+    explanation: 'mayor empieza con la primera casilla y solo cambia cuando aparece uno más grande: el 11. Ni 4 ni 8 lo superan.',
+  },
+  {
+    id: 'escritorio-11',
+    topic: 'Textos',
+    title: 'Palabra al revés',
+    goal: 'El ciclo va hacia atrás. Escribe los textos sin comillas.',
+    code: 'Algoritmo Reves\n    palabra <- "sol"\n    inv <- ""\n    Para i <- Longitud(palabra) Hasta 1 Con Paso -1 Hacer\n        inv <- inv + Subcadena(palabra, i, i)\n    FinPara\n    Escribir inv\nFinAlgoritmo',
+    columns: ['i', 'inv', 'Pantalla'],
+    rows: [
+      ['inv <- ""', null, '(vacío)', null],
+      ['Vuelta 1', 3, 'l', null],
+      ['Vuelta 2', 2, 'lo', null],
+      ['Vuelta 3', 1, 'los', null],
+      ['Escribir inv', null, 'los', 'los'],
+    ],
+    explanation: 'Longitud("sol") es 3, así que i va 3, 2, 1. Subcadena(palabra, i, i) toma la letra i y se pega al final de inv.',
+  },
+  {
+    id: 'escritorio-12',
+    topic: 'Funciones',
+    title: 'Sumar cuadrados',
+    goal: 'En cada vuelta anota lo que devuelve la función y cómo queda total.',
+    code: 'Funcion r <- Cuadrado(n)\n    r <- n * n\nFinFuncion\n\nAlgoritmo SumaCuadrados\n    total <- 0\n    Para i <- 1 Hasta 3 Hacer\n        total <- total + Cuadrado(i)\n    FinPara\n    Escribir total\nFinAlgoritmo',
+    columns: ['i', 'Cuadrado(i)', 'total', 'Pantalla'],
+    rows: [
+      ['total <- 0', null, null, 0, null],
+      ['Vuelta 1', 1, 1, 1, null],
+      ['Vuelta 2', 2, 4, 5, null],
+      ['Vuelta 3', 3, 9, 14, null],
+      ['Escribir total', null, null, 14, 14],
+    ],
+    explanation: 'Cuadrado(i) devuelve i × i: 1, 4 y 9. total los va sumando: 1, 5 y 14.',
+  },
+]
+
+// Compara lo que escribió el estudiante con la casilla: sin importar mayúsculas, tildes, comillas ni espacios de más;
+// 3,5 vale como 3.5 y V o F como Verdadero o Falso.
+export function sameDeskValue(typed, expected) {
+  const clean = (value) => {
+    const text = String(value).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^"(.*)"$/, '$1').replace(/\s+/g, ' ')
+    const number = Number(text.replace(',', '.'))
+    if (text !== '' && Number.isFinite(number)) return String(number)
+    return { v: 'verdadero', f: 'falso' }[text] ?? text
+  }
+  return clean(typed) === clean(expected)
+}
+
 // Casillas en blanco de un DFD, en orden (A, B, …). Recorre las ramas de las decisiones y el cuerpo de los ciclos.
 export function dfdBlanks(level) {
   const walk = (nodes) => nodes.flatMap((node) => [node, node.yes, node.no].filter((item) => item?.blank).concat(walk(node.body ?? [])))
