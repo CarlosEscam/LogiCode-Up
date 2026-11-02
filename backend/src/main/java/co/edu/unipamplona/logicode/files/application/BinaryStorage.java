@@ -23,7 +23,7 @@ public interface BinaryStorage {
 
     void discard(StagedFile staged);
 
-    /** Borra un archivo ya guardado (solo para deshacer una carga cuya transacción falló). */
+    /** Borra un archivo ya guardado: deshace una carga fallida o borra uno vencido. No falla si ya no existe. */
     void delete(String storageKey);
 
     Resource open(String storageKey);

@@ -1,6 +1,6 @@
 # Arquitectura técnica de LogiCode
 
-> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 2 de noviembre de 2026 (commit `85dca33` y migraciones `V1` a `V8`).
+> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 2 de noviembre de 2026 (commit `85dca33` y migraciones `V1` a `V9`).
 
 ## Vista general
 
@@ -27,7 +27,7 @@ La línea punteada es opcional: Ollama solo corre con `docker compose --profile 
 | 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI con springdoc | Implementada |
 | 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada (11 módulos de negocio) |
 | 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL (`ai_grading_job`); envío automático de quizzes vencidos; correos en segundo plano | Implementada. RabbitMQ queda como opción de crecimiento (T-38) |
-| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones `V1` a `V8`) |
+| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones `V1` a `V9`) |
 | 7. Almacenamiento | PostgreSQL para datos; archivos en MinIO (compatible con S3) detrás del puerto `BinaryStorage`, con claves aleatorias y acceso solo a través del backend | Implementada (P-05, T-85) |
 | 8. Infraestructura | `docker-compose.yml` con `db`, `minio`, `backend`, `frontend`, `backup` y, con el perfil `ia`, `ollama` | Implementada. Alojamiento en línea: P-09, en observación |
 
@@ -102,7 +102,7 @@ Paquete raíz: `co.edu.unipamplona.logicode`. Cada módulo funcional es un paque
 | `shared` | 2 | Rutas `/api/v1` (`ApiPaths`), errores RFC 9457, reloj del negocio (`America/Bogota`), `X-Request-Id`, `Role` y `Permission` (T-29) | — |
 | `system` | 2 | Información del sistema y versión del esquema (módulo de referencia con las 4 capas) | `SystemController` |
 | `identity` | 3 | Cuentas, roles, privilegio completo, sesión, verificación de correo, recuperación de contraseña, cambio asistido de correo, habilitación de cédulas, auditoría, cuentas iniciales | `AuthController`, `MeController`, `AdminUserController`, `StudentEnablementController` |
-| `files` | 4 | Validación de extensión, tamaño y firma real; metadatos `stored_file`; almacenamiento local con claves aleatorias; retención | — (lo usan otros módulos) |
+| `files` | 4 | Validación de extensión, tamaño y firma real; metadatos `stored_file`; almacenamiento local con claves aleatorias; retención y borrado de vencidos (`FileUsage` lo implementan `content` y `activities`) | — (lo usan otros módulos) |
 | `courses` | 4 | Cursos, docente responsable, inscripción por cédula (CSV y `.xlsx`), reglas de acceso al curso (`CourseAccess`) | `CourseController` |
 | `content` | 4 | Temas, materiales, próxima clase, biblioteca pública, vista previa y descarga | `TopicController`, `MaterialController`, `LibraryController` |
 | `activities` | 5 | Actividades, plazos, intentos, entregas, excepciones de plazo; define el puerto `GradingGateway` y expone `ActivityCatalog` | `ActivityController`, `SubmissionController` |
@@ -162,6 +162,7 @@ Las flechas indican "usa la capa `application` de". `grading` implementa el puer
 | Envío de quizzes vencidos | `quizzes/infrastructure/QuizDeadlineSweeper` | Cada 30 s | Envía con lo guardado los intentos cuyo tiempo terminó (T-56) |
 | Correos | Puerto `EmailSender` | Después de confirmar la transacción | Envía en segundo plano por `outbox` o Brevo (T-15) |
 | Respaldos | Contenedor `backup` (`respaldos/respaldo.sh`) | Diario y a pedido desde el panel | `pg_dump` + `tar`, prueba de restauración, retención |
+| Borrado de archivos vencidos | `files/infrastructure/ExpiredFileSchedule` | Diario, 3:30 a. m. (Colombia), después del respaldo | Borra los archivos con `retain_until` vencida que ningún módulo reporta en uso (`FileUsage`, T-87) |
 
 ### Cola de calificación con IA
 

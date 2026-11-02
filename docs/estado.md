@@ -26,11 +26,24 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · archivos en MinIO (P-05) y remitente de Brevo (P-06) | Implementada y en uso | Carlos decidió las dos y las instaló en su equipo el 1 de noviembre; los correos de Brevo llegan. Detalle abajo |
 | Ampliación · juegos como catálogo (estilo Biblioteca) | Implementada, pendiente de revisión | Carlos aprobó la maqueta el 28 de octubre. Detalle abajo |
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
+| Ampliación · borrado automático de archivos vencidos (RNF-12) | Implementada, pendiente de revisión | Carlos la pidió el 2 de noviembre y eligió borrar solo archivos archivados o sin uso. Detalle abajo |
 | Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
 
 ## Datos de demostración
 
 Implementado: `datos-demo/cargar-datos-demo.mjs` carga por la API datos ficticios de las Etapas 3 a 8 (cuentas de cada rol, curso con temas y materiales, actividades en distintos estados, entregas, notas, historial, excepciones, un taller con fotos, texto, `.psc` y PDF para la IA, banco de preguntas, un quiz calificable cerrado con ranking, uno de repaso, un taller de PSeInt con casos de prueba, hilos del foro en cada herramienta, uno fijado, uno cerrado y uno eliminado por moderación, y un reto de bloques calificable). Se amplía en cada etapa. Si ya hay datos de etapas anteriores, solo agrega los que faltan. Verificado en Docker sobre una base limpia (Etapas 3 a 8, en la Etapa 10 por HTTPS; con el reto de bloques, versión 8 de la base; el 1 de noviembre, con los archivos en MinIO); volver a ejecutarlo no duplica datos. Desde la Etapa 10 se niega a cargar en una instalación en modo piloto, salvo `LOGICODE_DEMO_EN_PILOTO=si`. Detalle en [datos-demo/README.md](../datos-demo/README.md).
+
+## Borrado automático de archivos vencidos · detalle
+
+Base de datos en la versión 9 (`V9__borrado_de_archivos_vencidos.sql`). Sin cambio de interfaz.
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Borrado diario de archivos vencidos | Implementado | Todos los días a las 3:30 a. m. (hora de Colombia) el backend borra los archivos cuya `retain_until` (carga + 6 meses) ya pasó **y** que nada usa: los de materiales archivados, los de materiales de temas archivados y los que no tienen material ni entrega. Se conservan siempre los de entregas y los de materiales activos (decisión de Carlos, T-87). `files/application/ExpiredFileCleanup`, `files/infrastructure/ExpiredFileSchedule` |
+| Registro del borrado | Implementado | El registro de `stored_file` queda con `deleted_at`; el contenido sale de MinIO (y de la carpeta local, si no se había pasado) después de confirmar en la base. Abrir un archivo borrado responde `404` "El archivo se borró al cumplir su tiempo de conservación." |
+| Recuperación | Por los respaldos | Corre después del respaldo de las 2:00 a. m. (`BACKUP_HOUR`), así que cada archivo borrado queda en las copias de los `BACKUP_RETENTION_DAYS` días anteriores (30 por defecto) |
+| Aviso antes de borrar | No se hace | Lo que se borra ya no lo ve nadie (los materiales archivados no se pueden desarchivar desde la aplicación) |
+| Prueba | Implementado | `ContentFlowsIT.expiredFilesAreDeletedOnlyWhenNothingUsesThem` con PostgreSQL real: antes de seis meses no borra nada; vencidos, borra los dos archivados y conserva el material activo |
 
 ## Archivos en MinIO (P-05) y remitente de Brevo (P-06) · detalle
 
@@ -376,7 +389,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Biblioteca con búsqueda y filtros por tema, herramienta y tipo (RF-24) | Implementado | `GET /library`, `GET /library/topics`; pantalla pública `/biblioteca` |
 | Previsualización y descarga con permisos (RF-25) | Implementado | `/materials/{id}/preview` (PDF, imágenes y videos; admite `Range` para adelantar videos) y `/download`; pantalla `/materiales/{id}` |
 | Formatos, límites y validación del tipo real (RNF-04, RN-21) | Implementado | Lista de formatos aprobada; 500 MB y 1 GB para videos; se revisa la firma del archivo, no solo la extensión |
-| Retención mínima de seis meses (RNF-12) | Implementado en datos | Cada archivo guarda `retain_until`; nada se borra, los temas y materiales se archivan. La limpieza automática después de la retención está pendiente |
+| Retención mínima de seis meses (RNF-12) | Implementado | Cada archivo guarda `retain_until`; nada se borra antes. Después, un proceso diario borra los archivos de materiales archivados y los que nada usa; los de entregas y materiales activos se conservan (T-87) |
 | Administrador ordinario: publicar biblioteca, sin crear temas ni materiales (RN-04) | Implementado | Puede cambiar visibilidad y archivar; crear o editar responde `403` |
 | Almacenamiento de archivos | Implementado en MinIO (P-05, T-85) | Servicio `minio` detrás del puerto `BinaryStorage`; los archivos que había en `file-storage` se pasan solos a MinIO al arrancar |
 

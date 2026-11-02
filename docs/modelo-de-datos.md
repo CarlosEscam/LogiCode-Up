@@ -17,7 +17,7 @@
 
 ## Esquema actual (implementado)
 
-Revisado contra las migraciones `V1` a `V8` el 1 de noviembre de 2026. Son 31 tablas de negocio, más `flyway_schema_history` (de Flyway) y las dos de sesiones de Spring Session. Las fechas `created_at`, `updated_at` y la columna `version` (bloqueo optimista) se omiten en los diagramas cuando no aportan.
+Revisado contra las migraciones `V1` a `V9` el 2 de noviembre de 2026. Son 31 tablas de negocio, más `flyway_schema_history` (de Flyway) y las dos de sesiones de Spring Session. Las fechas `created_at`, `updated_at` y la columna `version` (bloqueo optimista) se omiten en los diagramas cuando no aportan.
 
 
 | Migración | Contenido |
@@ -30,6 +30,7 @@ Revisado contra las migraciones `V1` a `V8` el 1 de noviembre de 2026. Son 31 ta
 | `V6__quizzes_y_pseint.sql` | Etapa 7: tipos de actividad `QUIZ` y `PRACTICE_QUIZ`, casos de prueba en la rúbrica, notas `AUTOMATIC` y motivo `CODE_ERROR`, banco de preguntas, quizzes, intentos y sus respuestas |
 | `V7__foro.sql` | Etapa 8: hilos y respuestas del foro. La planilla y las estadísticas se calculan con las tablas existentes y los respaldos viven en el volumen `backups`, no en la base |
 | `V8__retos_de_bloques.sql` | Retos de bloques (RF-12): columna `block_challenge` en `rubric_version` con el reto en JSON (tablero, orientación, máximo de bloques, bloques permitidos y programa inicial), T-72 |
+| `V9__borrado_de_archivos_vencidos.sql` | Borrado de archivos vencidos (RNF-12): columna `deleted_at` en `stored_file` e índice de los que vencen, T-87 |
 
 ## Vista de conjunto
 
@@ -203,12 +204,13 @@ erDiagram
         bigint size_bytes
         varchar sha256
         timestamptz retain_until "carga + 6 meses como mínimo"
+        timestamptz deleted_at "contenido borrado por vencido, V9"
     }
 ```
 
 - **RN-03 / RN-17**: un material privado solo lo ven los inscritos (por cédula), el docente responsable y las cuentas Administrador. Para los demás responde `404`.
 - **RNF-04 / RN-21**: `files` comprueba la extensión permitida para el tipo de material, el tamaño (500 MB; 1 GB videos) y la firma del contenido antes de guardar.
-- **RNF-12**: temas y materiales se archivan (`archived_at`); el archivo se conserva al menos hasta `retain_until`.
+- **RNF-12**: temas y materiales se archivan (`archived_at`); el archivo se conserva al menos hasta `retain_until`. Después, si su material o tema está archivado o nada lo usa, el proceso diario borra el contenido y anota `deleted_at` (V9, T-87). Los archivos de entregas no se borran.
 
 ## Actividades, entregas y notas (Etapas 5 a 7 y RF-12, implementado)
 

@@ -123,7 +123,6 @@ Arquitectura completa en [arquitectura.md](arquitectura.md).
 | Alojamiento en línea (P-09) | En observación; todo despliegue futuro será con Docker |
 | Niveles de `/juegos` editables por el docente | Los niveles están fijos en el código; el docente configura retos con nota solo con RF-12 |
 | La IA lee Word, PowerPoint, video y Scratch | No aprobado; esas entregas van al docente |
-| Limpieza automática de archivos después de la retención | Hoy nada se borra |
 | Maquetas, rúbricas de referencia y prueba de lectura manuscrita de la Etapa 1 | Ver [estado.md](estado.md) |
 
 ### Decisión aprobada

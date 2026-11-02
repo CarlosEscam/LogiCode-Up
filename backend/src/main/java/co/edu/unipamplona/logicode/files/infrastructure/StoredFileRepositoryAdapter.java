@@ -1,5 +1,6 @@
 package co.edu.unipamplona.logicode.files.infrastructure;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -31,5 +32,10 @@ class StoredFileRepositoryAdapter implements StoredFileRepository {
     @Override
     public List<StoredFile> findAllById(Collection<UUID> ids) {
         return jpa.findAllById(ids);
+    }
+
+    @Override
+    public List<StoredFile> findExpired(Instant now) {
+        return jpa.findByRetainUntilBeforeAndDeletedAtIsNull(now);
     }
 }

@@ -22,6 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import co.edu.unipamplona.logicode.files.application.ExpiredFileCleanup;
 import co.edu.unipamplona.logicode.identity.application.EmailMessage;
 import co.edu.unipamplona.logicode.identity.application.EmailSender;
 import com.jayway.jsonpath.JsonPath;
@@ -42,6 +43,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -80,10 +82,12 @@ class ContentFlowsIT {
     static final byte[] PDF = "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n".getBytes(StandardCharsets.US_ASCII);
     static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 13, 'I', 'H', 'D', 'R'};
 
+    static Path storageDir;
+
     @DynamicPropertySource
     static void storage(DynamicPropertyRegistry registry) throws IOException {
-        Path dir = Files.createTempDirectory("logicode-files-it");
-        registry.add("logicode.files.storage-dir", dir::toString);
+        storageDir = Files.createTempDirectory("logicode-files-it");
+        registry.add("logicode.files.storage-dir", storageDir::toString);
     }
 
     @TestConfiguration
@@ -97,6 +101,12 @@ class ContentFlowsIT {
 
     @Autowired
     MockMvc mvc;
+
+    @Autowired
+    ExpiredFileCleanup cleanup;
+
+    @Autowired
+    JdbcClient jdbc;
 
     Cookie admin;
     Cookie teacher;
@@ -354,6 +364,31 @@ class ContentFlowsIT {
         mvc.perform(delete("/api/v1/courses/" + courseId + "/enrollments/600001").cookie(teacher).with(csrf()))
                 .andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/courses/" + courseId + "/topics").cookie(member)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(8)
+    void expiredFilesAreDeletedOnlyWhenNothingUsesThem() throws Exception {
+        // Para este punto el PNG está archivado y el PDF quedó en un tema archivado.
+        String topic = JsonPath.read(mvc.perform(json(post("/api/v1/courses/" + courseId + "/topics").cookie(teacher),
+                        "{\"title\":\"Vigente\",\"tool\":\"GENERAL\"}"))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        topicId = topic;
+        String active = id(upload(teacher, "Guía vigente", "GUIDE", "PUBLIC",
+                new MockMultipartFile("file", "vigente.pdf", "application/pdf", PDF))
+                .andExpect(status().isCreated()));
+
+        assertThat(cleanup.deleteExpired()).as("nada vence antes de seis meses").isZero();
+        jdbc.sql("update stored_file set retain_until = now() - interval '1 day'").update();
+
+        assertThat(cleanup.deleteExpired()).isEqualTo(2);
+        assertThat(cleanup.deleteExpired()).as("no repite").isZero();
+        assertThat(jdbc.sql("select count(*) from stored_file where deleted_at is null").query(Long.class).single())
+                .isEqualTo(1);
+        try (var stored = Files.walk(storageDir)) {
+            assertThat(stored.filter(Files::isRegularFile).count()).isEqualTo(1);
+        }
+        mvc.perform(get("/api/v1/materials/" + active + "/download")).andExpect(status().isOk());
     }
 
     // ---------- utilidades ----------
