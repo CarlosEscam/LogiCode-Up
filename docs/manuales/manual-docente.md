@@ -70,7 +70,27 @@ La sección **Por revisar** del curso lista las entregas que esperan tu nota, co
 | Quiz calificable | Al enviar el intento, por los puntos de cada pregunta (nota de 0 a 5) |
 | Taller de PSeInt con casos de prueba | En **Editar rúbrica**, "Casos de prueba de PSeInt": entradas y salida esperada de cada caso. Cada entrega con programa (texto o `.psc`) se ejecuta y la nota es 5 × casos aprobados / total. Si el programa no se puede ejecutar, va a Por revisar. En la entrega, **Ejecutar casos de prueba** muestra el detalle |
 | Reto de bloques | En **Editar rúbrica**, "Reto de bloques (opcional)" (ver abajo). Cada entrega se vuelve a ejecutar: 5,0 si el robot llega a la meta y 0,0 si choca o no llega, con la razón como retroalimentación |
-| Fotos y archivos con IA | Si la IA está activa (la enciende quien maneja el servidor), lee fotos PNG/JPG, texto, archivos `.psc`/`.ino` y PDF de hasta 5 páginas con la rúbrica. Publica sola solo si leyó bien y su confianza es de 80 % o más; si no, la entrega te llega con su propuesta. Word, PowerPoint, video y los PDF largos, dañados o con contraseña van siempre a tu revisión. Un fallo técnico no pone nota: **Reintentar con IA** la vuelve a mandar |
+| Fotos y archivos con IA | Si la IA está activa (la enciende quien maneja el servidor), lee fotos PNG/JPG, texto, archivos `.psc`/`.ino` y PDF de hasta 5 páginas con la rúbrica. Mientras el curso está en calibración (ver abajo), no publica sola: cada propuesta te llega para confirmarla. Cerrada la calibración, publica sola solo si leyó bien y su confianza es de 80 % o más; si no, la entrega te llega con su propuesta. Word, PowerPoint, video y los PDF largos, dañados o con contraseña van siempre a tu revisión. Un fallo técnico no pone nota: **Reintentar con IA** la vuelve a mandar |
+
+### Calibración de la IA
+
+Cada curso empieza **en calibración**: aunque la IA lea bien y tenga confianza de 80 % o más, su nota no llega al estudiante hasta que tú la confirmas. Así LogiCode mide cuánto coincide la IA contigo antes de dejarla publicar sola. El panel está arriba de **Por revisar**.
+
+<img src="img/docente-calibracion-panel.jpg" alt="Panel Calibración de la IA: en calibración, 0 de 10 notas comparadas" width="640">
+
+1. En **Por revisar**, las entregas con estado **Calibración de la IA** traen la nota y la retroalimentación de la IA ya escritas. Mira la foto y lo que leyó la IA.
+2. Si estás de acuerdo, pulsa **Confirmar nota**. Si no, cambia la nota o la retroalimentación y luego confirma. El estudiante ve solo la nota final, nunca el motivo.
+
+<img src="img/docente-calibracion-entrega-ia-simulada.jpg" alt="Entrega en calibración con la nota propuesta por la IA lista para confirmar" width="640">
+
+*Captura del ensayo del 4-nov-2026 con datos ficticios y un modelo simulado, no con Qwen2.5-VL real.*
+
+3. El panel cuenta **Notas comparadas**: solo las propuestas que la IA habría publicado sola (legible y con 80 % o más). Las fotos ilegibles, las de confianza baja y las que calificas sin propuesta **no** cuentan, aunque les pongas nota.
+4. **Coinciden contigo (±0,5)**: cuántas de esas propuestas quedaron a medio punto o menos de tu nota. **Se habrían publicado mal**: las que, sin calibración, habrían llegado al estudiante con una nota que tú cambiaste en más de 0,5.
+
+<img src="img/docente-calibracion-panel-2-de-10.jpg" alt="Panel con 2 de 10 notas comparadas, 50 % de coincidencia y 1 que se habría publicado mal" width="640">
+
+5. Con 10 notas comparadas (lo define quien maneja el servidor) se habilita **Dejar que la IA publique sola**. Mira primero el porcentaje: el sistema no te impide cerrar con una coincidencia baja, la decisión es tuya. Si después ves notas que no te convencen, **Volver a calibrar** devuelve el curso a calibración.
 
 ### Entregas en PDF leídas por la IA
 
@@ -128,4 +148,5 @@ En **Foro** respondes como cualquier usuario y, como docente, moderas: dentro de
 - Publica primero una actividad corta de prueba para que el grupo practique entregar.
 - Pide fotos claras: una foto ilegible siempre termina en tu bandeja.
 - Revisa **Por revisar** al final de cada clase.
+- Deja el curso en calibración hasta tener al menos 10 notas comparadas y revisa el porcentaje antes de pulsar **Dejar que la IA publique sola**.
 - Anota cualquier problema (hora, pantalla, captura) en el registro de observaciones de [docs/piloto.md](../piloto.md).
