@@ -23,7 +23,9 @@ describe('Calibración de la IA', () => {
     expect(await screen.findByText('En calibración')).toBeInTheDocument()
     expect(screen.getByText('3 de 10 necesarias')).toBeInTheDocument()
     expect(screen.getByText('66 % (2)')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Dejar que la IA publique sola' })).toBeDisabled()
+    const close = screen.getByRole('button', { name: 'Dejar que la IA publique sola' })
+    expect(close).toBeDisabled()
+    expect(close).toHaveAccessibleDescription('Faltan 7 notas comparadas para poder cerrar la calibración.')
     expect(screen.getByText('Faltan 7 notas comparadas para poder cerrar la calibración.')).toBeInTheDocument()
   })
 

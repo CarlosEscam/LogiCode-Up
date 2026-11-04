@@ -48,10 +48,17 @@ export default function CalibrationPanel({ courseId }) {
       </dl>
       {c.canChange && c.calibrating && (
         <>
-          <button type="button" className="button" disabled={close.pending || missing > 0} onClick={() => close.submit()}>
+          {/* El motivo del botón deshabilitado es su descripción accesible (II-04, D-2). */}
+          <button
+            type="button"
+            className="button"
+            disabled={close.pending || missing > 0}
+            aria-describedby={missing > 0 ? 'calibracion-faltan' : undefined}
+            onClick={() => close.submit()}
+          >
             Dejar que la IA publique sola
           </button>
-          {missing > 0 && <p className="muted">Faltan {missing} notas comparadas para poder cerrar la calibración.</p>}
+          {missing > 0 && <p id="calibracion-faltan" className="muted">Faltan {missing} notas comparadas para poder cerrar la calibración.</p>}
         </>
       )}
       {c.canChange && !c.calibrating && (
