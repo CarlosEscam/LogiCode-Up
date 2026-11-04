@@ -64,8 +64,7 @@ public class CalibrateAi {
     public View close(Actor actor, UUID courseId) {
         requireChange(actor, courseId);
         CalibrationStats stats = stats(courseId);
-        AiCalibration calibration = calibrations.findByCourse(courseId)
-                .orElseGet(() -> AiCalibration.open(courseId, clock.instant()));
+        AiCalibration calibration = calibrations.lockForChange(courseId, clock.instant());
         if (!calibration.isOpen()) {
             throw ApplicationException.conflict("La calibración de este curso ya está cerrada.");
         }
@@ -80,8 +79,10 @@ public class CalibrateAi {
     @Transactional
     public View reopen(Actor actor, UUID courseId) {
         requireChange(actor, courseId);
-        AiCalibration calibration = calibrations.findByCourse(courseId).filter(c -> !c.isOpen())
-                .orElseThrow(() -> ApplicationException.conflict("La calibración de este curso ya está abierta."));
+        AiCalibration calibration = calibrations.lockForChange(courseId, clock.instant());
+        if (calibration.isOpen()) {
+            throw ApplicationException.conflict("La calibración de este curso ya está abierta.");
+        }
         calibration.reopen(clock.instant());
         return view(actor, courseId, calibrations.save(calibration), stats(courseId));
     }

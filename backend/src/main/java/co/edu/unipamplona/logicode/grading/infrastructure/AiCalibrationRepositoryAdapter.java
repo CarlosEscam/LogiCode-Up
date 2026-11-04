@@ -1,5 +1,6 @@
 package co.edu.unipamplona.logicode.grading.infrastructure;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,5 +25,11 @@ class AiCalibrationRepositoryAdapter implements AiCalibrationRepository {
     @Override
     public Optional<AiCalibration> findByCourse(UUID courseId) {
         return jpa.findById(courseId);
+    }
+
+    @Override
+    public AiCalibration lockForChange(UUID courseId, Instant now) {
+        jpa.insertIfMissing(courseId, now);
+        return jpa.lockByCourse(courseId).orElseThrow();
     }
 }

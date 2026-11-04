@@ -22,13 +22,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import co.edu.unipamplona.logicode.grading.application.AiCalibrationRepository;
 import co.edu.unipamplona.logicode.grading.application.GradingProvider;
 import co.edu.unipamplona.logicode.grading.application.RunAiGrading;
 import co.edu.unipamplona.logicode.identity.application.EmailMessage;
@@ -62,6 +67,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -194,6 +201,12 @@ class AiGradingFlowsIT {
     @Autowired
     RunAiGrading worker;
 
+    @Autowired
+    AiCalibrationRepository calibrations;
+
+    @Autowired
+    PlatformTransactionManager transactions;
+
     Cookie admin;
     Cookie teacher;
     Cookie ana;
@@ -297,6 +310,63 @@ class AiGradingFlowsIT {
                 .andExpect(jsonPath("$.calibrating").value(true));
         mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf()))
                 .andExpect(jsonPath("$.calibrating").value(false));
+    }
+
+    /** C10 de la II-04: en calibración, un fallo técnico sigue yendo al docente como "Falló la IA", no como calibración. */
+    @Test
+    @Order(8)
+    void inCalibrationATechnicalFailureStillGoesToTheTeacherAsAiFailed() throws Exception {
+        String calibration = "/api/v1/courses/" + courseId + "/ai-calibration";
+        mvc.perform(post(calibration + "/reopen").cookie(teacher).with(csrf()))
+                .andExpect(jsonPath("$.calibrating").value(true));
+        String submission = submit(beto, photo());
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            PROVIDER.fail("El servicio de IA no respondió a tiempo.");
+            assertThat(worker.processNext()).isTrue();
+            CLOCK.advance(Duration.ofMinutes(10));
+        }
+        mvc.perform(get(grade(submission)).cookie(teacher))
+                .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
+                .andExpect(jsonPath("$.grade.reviewReason").value("AI_FAILED"))
+                .andExpect(jsonPath("$.grade.score").doesNotExist());
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf())).andExpect(status().isOk());
+    }
+
+    /**
+     * D-1 de la II-04: dos cambios a la vez sobre la calibración de un curso se atienden uno tras otro, tanto cuando
+     * el curso aún no tiene fila (primera vuelta) como cuando ya la tiene (segunda vuelta).
+     */
+    @Test
+    @Order(7)
+    void concurrentCalibrationChangesWaitForTheCourseLock() throws Exception {
+        UUID course = UUID.fromString(JsonPath.read(mvc.perform(json(post("/api/v1/courses").cookie(teacher),
+                        "{\"name\":\"Curso sin calibración\",\"period\":\"2026-2\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id"));
+        secondChangeWaitsForTheFirst(course);
+        secondChangeWaitsForTheFirst(course);
+    }
+
+    private void secondChangeWaitsForTheFirst(UUID course) throws Exception {
+        TransactionTemplate tx = new TransactionTemplate(transactions);
+        CountDownLatch locked = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        CompletableFuture<Void> first = CompletableFuture.runAsync(() -> tx.executeWithoutResult(s -> {
+            calibrations.lockForChange(course, CLOCK.instant());
+            locked.countDown();
+            try {
+                release.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }));
+        assertThat(locked.await(10, TimeUnit.SECONDS)).isTrue();
+        CompletableFuture<Boolean> second = CompletableFuture.supplyAsync(
+                () -> tx.execute(s -> calibrations.lockForChange(course, CLOCK.instant()).isOpen()));
+        Thread.sleep(500);
+        assertThat(second).as("el segundo cambio espera a que termine el primero").isNotDone();
+        release.countDown();
+        first.get(10, TimeUnit.SECONDS);
+        assertThat(second.get(10, TimeUnit.SECONDS)).isTrue();
     }
 
     @Test
