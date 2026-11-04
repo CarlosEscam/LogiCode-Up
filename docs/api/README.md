@@ -83,7 +83,7 @@ GET /api/v1/system/info
 ```json
 {
   "application": "LogiCode",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
