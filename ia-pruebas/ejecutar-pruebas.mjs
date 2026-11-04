@@ -229,7 +229,9 @@ function row(sample, activity, run) {
   const expected = teacherScore(sample, activity)
   const proposed = evaluation?.proposedScore ?? null
   const difference = expected != null && proposed != null ? Math.round(Math.abs(proposed - expected) * 10) / 10 : null
-  const automatic = run.detail?.grade.status === 'PUBLISHED' && run.detail.grade.source === 'AI'
+  // En un curso en calibración (T-90) la nota que se habría publicado sola queda retenida con el motivo CALIBRATION.
+  const grade = run.detail?.grade
+  const automatic = (grade?.status === 'PUBLISHED' && grade.source === 'AI') || grade?.reviewReason === 'CALIBRATION'
   const reading = sample.transcripcion && evaluation?.transcription != null ? readingAccuracy(sample.transcripcion, evaluation?.transcription) : { characters: null, symbols: null }
   return {
     id: sample.id,
@@ -286,8 +288,8 @@ function summary(rows, env, model, file) {
 | Exactitud de símbolos ambiguos (promedio) | ${percent(average(done.map((r) => r.lecturaSimbolos).filter((v) => v != null)))} |
 | Nota dentro de la tolerancia | ${graded.length ? `${graded.filter((r) => r.diferencia <= TOLERANCE).length} de ${graded.length}` : '—'} |
 | Diferencia media con la nota docente | ${graded.length ? average(graded.map((r) => r.diferencia)).toFixed(2).replace('.', ',') : '—'} |
-| Publicadas automáticamente (confianza ≥ 80 %) | ${auto.length} |
-| Falsos automáticos (publicadas fuera de la tolerancia) | ${auto.filter((r) => r.falsoAutomatico).length} |
+| Publicadas o retenidas por calibración (confianza ≥ 80 %) | ${auto.length} |
+| Falsos automáticos (se habrían publicado fuera de la tolerancia) | ${auto.filter((r) => r.falsoAutomatico).length} |
 | Coincidencia con confianza ≥ 80 % | ${bucket((r) => r.confianza >= 80)} |
 | Coincidencia con confianza < 80 % | ${bucket((r) => r.confianza < 80)} |
 | Latencia del modelo (mediana / máxima) | ${durations.length ? `${durations[Math.floor(durations.length / 2)]} s / ${durations.at(-1)} s` : '—'} |

@@ -47,6 +47,7 @@ export const REVIEW_REASON_LABELS = {
   LOW_CONFIDENCE: 'Confianza menor al 80 %',
   AI_FAILED: 'Falló la IA',
   CODE_ERROR: 'El programa no se pudo ejecutar',
+  CALIBRATION: 'Calibración de la IA',
 }
 
 export const REVIEW_REASON_HELP = {
@@ -58,10 +59,12 @@ export const REVIEW_REASON_HELP = {
   AI_FAILED: 'La IA no pudo procesar la entrega después de varios intentos. No se asignó nota; puedes reintentar o calificar tú.',
   CODE_ERROR:
     'El programa tiene un error de sintaxis o usa algo que el intérprete de LogiCode aún no ejecuta, así que no se corrieron los casos de prueba. Revísalo y pon la nota.',
+  CALIBRATION:
+    'El curso está en calibración: la IA propuso una nota con confianza de 80 % o más, pero no la publica sola hasta que compares suficientes propuestas con tu nota. Confírmala si estás de acuerdo o pon la tuya.',
 }
 
 export const AI_OUTCOME_LABELS = {
-  PUBLISHED: 'Nota publicada por la IA',
+  PUBLISHED: 'Confianza de 80 % o más',
   ILLEGIBLE: 'Ilegible',
   LOW_CONFIDENCE: 'Confianza baja',
   FAILED: 'Fallo técnico',
