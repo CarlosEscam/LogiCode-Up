@@ -104,9 +104,17 @@ restaurar() {
     exit 1
   fi
   log "Restaurando $1"
-  # Todo o nada: si algo falla, la base queda como estaba.
-  pg_restore --clean --if-exists --no-owner --single-transaction --exit-on-error --dbname="$PGDATABASE" \
-      "$folder/base.dump" || { echo "No se restauró la base; quedó como estaba."; exit 1; }
+  # Se restaura en una base aparte y después se intercambian los nombres. Así funciona también con una copia de un
+  # esquema anterior (volver atrás después de una migración; con --clean fallaba, II-05) y, si algo falla, la base
+  # actual queda como estaba. La base reemplazada se conserva como <base>_anterior hasta la siguiente restauración.
+  restored="${PGDATABASE}_restaurada"
+  previous="${PGDATABASE}_anterior"
+  dropdb --if-exists "$restored" && createdb "$restored" \
+      && pg_restore --no-owner --single-transaction --exit-on-error --dbname="$restored" "$folder/base.dump" \
+      || { dropdb --if-exists "$restored"; echo "No se restauró la base; quedó como estaba."; exit 1; }
+  dropdb --if-exists "$previous" \
+      && psql -1 -v ON_ERROR_STOP=1 -d postgres -c "ALTER DATABASE \"$PGDATABASE\" RENAME TO \"$previous\"; ALTER DATABASE \"$restored\" RENAME TO \"$PGDATABASE\";" \
+      || { dropdb --if-exists "$restored"; echo "No se restauró la base; quedó como estaba."; exit 1; }
   if tar -tzf "$folder/archivos.tar.gz" | grep -q '^minio/'; then
     find "$FILES" "$MINIO" -mindepth 1 -delete && tar -xzf "$folder/archivos.tar.gz" -C / \
         || { echo "La base se restauró, pero falló la copia de archivos."; exit 1; }
