@@ -102,6 +102,7 @@ class AiGradingFlowsIT {
     static void storage(DynamicPropertyRegistry registry) throws IOException {
         Path dir = Files.createTempDirectory("logicode-ai-it");
         registry.add("logicode.files.storage-dir", dir::toString);
+        registry.add("logicode.ai.calibration-min-comparisons", () -> "2");
     }
 
     @TestConfiguration
@@ -240,6 +241,62 @@ class AiGradingFlowsIT {
                 .andExpect(status().isOk());
         mvc.perform(post("/api/v1/activities/" + activityId + "/publish").cookie(teacher).with(csrf()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(0)
+    void aNewCourseIsInCalibrationUntilTheTeacherHasComparedEnoughProposals() throws Exception {
+        String calibration = "/api/v1/courses/" + courseId + "/ai-calibration";
+        mvc.perform(get(calibration).cookie(teacher))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calibrating").value(true))
+                .andExpect(jsonPath("$.minimum").value(2))
+                .andExpect(jsonPath("$.compared").value(0))
+                .andExpect(jsonPath("$.concordancePercent").doesNotExist())
+                .andExpect(jsonPath("$.canChange").value(true));
+
+        String first = submit(ana, photo());
+        PROVIDER.answer(true, 92, "6", "3");
+        assertThat(worker.processNext()).isTrue();
+        mvc.perform(get(grade(first)).cookie(teacher))
+                .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
+                .andExpect(jsonPath("$.grade.reviewReason").value("CALIBRATION"))
+                .andExpect(jsonPath("$.grade.score").doesNotExist())
+                .andExpect(jsonPath("$.aiEvaluations[0].outcome").value("PUBLISHED"))
+                .andExpect(jsonPath("$.aiEvaluations[0].proposedScore").value(4.5));
+        mvc.perform(get(grade(first)).cookie(ana))
+                .andExpect(jsonPath("$.grade.status").value("PENDING_REVIEW"))
+                .andExpect(jsonPath("$.grade.reviewReason").doesNotExist());
+        mvc.perform(get("/api/v1/courses/" + courseId + "/review-queue").cookie(teacher))
+                .andExpect(jsonPath("$[?(@.submissionId == '" + first + "')].reviewReason").value("CALIBRATION"));
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf()))
+                .andExpect(status().isUnprocessableContent());
+        mvc.perform(json(post(grade(first)).cookie(teacher), "{\"score\":4.5,\"feedback\":\"De acuerdo.\"}"))
+                .andExpect(status().isOk());
+
+        String second = submit(beto, photo());
+        PROVIDER.answer(true, 92, "6", "3");
+        assertThat(worker.processNext()).isTrue();
+        mvc.perform(json(post(grade(second)).cookie(teacher), "{\"score\":3.0,\"feedback\":\"Condición invertida.\"}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(get(calibration).cookie(admin))
+                .andExpect(jsonPath("$.compared").value(2))
+                .andExpect(jsonPath("$.agreeing").value(1))
+                .andExpect(jsonPath("$.wouldHaveFailed").value(1))
+                .andExpect(jsonPath("$.concordancePercent").value(50));
+        mvc.perform(get(calibration).cookie(ana)).andExpect(status().isForbidden());
+        mvc.perform(post(calibration + "/close").cookie(ana).with(csrf())).andExpect(status().isForbidden());
+
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calibrating").value(false))
+                .andExpect(jsonPath("$.closedAt").exists());
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf())).andExpect(status().isConflict());
+        mvc.perform(post(calibration + "/reopen").cookie(teacher).with(csrf()))
+                .andExpect(jsonPath("$.calibrating").value(true));
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf()))
+                .andExpect(jsonPath("$.calibrating").value(false));
     }
 
     @Test

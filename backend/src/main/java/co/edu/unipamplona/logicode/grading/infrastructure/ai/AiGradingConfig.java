@@ -21,7 +21,7 @@ class AiGradingConfig {
     @Bean
     AiGradingSettings aiGradingSettings(AiProperties properties) {
         return new AiGradingSettings(properties.enabled(), properties.maxAttempts(), properties.retryDelay(),
-                properties.timeout().plus(STALE_MARGIN));
+                properties.timeout().plus(STALE_MARGIN), properties.calibrationMinComparisons());
     }
 
     @Bean

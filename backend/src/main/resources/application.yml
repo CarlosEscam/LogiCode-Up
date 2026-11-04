@@ -102,6 +102,8 @@ logicode:
     max-attempts: ${LOGICODE_AI_MAX_ATTEMPTS:3}
     retry-delay: ${LOGICODE_AI_RETRY_DELAY:2m}
     poll-interval: ${LOGICODE_AI_POLL_INTERVAL:5s}
+    # Calibración por curso (T-90): notas comparadas con el docente antes de dejar que la IA publique sola.
+    calibration-min-comparisons: ${LOGICODE_AI_CALIBRATION_MIN:10}
     worker-enabled: true
 
 management:
