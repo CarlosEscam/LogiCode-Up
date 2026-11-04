@@ -83,11 +83,11 @@ GET /api/v1/system/info
 ```json
 {
   "application": "LogiCode",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
-  "schemaVersion": "9"
+  "schemaVersion": "10"
 }
 ```
 
@@ -188,6 +188,16 @@ No hay rutas nuevas para consultar: la IA trabaja sobre la nota de la entrega.
 | `GET /api/v1/submissions/{id}/grade` | Ahora el `status` puede ser `PROCESSING` (la IA evalúa), `PENDING_REVIEW` o `PUBLISHED`. Para docente y Administradores incluye `reviewReason` (`AI_DISABLED`, `UNSUPPORTED`, `ILLEGIBLE`, `LOW_CONFIDENCE`, `AI_FAILED`), `aiEvaluations` (más reciente primero: `model`, `outcome`, `legible`, `confidence`, `proposedScore`, `criteria[{name, points, maxPoints, comment}]`, `feedback`, `transcription`, `error`, `durationMs`, `createdAt`) y `canRetryWithAi`. El estudiante no recibe motivo ni evaluaciones (T-47) |
 | `POST /api/v1/submissions/{id}/grade/ai-retry` | Volver a enviar a la IA una entrega sin nota publicada (docente del curso). `200` con el detalle y la nota en `PROCESSING`; `409` si ya está publicada o en proceso; `422` si la IA está apagada o el formato no lo lee |
 | `POST /api/v1/submissions/{id}/grade` | Sin cambios: confirmar la propuesta de la IA es calificar con `{score, feedback}`; también funciona mientras la IA trabaja (T-43) |
+
+### Calibración de la IA (versión 1.1.0, T-90 a T-92)
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/courses/{id}/ai-calibration` | Estado de la calibración del curso: `calibrating`, `minimum`, `compared`, `agreeing`, `wouldHaveFailed`, `concordancePercent` (entero o `null`), `closedAt` y `canChange`. Docente del curso y Administradores |
+| `POST /api/v1/courses/{id}/ai-calibration/close` | Deja que la IA publique sola las notas con confianza de 80 % o más. Solo el docente del curso (`403` si no); `422` si faltan notas comparadas; `409` si ya estaba cerrada |
+| `POST /api/v1/courses/{id}/ai-calibration/reopen` | Vuelve a calibrar: desde ahí toda propuesta de la IA pasa a Por revisar con motivo `CALIBRATION`. Solo el docente del curso |
+
+`reviewReason` puede ser `CALIBRATION`: la IA propuso una nota con confianza suficiente, pero el curso está en calibración.
 
 ### Implementados (Etapa 7 · Quizzes, PSeInt y juegos)
 

@@ -215,3 +215,12 @@ Carlos aprobó agregar Apache POI y Apache PDFBox al terminar la Etapa 10 ("Hace
 | # | Decisión | Motivo |
 | --- | --- | --- |
 | T-88 | Un proceso diario (3:30 a. m., hora de Colombia) borra los archivos con `retain_until` vencida que ningún módulo usa. Cada módulo que guarda ids de archivos implementa `FileUsage` (`content`: material y tema sin archivar; `activities`: toda entrega). El registro queda con `deleted_at` y el contenido se borra después de confirmar en la base | Carlos eligió el 2 de noviembre borrar solo lo archivado o sin uso: las entregas son la evidencia de la nota y los materiales activos los sigue usando el docente. RN-21 solo exige no borrar antes de seis meses. El puerto evita que `files` consulte tablas de otros módulos. Corre después del respaldo diario, así que lo borrado se puede recuperar de las copias durante `BACKUP_RETENTION_DAYS` días |
+
+## Calibración de la IA (4 de noviembre de 2026)
+
+| # | Decisión | Motivo |
+| --- | --- | --- |
+| T-90 | Cada curso empieza "en calibración" (tabla `ai_calibration`; sin fila = en calibración). Mientras lo esté, una propuesta de la IA que cumple la regla del 80 % pasa a Por revisar con motivo `CALIBRATION` en lugar de publicarse. La regla `AiGradingPolicy` no cambia | Carlos eligió el 4 de noviembre "Calibrar la IA antes de confiar": el ensayo del 1 de noviembre mostró que la confianza no está calibrada (D-g). Así se conserva la regla aprobada y se impide que publique notas injustas mientras no haya evidencia |
+| T-91 | La concordancia se calcula al consultar: última evaluación no fallida de cada nota publicada por el docente; coincide si la diferencia es ≤ 0,5. No se guarda | Evita un contador que se desincronice con las notas corregidas; con pocos cursos y entregas la consulta es barata. Si crece, se guarda por curso |
+| T-92 | Cerrar la calibración lo hace solo el docente del curso y exige un mínimo de notas comparadas (`LOGICODE_AI_CALIBRATION_MIN`, 10 por defecto). Se puede volver a calibrar en cualquier momento | El mínimo de 10 sale del plan de Carlos del 2 de noviembre de medir con 10 a 20 fotos reales; pendiente que lo confirme |
+| T-93 | La verificación de salud `readiness` (la que usa Docker) incluye la base de datos: `management.endpoint.health.group.readiness.include: readinessState,db` | En el simulacro del 4 de noviembre se borró la base y el backend siguió "healthy" 7 min 28 s hasta que alguien lo miró. Con el cambio, readiness falla a los 5 s y Docker lo marca `unhealthy` a los 92 s. Avisar a una persona sigue pendiente |

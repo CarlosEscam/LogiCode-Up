@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 2 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
+Última actualización: 4 de noviembre de 2026 (calibración de la IA, versión 1.1.0) · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -28,7 +28,22 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
 | Ampliación · juego "Prueba de escritorio" | Implementada, **pendiente de revisión de Carlos** | Carlos pidió el 2 de noviembre uno de los dos juegos opcionales; se eligió este. El traductor DFD↔PSeInt sigue **pendiente**. Detalle abajo |
 | Ampliación · borrado automático de archivos vencidos (RNF-12) | Implementada, pendiente de revisión | Carlos la pidió el 2 de noviembre y eligió borrar solo archivos archivados o sin uso. Detalle abajo |
+| Ampliación · calibración de la IA (versión 1.1.0) | Implementada, **pendiente de revisión de Carlos** | Carlos la eligió el 4 de noviembre como el cambio real de las guías II-02 a II-06 (discrepancia D-g). Detalle abajo |
 | Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
+
+## Calibración de la IA (versión 1.1.0) · detalle
+
+Base de datos en la versión 10 (`V10__calibracion_de_la_ia.sql`). Motivo: en el ensayo del 1 de noviembre la confianza de Qwen2.5-VL no separó aciertos de errores (80 en dos notas mal puestas, 85 en la buena), así que la regla del 80 % podía publicar notas injustas.
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Curso en calibración | Implementado | Todo curso empieza en calibración. Mientras lo esté, una propuesta de la IA que antes se publicaba sola pasa a Por revisar con el motivo "Calibración de la IA"; el docente confirma o ajusta (T-90) |
+| Medida de concordancia | Implementado | Compara la última propuesta de la IA con la nota que publicó el docente: coincide si la diferencia es de 0,5 o menos; "se habría publicado mal" cuenta las que la IA habría publicado sola y no coinciden (T-91) |
+| Cerrar y volver a calibrar | Implementado | Panel "Calibración de la IA" arriba de Por revisar. Solo el docente del curso; cerrar exige `LOGICODE_AI_CALIBRATION_MIN` notas comparadas (10 por defecto). Cerrada, vuelve a regir la regla del 80 % sin cambios (T-92) |
+| Salud del backend sin base (T-93) | Corregido | Un simulacro de incidente mostró que, sin base, el backend seguía "healthy". Ahora `readiness` revisa la base y Docker lo marca `unhealthy` en unos 90 s |
+| Arnés `ia-pruebas` | Actualizado | Cuenta como "la IA la habría publicado sola" también las notas con motivo `CALIBRATION` |
+
+Verificación (4 de noviembre, en la nube): 85 pruebas unitarias y 53 de integración del backend, 75 de interfaz. Simulacro de pérdida de la base: restaurar la última copia tomó 41 s y se perdió solo lo hecho después de la copia. Actualización ensayada de 1.0.0 a 1.1.0 sobre los datos demo: la `V10` tardó 0,03 s y todos los conteos (usuarios, entregas, notas, historial, archivos y suma de notas) quedaron iguales; el curso demo aparece "En calibración, 0 de 10"; axe-core sin hallazgos en el panel a 1280 y 390 px. **Pendiente**: que Carlos lo pruebe con la IA encendida en su equipo y con 10 a 20 fotos reales (plan del 2 de noviembre).
 
 ## Datos de demostración
 

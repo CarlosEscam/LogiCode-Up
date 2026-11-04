@@ -84,6 +84,7 @@ Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, 
 - **Con la IA apagada** (por defecto), las seis quedan en Por revisar como "Calificación manual". Al encenderla, "Reintentar con IA" en cada entrega las manda a la cola (desde P-08 también la de Felipe, en PDF).
 - **Con la IA encendida al cargar**, las seis entran a la cola (antes de P-08 eran cinco: el PDF iba al docente) y se procesan de a una; en el equipo de referencia cada foto puede tardar varios minutos.
 - Si las etapas anteriores ya estaban cargadas, el script agrega solo el Taller 3.
+- Desde la versión 1.1.0 el curso está **en calibración**: aunque la IA tenga confianza de 80 % o más, la nota queda en Por revisar con el motivo "Calibración de la IA" para que la docente la confirme. El panel de Por revisar muestra cuántas van comparadas.
 - `ia-pruebas/` usa a Laura y a Felipe en un curso aparte, "Pruebas de aceptación IA", para no mezclar las pruebas con esta demostración.
 
 ### Etapa 7 · Quizzes, PSeInt y juegos

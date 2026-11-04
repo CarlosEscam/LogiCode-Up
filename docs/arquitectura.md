@@ -1,6 +1,6 @@
 # Arquitectura técnica de LogiCode
 
-> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 2 de noviembre de 2026 (commit `85dca33` y migraciones `V1` a `V9`).
+> Fuente de requisitos: `LogiCode - Especificacion para Claude Code.md`, sección 7. Estado de cada pieza: [estado.md](estado.md). Revisado contra el código el 2 de noviembre de 2026 (commit `85dca33` y migraciones `V1` a `V9`; la `V10` de la calibración de la IA se agregó el 4 de noviembre).
 
 ## Vista general
 
@@ -27,7 +27,7 @@ La línea punteada es opcional: Ollama solo corre con `docker compose --profile 
 | 3. API e integración | Controladores REST con prefijo `/api/v1`, JSON, errores RFC 9457, OpenAPI con springdoc | Implementada |
 | 4. Lógica de negocio | Paquetes `application` y `domain` de cada módulo | Implementada (11 módulos de negocio) |
 | 5. Tareas lentas | Worker en el mismo backend con tabla de trabajos en PostgreSQL (`ai_grading_job`); envío automático de quizzes vencidos; correos en segundo plano | Implementada. RabbitMQ queda como opción de crecimiento (T-38) |
-| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones `V1` a `V9`) |
+| 6. Acceso a datos | Spring Data JPA/Hibernate + Flyway | Implementada (migraciones `V1` a `V10`) |
 | 7. Almacenamiento | PostgreSQL para datos; archivos en MinIO (compatible con S3) detrás del puerto `BinaryStorage`, con claves aleatorias y acceso solo a través del backend | Implementada (P-05, T-85) |
 | 8. Infraestructura | `docker-compose.yml` con `db`, `minio`, `backend`, `frontend`, `backup` y, con el perfil `ia`, `ollama` | Implementada. Alojamiento en línea: P-09, en observación |
 
