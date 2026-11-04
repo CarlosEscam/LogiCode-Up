@@ -116,6 +116,10 @@ management:
     health:
       probes:
         enabled: true
+      # Sin la base, readiness debe fallar para que Docker marque el backend unhealthy (simulacro del 4-nov-2026).
+      group:
+        readiness:
+          include: readinessState,db
       show-details: never
   info:
     env:
