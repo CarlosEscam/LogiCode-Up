@@ -14,7 +14,7 @@ node ci/ci-local.mjs backend      # una sola: lint | backend | frontend | seguri
 | Etapa | Qué hace | Puerta (si no se cumple, termina en FALLA) | Workflow |
 | --- | --- | --- | --- |
 | `lint` | oxlint en la interfaz; valida `docker-compose.yml` solo, con el archivo del piloto y con el de Brevo | 0 advertencias y 0 errores; los tres compose válidos | `ci.yml` |
-| `backend` | `mvn verify`: 89 pruebas unitarias y de arquitectura (ArchUnit) y 55 de integración con PostgreSQL real (Testcontainers); informe de JaCoCo | Todas en verde; cobertura de líneas ≥ 85 % y de ramas ≥ 68 % (`backend/pom.xml`) | `ci.yml` |
+| `backend` | `mvn verify`: 96 pruebas unitarias y de arquitectura (ArchUnit) y 57 de integración, incluida la de contrato con PostgreSQL real (Testcontainers); informe de JaCoCo | Todas en verde; cobertura de líneas ≥ 85 % y de ramas ≥ 68 % (`backend/pom.xml`) | `ci.yml` |
 | `frontend` | Vitest y construcción de Vite | Todas en verde; la construcción termina | `ci.yml` |
 | `seguridad` | Semgrep (SAST) sobre el código, Dockerfiles, Nginx y compose; Trivy sobre dependencias, secretos y configuración del repositorio y sobre las imágenes `logicode-backend` y `logicode-frontend` | 0 hallazgos ERROR de Semgrep; 0 HIGH o CRITICAL de Trivy salvo los justificados en [.trivyignore.yaml](../.trivyignore.yaml) | `ci-security.yml` |
 
@@ -26,7 +26,7 @@ Si las imágenes `logicode-backend` y `logicode-frontend` no existen, la etapa `
 
 - Cobertura: medida el 6 de noviembre de 2026 en 88,6 % de líneas y 71,2 % de ramas. La puerta queda unos 3 puntos abajo: un cambio grande sin pruebas la rompe, uno normal no.
 - Semgrep: hoy hay 12 hallazgos, ninguno ERROR (9 INFO, 3 WARNING). Los 3 WARNING (`no-replaceall`) son falsos positivos: `replaceAll` con un texto reemplaza todas las apariciones. Están explicados en [docs/calidad.md](../docs/calidad.md).
-- Trivy: HIGH y CRITICAL bloquean. Cada excepción tiene motivo y fecha de vencimiento.
+- Trivy: HIGH y CRITICAL bloquean. Cada excepción tiene motivo y fecha de vencimiento. `backend/pom.xml` no se escanea: Trivy lo lee sin el BOM de Spring Boot y marcó cuatro CVE de versiones que LogiCode no usa (log4j y jackson); las dependencias Java reales se escanean en el jar dentro de la imagen.
 
 ### Resultados del 6 de noviembre de 2026 (copia de ensayo en la nube)
 
@@ -34,6 +34,7 @@ Si las imágenes `logicode-backend` y `logicode-frontend` no existen, la etapa `
 | --- | --- |
 | Primera corrida de `seguridad` | **FALLA**: Trivy encontró CVE-2026-109518 (HIGH) en `apt` de la imagen base del backend. Se revisó y se documentó como riesgo aceptado con vencimiento (no hay imagen corregida todavía) |
 | Todas las etapas, después | OK: lint 5 s, backend 169 s, frontend 14 s, seguridad 43 s |
+| `seguridad` con la base de Trivy actualizada en la tarde | FALLA: tres CVE de `jackson-databind` 2.22.1 leídas del `pom.xml`; el jar usa la 2.21.7, ya corregida. Se excluyó el `pom.xml` del escaneo de archivos (el jar se sigue escaneando) y volvió a OK |
 | Puerta de cobertura subida a 95 % a propósito | FALLA: "lines covered ratio is 0.88, but expected minimum is 0.95" |
 
 **No ensayado**: correr `ci-local.mjs` en el PC con Windows. La etapa `backend` usa Testcontainers desde dentro de un contenedor (`TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal`); en la nube funcionó, en Docker Desktop debería funcionar igual, pero falta comprobarlo.

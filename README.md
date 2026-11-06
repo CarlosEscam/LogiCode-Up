@@ -22,7 +22,9 @@ Empieza por **[docs/README.md](docs/README.md)**: el índice de toda la document
 | [docs/api/README.md](docs/api/README.md) | Convenciones REST y catálogo de endpoints |
 | [docs/modelo-de-datos.md](docs/modelo-de-datos.md) | Convenciones de base de datos y esquema actual |
 | [docs/permisos.md](docs/permisos.md) | Matriz de roles y privilegio completo |
-| [docs/calidad.md](docs/calidad.md) | Defectos, riesgos aceptados, revisión de seguridad y observabilidad |
+| [docs/calidad.md](docs/calidad.md) | Defectos, riesgos aceptados, revisión de seguridad, pirámide de pruebas e inventario de deuda técnica |
+| [docs/observabilidad.md](docs/observabilidad.md) y [docs/runbooks/](docs/runbooks/Runbook_backend.md) | Métricas, trazas, panel de Grafana, SLO, alertas, runbook y postmortem |
+| [ci/README.md](ci/README.md) | CI local con puertas de calidad y seguridad (`node ci/ci-local.mjs`) y despliegue con vuelta atrás (`node ci/desplegar.mjs`) |
 | [docs/piloto.md](docs/piloto.md) | Despliegue del piloto con HTTPS, plan, registro de observaciones y acta de aceptación |
 | [docs/manuales/](docs/manuales/) | Manuales [técnico](docs/manuales/manual-tecnico.md), [del administrador](docs/manuales/manual-administrador.md), [docente](docs/manuales/manual-docente.md) y [estudiante](docs/manuales/manual-estudiante.md) |
 | [docs/diagramas/](docs/diagramas/) | DFD, modelo de datos, secuencia y estados de una entrega (Mermaid e imagen) |

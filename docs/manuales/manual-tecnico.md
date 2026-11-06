@@ -77,7 +77,9 @@ Menú **Administración** (cuentas Administrador). Paso a paso en el [manual del
 3. `docker compose up -d --build --wait`. Flyway aplica las migraciones nuevas al arrancar el backend; si una falla, el backend no arranca y la base queda como estaba.
 4. Revisa "Estado de la plataforma" (versión y esquema).
 
-Para volver atrás: `git checkout` de la versión anterior, `docker compose up -d --build --wait` y restaurar el respaldo del paso 1 (una base migrada no sirve a una versión anterior).
+Desde la 1.2.0 los pasos 1, 3 y 4 los hace `node ci/desplegar.mjs`, que además vuelve atrás solo si la versión nueva no queda sana ([ci/README.md](../../ci/README.md)).
+
+Para volver atrás a mano, en este orden: `docker compose stop backend minio`, `docker compose run --rm --no-deps backup restaurar <copia del paso 1>` (con la versión nueva todavía instalada; una base migrada no sirve a una versión anterior, T-96), `git checkout` de la versión anterior y `docker compose up -d --build --wait`.
 
 ### Pasar la instalación a otro PC
 

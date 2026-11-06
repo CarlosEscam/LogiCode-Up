@@ -55,7 +55,10 @@ En todos los documentos se usan tres palabras con un sentido fijo:
 | [Arquitectura](arquitectura.md) | Monolito modular, módulos y sus reglas, procesos en segundo plano, despliegue, seguridad y frontend |
 | [Modelo de datos](modelo-de-datos.md) | Tablas de las migraciones `V1` a `V8` con diagramas entidad-relación |
 | [API REST](api/README.md) | Convenciones, formato de errores y todos los endpoints de `/api/v1` |
-| [Calidad y seguridad](calidad.md) | Defectos, riesgos aceptados, revisión de seguridad, observabilidad y demostraciones |
+| [Calidad y seguridad](calidad.md) | Defectos, riesgos aceptados, revisión de seguridad, pirámide de pruebas, deuda técnica y demostraciones |
+| [Observabilidad, SLO e incidentes](observabilidad.md) | Métricas, trazas, panel de Grafana, SLO, alertas, simulacro y postmortem; [runbook](runbooks/Runbook_backend.md) para cuando suena una alerta |
+| [CI y despliegue](../ci/README.md) | CI local con las mismas puertas que GitHub Actions y despliegue con vuelta atrás automática |
+| [Prueba de carga](../pruebas-carga/README.md) | k6 sobre el endpoint crítico |
 | [Piloto](piloto.md) | Modo HTTPS para usar LogiCode desde otros equipos y celulares; acceso temporal desde fuera de la red para demostraciones (ngrok) |
 | [Pruebas de aceptación de la IA](../ia-pruebas/README.md) | Arnés para medir Qwen2.5-VL en el equipo de referencia y resultados del ensayo del 1 de noviembre (con fotos reales: **Pendiente**) |
 | [Migración entre equipos](../migracion/Guia-pasar-LogiCode-a-otro-PC.md) | Llevar una instalación con sus datos a otro PC (`exportar.ps1` e `importar.ps1`) |

@@ -78,7 +78,10 @@ const etapas = {
 
     const trivy = (args, more = []) => docker(IMG.trivy, [`${ROOT}:/src`, 'logicode-ci-trivy:/root/.cache/trivy', ...more], '/src',
       [...args, '--severity', 'HIGH,CRITICAL', '--exit-code', '1', '--ignorefile', '/src/.trivyignore.yaml'])
-    const okFs = trivy(['fs', '--scanners', 'vuln,secret,misconfig', '--skip-dirs', 'frontend/node_modules',
+    // backend/pom.xml se salta: Trivy lo lee sin el BOM de Spring Boot y adivina versiones que no son las que se usan
+    // (log4j 2.24.3 y jackson 2.22.1, cuando se usan 2.25.5 y 2.21.7). Las dependencias Java reales se revisan en el
+    // jar dentro de la imagen del backend, más abajo.
+    const okFs = trivy(['fs', '--scanners', 'vuln,secret,misconfig', '--skip-files', 'backend/pom.xml', '--skip-dirs', 'frontend/node_modules',
       '--skip-dirs', 'backend/target', '--skip-dirs', 'ci/resultados', '.'])
     const faltan = IMAGENES.filter((i) => !sh('docker', ['image', 'inspect', '--format', '{{.Id}}', i]))
     if (faltan.length && !sh('docker', ['compose', '--env-file', '.env.example', 'build', 'backend', 'frontend'])) return false

@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 4 de noviembre de 2026 (calibración de la IA, versión 1.1.2) · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
+Última actualización: 6 de noviembre de 2026 (versión 1.2.0: calidad, operación y observabilidad para las guías del segundo corte) · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -29,7 +29,26 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · juego "Prueba de escritorio" | Implementada, **pendiente de revisión de Carlos** | Carlos pidió el 2 de noviembre uno de los dos juegos opcionales; se eligió este. El traductor DFD↔PSeInt sigue **pendiente**. Detalle abajo |
 | Ampliación · borrado automático de archivos vencidos (RNF-12) | Implementada, pendiente de revisión | Carlos la pidió el 2 de noviembre y eligió borrar solo archivos archivados o sin uso. Detalle abajo |
 | Ampliación · calibración de la IA (versión 1.1.2) | Implementada, **pendiente de revisión de Carlos** | Carlos la eligió el 4 de noviembre como el cambio real de las guías II-02 a II-06 (discrepancia D-g). Detalle abajo |
+| Versión 1.2.0 · calidad, operación y observabilidad (guías 6 a 15 de Ingeniería de Software II) | Implementada, **pendiente de revisión de Carlos y de instalar en su PC** | Carlos pidió el 6 de noviembre resolver las guías del segundo corte y eligió "todo local, sin subir a GitHub". Detalle abajo |
 | Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
+
+## Versión 1.2.0 · detalle
+
+Sin cambio de base de datos (sigue en la versión 10) ni de pantallas. Decisiones T-97 a T-106 en [decisiones.md](decisiones.md); revisión completa en [calidad.md](calidad.md#revisión-de-la-versión-120-6-de-noviembre-de-2026).
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Log de solicitudes sin cédulas (TDD) | Implementado | `LogPaths`, `RequestIdFilter` (T-97) |
+| Interfaz sin root sobre Nginx 1.30 y red `datos` aparte | Implementado | `frontend/Dockerfile`, `docker-compose.yml` (T-98). Dentro del contenedor la interfaz escucha en 8080 y 8443; los puertos del equipo no cambian (3000, y 80/443 en el piloto) |
+| Métricas, trazas, panel de Grafana, rotación de logs | Implementado; perfil apagado por defecto | [observabilidad.md](observabilidad.md) (T-99) |
+| SLI/SLO, alertas, runbook, simulacro y postmortem | Implementado; **pendiente** que las alertas avisen a una persona | [observabilidad.md](observabilidad.md), [runbooks/Runbook_backend.md](runbooks/Runbook_backend.md) (T-100) |
+| Prueba de carga k6 | Implementada; **pendiente** correrla en el equipo del piloto | [pruebas-carga](../pruebas-carga/README.md) (T-101) |
+| CI local con puertas (cobertura, Semgrep, Trivy) y workflows | Implementado; **no ensayado en Windows** | [ci/README.md](../ci/README.md) (T-102, T-103) |
+| Despliegue con verificación y vuelta atrás | Implementado; **pendiente** en el equipo real | `ci/desplegar.mjs`, `deploy.yml` (T-104) |
+| Contrato OpenAPI, pruebas de contrato y colección de Postman | Implementado | [api/README.md](api/README.md#contrato-y-pruebas-de-contrato) (T-105, T-106) |
+| Refactor de la validación de preguntas | Implementado | DT-02 en [calidad.md](calidad.md#inventario-de-deuda-técnica) |
+
+Verificación (6 de noviembre, copia de ensayo en la nube con datos ficticios): 96 pruebas unitarias y 57 de integración del backend, 78 de la interfaz, oxlint 0, cobertura 88,8 % de líneas y 72,2 % de ramas; `node ci/ci-local.mjs` con todas las etapas en OK; k6 con 50 usuarios p95 26 ms y 0 % de errores; simulacro de base caída recuperado en 11,5 s; despliegue roto vuelto atrás en 41 s (migración rota) y 64 s (con restauración de la base).
 
 ## Calibración de la IA (versiones 1.1.0 a 1.1.2) · detalle
 

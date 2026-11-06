@@ -18,7 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * Pruebas de caracterización de la validación de preguntas (guía 15, deuda D-15): fijan lo que hace hoy, mensaje por
+ * Pruebas de caracterización de la validación de preguntas (guía 15, deuda DT-02): fijan lo que hace hoy, mensaje por
  * mensaje, antes de partir el método en partes más pequeñas. Se escribieron y pasaron sobre el código anterior.
  */
 class ManageQuestionBankValidationTest {
