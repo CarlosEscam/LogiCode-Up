@@ -49,7 +49,8 @@ const etapas = {
   // Pruebas unitarias, de arquitectura (ArchUnit) y de integración con PostgreSQL real (Testcontainers), y la puerta
   // de cobertura de JaCoCo (backend/pom.xml, logicode.cobertura.minima).
   backend() {
-    return docker(IMG.maven, [`${join(ROOT, 'backend')}:/w`, 'logicode-ci-m2:/root/.m2', SOCKET], '/w',
+    // Se monta todo el proyecto: la prueba de contrato compara con docs/api/openapi.json.
+    return docker(IMG.maven, [`${ROOT}:/w`, 'logicode-ci-m2:/root/.m2', SOCKET], '/w/backend',
       ['mvn', '-B', '-ntp', 'verify'],
       ['-e', 'TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal', '--add-host', 'host.docker.internal:host-gateway'])
   },
