@@ -4,8 +4,17 @@
 # (ver README, sección "Calificación con IA").
 name: logicode
 
+# Rotación de logs de todos los contenedores (ADR 13, guía 13): hasta 5 archivos de 10 MB por servicio, así los logs
+# nunca llenan el disco. Sin esto Docker los guarda sin límite.
+x-logs: &logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
+    logging: *logs
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -29,6 +38,7 @@ services:
   # Archivos cargados (P-05): MinIO, almacenamiento de objetos compatible con S3. Solo lo usa el backend; no se
   # publica fuera de Docker. La imagen oficial dejó de publicarse en 2026; esta es el fork comunitario de MinIO (T-85).
   minio:
+    logging: *logs
     image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: unless-stopped
     command: ["server", "/data"]
@@ -45,6 +55,7 @@ services:
       retries: 10
 
   backend:
+    logging: *logs
     build: ./backend
     restart: unless-stopped
     depends_on:
@@ -84,6 +95,9 @@ services:
       LOGICODE_AI_TIMEOUT: ${LOGICODE_AI_TIMEOUT:-10m}
       LOGICODE_AI_MAX_ATTEMPTS: ${LOGICODE_AI_MAX_ATTEMPTS:-3}
       LOGICODE_AI_CALIBRATION_MIN: ${LOGICODE_AI_CALIBRATION_MIN:-10}
+      # Trazas (guía 13, T-99): con el perfil observabilidad, LOGICODE_TRACING_EXPORT=true en .env las manda a Jaeger.
+      LOGICODE_TRACING_EXPORT: ${LOGICODE_TRACING_EXPORT:-false}
+      LOGICODE_TRACING_SAMPLING: ${LOGICODE_TRACING_SAMPLING:-0.1}
       # Cuentas iniciales con privilegio completo (D-03). Sus datos reales solo van en .env.
       INITIAL_ADMIN_1_CEDULA: ${INITIAL_ADMIN_1_CEDULA:-}
       INITIAL_ADMIN_1_NAME: ${INITIAL_ADMIN_1_NAME:-}
@@ -102,6 +116,7 @@ services:
   # Modelo de IA local (RN-11, RN-18). Solo arranca con `--profile ia`; el modelo se descarga una vez con
   # `docker compose exec ollama ollama pull qwen2.5vl:7b` y queda en el volumen ollama-models.
   ollama:
+    logging: *logs
     image: ollama/ollama:0.35.1
     profiles: ["ia"]
     restart: unless-stopped
@@ -115,6 +130,7 @@ services:
   # Respaldos (RNF-09): copia diaria de la base y de los archivos, prueba de restauración y retención por días.
   # Restaurar: `docker compose stop backend minio` y `docker compose run --rm --no-deps backup restaurar <copia>` (respaldos/README.md).
   backup:
+    logging: *logs
     image: postgres:17-alpine
     restart: unless-stopped
     # Después del backend, para copiar la base ya migrada.
@@ -137,7 +153,51 @@ services:
       - backups:/respaldos
     networks: [datos]
 
+  # Observabilidad (guía 13, T-99). Solo con `--profile observabilidad`; todo escucha en 127.0.0.1 de este equipo.
+  # Prometheus guarda 15 días; Grafana solo deja mirar (rol Viewer, sin formulario de entrada). docs/observabilidad.md.
+  prometheus:
+    logging: *logs
+    image: prom/prometheus:v3.7.3
+    profiles: ["observabilidad"]
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./observabilidad/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observabilidad/alertas.yml:/etc/prometheus/alertas.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+
+  grafana:
+    logging: *logs
+    image: grafana/grafana:12.3.1
+    profiles: ["observabilidad"]
+    restart: unless-stopped
+    depends_on: [prometheus]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      # Sin formulario de entrada: nadie usa la cuenta admin/admin de fábrica; el panel se cambia en el archivo JSON.
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./observabilidad/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observabilidad/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+
+  jaeger:
+    logging: *logs
+    image: jaegertracing/jaeger:2.12.0
+    profiles: ["observabilidad"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${JAEGER_PORT:-16686}:16686"
+
   frontend:
+    logging: *logs
     build: ./frontend
     restart: unless-stopped
     depends_on:
@@ -153,6 +213,8 @@ networks:
 
 volumes:
   db-data:
+  # Métricas de Prometheus (perfil observabilidad), 15 días.
+  prometheus-data:
   # Datos de MinIO: los archivos cargados (materiales y entregas). El servicio backup lo copia junto con la base.
   minio-data:
   # Cargas en curso y archivos de antes de MinIO, que el backend sube a MinIO al arrancar.

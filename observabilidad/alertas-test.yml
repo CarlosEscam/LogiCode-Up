@@ -1,0 +1,75 @@
+# Prueba de las reglas con datos simulados: `promtool test rules alertas-test.yml` (docs/observabilidad.md).
+rule_files:
+  - alertas.yml
+evaluation_interval: 30s
+tests:
+  # 20 % de errores 5xx durante 70 minutos: la alerta de quema rápida debe dispararse.
+  - interval: 1m
+    input_series:
+      - series: 'http_server_requests_seconds_count{uri="/api/v1/courses/{courseId}/activities", status="200"}'
+        values: '0+80x70'
+      - series: 'http_server_requests_seconds_count{uri="UNKNOWN", status="500"}'
+        values: '0+20x70'
+      - series: 'http_server_requests_seconds_bucket{uri="/api/v1/courses/{courseId}/activities", status="200", le="1.0"}'
+        values: '0+80x70'
+      - series: 'http_server_requests_seconds_bucket{uri="UNKNOWN", status="500", le="1.0"}'
+        values: '0+20x70'
+      - series: 'up{job="logicode-backend"}'
+        values: '1x70'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: LogiCodePresupuestoQuemaRapida
+        exp_alerts:
+          - exp_labels:
+              severidad: critica
+            exp_annotations:
+              resumen: "LogiCode gasta el presupuesto de error 14 veces más rápido de lo permitido"
+              runbook: "docs/runbooks/Runbook_backend.md"
+      - eval_time: 65m
+        alertname: LogiCodeBackendCaido
+        exp_alerts: []
+  # Todo bien (0,5 % de errores, dentro del SLO): ninguna alerta.
+  - interval: 1m
+    input_series:
+      - series: 'http_server_requests_seconds_count{uri="/api/v1/courses/{courseId}/activities", status="200"}'
+        values: '0+995x70'
+      - series: 'http_server_requests_seconds_count{uri="UNKNOWN", status="500"}'
+        values: '0+5x70'
+      - series: 'http_server_requests_seconds_bucket{uri="/api/v1/courses/{courseId}/activities", status="200", le="1.0"}'
+        values: '0+995x70'
+      - series: 'http_server_requests_seconds_bucket{uri="UNKNOWN", status="500", le="1.0"}'
+        values: '0+5x70'
+      - series: 'up{job="logicode-backend"}'
+        values: '0x5 1x65'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: LogiCodePresupuestoQuemaRapida
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: LogiCodeBackendCaido
+        exp_alerts:
+          - exp_labels:
+              severidad: critica
+              job: logicode-backend
+            exp_annotations:
+              resumen: "Prometheus no puede leer el backend"
+              runbook: "docs/runbooks/Runbook_backend.md"
+  # La base no responde: el contador de esperas vencidas de Hikari sube cada 30 s.
+  - interval: 30s
+    input_series:
+      - series: 'hikaricp_connections_timeout_total{job="logicode-backend", pool="HikariPool-1"}'
+        values: '0x10 1+1x10'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: LogiCodeBaseNoResponde
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: LogiCodeBaseNoResponde
+        exp_alerts:
+          - exp_labels:
+              severidad: critica
+              job: logicode-backend
+              pool: HikariPool-1
+            exp_annotations:
+              resumen: "El backend no consigue conexión con PostgreSQL"
+              runbook: "docs/runbooks/Runbook_backend.md"

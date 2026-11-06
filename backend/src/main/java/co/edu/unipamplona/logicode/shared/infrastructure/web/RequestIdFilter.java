@@ -23,7 +23,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * salud no, para no llenar el log.
  */
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+// Justo después del filtro de observación de Spring (HIGHEST_PRECEDENCE + 1): así la línea de cada solicitud lleva el
+// traceId de su traza (T-99). Sigue antes de Spring Security.
+@Order(Ordered.HIGHEST_PRECEDENCE + 2)
 public class RequestIdFilter extends OncePerRequestFilter {
 
     public static final String HEADER = "X-Request-Id";

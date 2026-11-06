@@ -76,6 +76,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- Observabilidad (guía 13, T-99): métricas en formato Prometheus y trazas con OpenTelemetry (OTLP). Sin un
+             colector encendido no se exporta nada; el perfil observabilidad de Compose trae Prometheus, Grafana y Jaeger. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-opentelemetry</artifactId>
+        </dependency>
 
         <!-- Excel (.xlsx) para la lista de estudiantes y la planilla (P-07) -->
         <dependency>

@@ -111,7 +111,9 @@ management:
     web:
       exposure:
         # metrics: memoria, solicitudes y conexiones; el puerto del backend solo escucha en 127.0.0.1 (Etapa 9).
-        include: health,info,metrics
+        # prometheus: lo lee el Prometheus del perfil observabilidad por la red interna; Nginx solo publica
+        # /api, así que /actuator no sale del equipo (guía 13, T-99).
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       probes:
@@ -124,6 +126,36 @@ management:
   info:
     env:
       enabled: false
+  # Trazas (guía 13, T-99): se muestrea 1 de cada 10 solicitudes y solo se exportan con un colector OTLP encendido
+  # (perfil observabilidad: LOGICODE_TRACING_EXPORT=true). Sin él, el traceId igual queda en cada línea del log.
+  tracing:
+    sampling:
+      probability: ${LOGICODE_TRACING_SAMPLING:0.1}
+    export:
+      enabled: ${LOGICODE_TRACING_EXPORT:false}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${LOGICODE_OTLP_TRACES_URL:http://jaeger:4318/v1/traces}
+  # Las métricas se leen en formato Prometheus y los logs quedan en Docker: no se empujan por OTLP.
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  logging:
+    export:
+      otlp:
+        enabled: false
+  metrics:
+    distribution:
+      # Histograma de latencia para calcular el p95 en Prometheus (SLI de la guía 14).
+      percentiles-histogram:
+        http.server.requests: true
+        logicode.activities.list: true
+      # Sin esto no existe el balde le="1.0" que usa el SLI (los baldes automáticos saltan de 0,98 a 1,07 s).
+      slo:
+        http.server.requests: 1s
 
 springdoc:
   api-docs:
