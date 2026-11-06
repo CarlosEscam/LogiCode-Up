@@ -1,0 +1,34 @@
+# Seguridad de LogiCode (guía 12, T-103): SAST con Semgrep y SCA, secretos y configuración con Trivy, sobre el código
+# y sobre las imágenes de Docker. Llama a ci/ci-local.mjs como ci.yml; localmente: `node ci/ci-local.mjs seguridad`.
+#
+# Puertas: Semgrep sin hallazgos de severidad ERROR; Trivy sin HIGH ni CRITICAL salvo los justificados, con fecha de
+# vencimiento, en .trivyignore.yaml. Los informes se guardan como artefacto privado del repositorio, nunca en un
+# servicio externo.
+name: Seguridad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 11 * * 1' # lunes 6:00 a. m. de Colombia: aparecen CVE nuevas aunque el código no cambie
+
+permissions:
+  contents: read
+
+jobs:
+  seguridad:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: node ci/ci-local.mjs seguridad
+      - name: Informe de Semgrep
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep
+          path: ci/resultados/semgrep.json
+          retention-days: 14

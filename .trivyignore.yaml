@@ -1,0 +1,17 @@
+# Exclusiones de Trivy justificadas una por una (guía 12, T-103). Cada entrada dice por qué no es un riesgo real y
+# vence en una fecha: al vencer, Trivy la vuelve a reportar y hay que revisarla otra vez. Se usa con
+# `--ignorefile .trivyignore.yaml` (ci/ci-local.mjs). Informe completo: docs/calidad.md.
+vulnerabilities:
+  - id: CVE-2026-49844
+    paths:
+      - "backend/pom.xml"
+    statement: >-
+      Falso positivo. Trivy lee log4j-api 2.24.3 del pom de Apache POI, pero Maven resuelve 2.25.5 (la versión
+      corregida, la que fija Spring Boot 4.1.2): `mvn dependency:tree` y el escaneo del jar construido dan 0 hallazgos.
+    expired_at: 2027-05-06
+  - id: CVE-2026-109518
+    statement: >-
+      Riesgo aceptado. Está en apt, que viene en la imagen base eclipse-temurin:21-jre (la más reciente, del 29 de
+      octubre de 2026, todavía lo trae). El backend corre como el usuario logicode, sin permisos para usar apt, y nada
+      en el contenedor lo ejecuta. Se quita cuando Temurin publique la imagen corregida: `docker compose build --pull`.
+    expired_at: 2027-01-31
