@@ -57,6 +57,8 @@ Verificado el 6 de noviembre: se inscribió y se borró la cédula ficticia `109
 
 Por qué 99 % y no más: LogiCode corre en un solo equipo (el PC del piloto), sin réplica ni persona de guardia de noche. 99,9 % serían 43 minutos al mes: un solo corte de luz o una actualización mal hecha lo gastan. Lo que de verdad importa son las horas de cierre de una actividad; para eso el docente tiene las excepciones de plazo (RN-05).
 
+Sin solicitudes de usuarios (de noche) el SLI no tiene dato en vez de valer 0 %: si valiera 0, la alerta de quema rápida se dispararía sola tras una hora sin tráfico (D12-06, probado en `alertas-test.yml`). En el panel esos tramos se ven vacíos.
+
 Política del presupuesto: si en un mes se gasta más de la mitad (3,6 h), no se agregan funciones nuevas hasta corregir la causa del incidente.
 
 Las reglas están en [alertas.yml](../observabilidad/alertas.yml) y se prueban con datos simulados:

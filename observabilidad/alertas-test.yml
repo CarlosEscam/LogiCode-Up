@@ -73,3 +73,19 @@ tests:
             exp_annotations:
               resumen: "El backend no consigue conexión con PostgreSQL"
               runbook: "docs/runbooks/Runbook_backend.md"
+  # Sin tráfico de usuarios (de noche): hubo solicitudes en la tarde y después nada; solo Prometheus lee /actuator.
+  # No es una caída: ninguna alerta (antes el SLI daba 0 % y la quema rápida se disparaba sola).
+  - interval: 1m
+    input_series:
+      - series: 'http_server_requests_seconds_count{uri="/api/v1/courses/{courseId}/activities", status="200"}'
+        values: '500x130'
+      - series: 'http_server_requests_seconds_bucket{uri="/api/v1/courses/{courseId}/activities", status="200", le="1.0"}'
+        values: '500x130'
+      - series: 'http_server_requests_seconds_count{uri="/actuator/prometheus", status="200"}'
+        values: '0+4x130'
+      - series: 'up{job="logicode-backend"}'
+        values: '1x130'
+    alert_rule_test:
+      - eval_time: 125m
+        alertname: LogiCodePresupuestoQuemaRapida
+        exp_alerts: []

@@ -48,6 +48,7 @@ Hecha para las guías del segundo corte de Ingeniería de Software II, con herra
 | D12-03 | Media (operación) | Con la base caída, ninguna alerta lo notaba: los 500 salen como `uri="UNKNOWN"` y el SLI solo miraba `/api/v1` | Corregido en el simulacro de la guía 14 (T-100): SLI sin filtrar por ruta y alerta `LogiCodeBaseNoResponde` ([observabilidad.md](observabilidad.md)) |
 | D12-04 | Baja (operación) | El SLI usaba el balde `le="1.0"`, que Micrometer no crea por sí solo: el panel decía "No data" | Corregido: `management.metrics.distribution.slo.http.server.requests: 1s` |
 | D12-05 | Baja (operación) | Los logs de Docker no tenían límite y podían llenar el disco | Corregido: `json-file` con 5 archivos de 10 MB por servicio (ADR 13) |
+| D12-06 | Media (operación) | Sin solicitudes de usuarios (de noche) el SLI daba 0 % en vez de "sin dato", y tras una hora la alerta de quema rápida se dispararía sola. Visto en el panel de Grafana durante la redacción de la guía 13 | Corregido con prueba primero: caso "sin tráfico" en `alertas-test.yml` en rojo, luego el SLI sin `clamp_min` (0/0 no compara) y en verde |
 
 ### Herramientas y resultados
 

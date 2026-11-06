@@ -5,16 +5,18 @@
 groups:
   - name: logicode-sli
     rules:
+      # Sin solicitudes de usuarios el cociente es 0/0 (NaN): no hay dato y ninguna alerta compara contra él. Con
+      # clamp_min daba 0 % de noche y la quema rápida se disparaba sola (prueba "sin tráfico" en alertas-test.yml).
       - record: logicode:sli_bueno:ratio_5m
         expr: |
           sum(rate(http_server_requests_seconds_bucket{uri!~"/actuator.*", status!~"5..", le="1.0"}[5m]))
           /
-          clamp_min(sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m])), 1e-9)
+          sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m]))
       - record: logicode:sli_bueno:ratio_1h
         expr: |
           sum(rate(http_server_requests_seconds_bucket{uri!~"/actuator.*", status!~"5..", le="1.0"}[1h]))
           /
-          clamp_min(sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[1h])), 1e-9)
+          sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[1h]))
 
   - name: logicode-alertas
     rules:
