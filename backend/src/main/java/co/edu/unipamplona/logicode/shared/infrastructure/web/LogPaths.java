@@ -7,6 +7,6 @@ final class LogPaths {
     }
 
     static String sanitize(String path) {
-        return path;
+        return path.replaceAll("/[0-9]{5,12}(?=/|$)", "/{cedula}");
     }
 }
