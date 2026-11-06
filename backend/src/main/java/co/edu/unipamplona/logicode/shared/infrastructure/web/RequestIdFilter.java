@@ -19,7 +19,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Asigna un identificador a cada solicitud, lo devuelve en {@code X-Request-Id} y lo agrega a los logs
  * (clave MDC {@code requestId}) para poder rastrear una solicitud de punta a punta. Cada solicitud a la API deja una
- * línea con método, ruta, estado y duración (Etapa 9, observabilidad); los chequeos de salud no, para no llenar el log.
+ * línea con método, ruta (sin cédulas, {@link LogPaths}), estado y duración (Etapa 9, observabilidad); los chequeos de
+ * salud no, para no llenar el log.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -46,7 +47,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
         } finally {
             if (request.getRequestURI().startsWith("/api/")) {
-                log.info("{} {} {} {} ms", request.getMethod(), request.getRequestURI(), response.getStatus(),
+                log.info("{} {} {} {} ms", request.getMethod(), LogPaths.sanitize(request.getRequestURI()), response.getStatus(),
                         (System.nanoTime() - start) / 1_000_000);
             }
             MDC.remove(MDC_KEY);
