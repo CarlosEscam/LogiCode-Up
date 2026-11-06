@@ -105,7 +105,8 @@ public class ManageQuestionBank {
         return question;
     }
 
-    private static QuizQuestion.Definition validate(QuestionInput input) {
+    // Visible para ManageQuestionBankValidationTest (pruebas de caracterización, guía 15).
+    static QuizQuestion.Definition validate(QuestionInput input) {
         if (input.kind() == null) {
             throw ApplicationException.businessRule("Elige el tipo de pregunta.");
         }
