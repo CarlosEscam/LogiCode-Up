@@ -110,63 +110,70 @@ public class ManageQuestionBank {
         if (input.kind() == null) {
             throw ApplicationException.businessRule("Elige el tipo de pregunta.");
         }
-        String prompt = clean(input.prompt());
-        if (prompt == null || prompt.length() > MAX_PROMPT) {
-            throw ApplicationException.businessRule("Escribe el enunciado de la pregunta (hasta " + MAX_PROMPT
-                    + " caracteres).");
-        }
+        String prompt = text(input.prompt(), MAX_PROMPT, true,
+                "Escribe el enunciado de la pregunta (hasta " + MAX_PROMPT + " caracteres).");
         int points = input.points() == null ? 1 : input.points();
         if (points < 1 || points > QuizQuestion.MAX_POINTS) {
             throw ApplicationException.businessRule("Los puntos de la pregunta van de 1 a " + QuizQuestion.MAX_POINTS
                     + ".");
         }
-        String explanation = clean(input.explanation());
-        if (explanation != null && explanation.length() > MAX_PROMPT) {
-            throw ApplicationException.businessRule("La explicación admite hasta " + MAX_PROMPT + " caracteres.");
-        }
+        String explanation = text(input.explanation(), MAX_PROMPT, false,
+                "La explicación admite hasta " + MAX_PROMPT + " caracteres.");
         List<OptionInput> given = input.options() == null ? List.of() : input.options();
-        List<QuizOption> options = List.of();
-        List<String> answers = List.of();
-        switch (input.kind()) {
-            case TRUE_FALSE -> {
-                if (given.size() != 2 || given.get(0).correct() == given.get(1).correct()) {
-                    throw ApplicationException.businessRule("Marca si la respuesta correcta es Verdadero o Falso.");
-                }
-                options = List.of(new QuizOption("Verdadero", given.get(0).correct()),
-                        new QuizOption("Falso", given.get(1).correct()));
-            }
-            case SINGLE, MULTIPLE -> {
-                if (given.size() < 2 || given.size() > QuizQuestion.MAX_OPTIONS) {
-                    throw ApplicationException.businessRule("La pregunta necesita entre 2 y " + QuizQuestion.MAX_OPTIONS
-                            + " opciones.");
-                }
-                options = given.stream().map(o -> {
-                    String text = clean(o.text());
-                    if (text == null || text.length() > MAX_OPTION) {
-                        throw ApplicationException.businessRule("Cada opción necesita un texto de hasta " + MAX_OPTION
-                                + " caracteres.");
-                    }
-                    return new QuizOption(text, o.correct());
-                }).toList();
-                long correct = options.stream().filter(QuizOption::isCorrect).count();
-                if (input.kind() == QuestionKind.SINGLE && correct != 1) {
-                    throw ApplicationException.businessRule("Marca exactamente una opción correcta.");
-                }
-                if (correct < 1) {
-                    throw ApplicationException.businessRule("Marca por lo menos una opción correcta.");
-                }
-            }
-            case SHORT -> {
-                answers = (input.acceptedAnswers() == null ? List.<String>of() : input.acceptedAnswers()).stream()
-                        .map(ManageQuestionBank::clean).filter(a -> a != null).distinct().toList();
-                if (answers.isEmpty() || answers.size() > QuizQuestion.MAX_ACCEPTED_ANSWERS
-                        || answers.stream().anyMatch(a -> a.length() > MAX_ANSWER)) {
-                    throw ApplicationException.businessRule("Escribe entre 1 y " + QuizQuestion.MAX_ACCEPTED_ANSWERS
-                            + " respuestas aceptadas de hasta " + MAX_ANSWER + " caracteres.");
-                }
-            }
+        return switch (input.kind()) {
+            case TRUE_FALSE -> new QuizQuestion.Definition(input.kind(), prompt, points, explanation,
+                    trueFalseOptions(given), List.of());
+            case SINGLE, MULTIPLE -> new QuizQuestion.Definition(input.kind(), prompt, points, explanation,
+                    choiceOptions(input.kind(), given), List.of());
+            case SHORT -> new QuizQuestion.Definition(input.kind(), prompt, points, explanation, List.of(),
+                    acceptedAnswers(input.acceptedAnswers()));
+        };
+    }
+
+    /** Verdadero y Falso con textos fijos; solo cuenta cuál de los dos es la correcta. */
+    private static List<QuizOption> trueFalseOptions(List<OptionInput> given) {
+        if (given.size() != 2 || given.get(0).correct() == given.get(1).correct()) {
+            throw ApplicationException.businessRule("Marca si la respuesta correcta es Verdadero o Falso.");
         }
-        return new QuizQuestion.Definition(input.kind(), prompt, points, explanation, options, answers);
+        return List.of(new QuizOption("Verdadero", given.get(0).correct()),
+                new QuizOption("Falso", given.get(1).correct()));
+    }
+
+    private static List<QuizOption> choiceOptions(QuestionKind kind, List<OptionInput> given) {
+        if (given.size() < 2 || given.size() > QuizQuestion.MAX_OPTIONS) {
+            throw ApplicationException.businessRule("La pregunta necesita entre 2 y " + QuizQuestion.MAX_OPTIONS
+                    + " opciones.");
+        }
+        List<QuizOption> options = given.stream().map(o -> new QuizOption(text(o.text(), MAX_OPTION, true,
+                "Cada opción necesita un texto de hasta " + MAX_OPTION + " caracteres."), o.correct())).toList();
+        long correct = options.stream().filter(QuizOption::isCorrect).count();
+        if (kind == QuestionKind.SINGLE && correct != 1) {
+            throw ApplicationException.businessRule("Marca exactamente una opción correcta.");
+        }
+        if (correct < 1) {
+            throw ApplicationException.businessRule("Marca por lo menos una opción correcta.");
+        }
+        return options;
+    }
+
+    private static List<String> acceptedAnswers(List<String> given) {
+        List<String> answers = (given == null ? List.<String>of() : given).stream()
+                .map(ManageQuestionBank::clean).filter(a -> a != null).distinct().toList();
+        if (answers.isEmpty() || answers.size() > QuizQuestion.MAX_ACCEPTED_ANSWERS
+                || answers.stream().anyMatch(a -> a.length() > MAX_ANSWER)) {
+            throw ApplicationException.businessRule("Escribe entre 1 y " + QuizQuestion.MAX_ACCEPTED_ANSWERS
+                    + " respuestas aceptadas de hasta " + MAX_ANSWER + " caracteres.");
+        }
+        return answers;
+    }
+
+    /** Texto sin espacios de sobra; vacío cuenta como ausente. Falla si falta (cuando es obligatorio) o es muy largo. */
+    private static String text(String value, int max, boolean required, String message) {
+        String cleaned = clean(value);
+        if ((required && cleaned == null) || (cleaned != null && cleaned.length() > max)) {
+            throw ApplicationException.businessRule(message);
+        }
+        return cleaned;
     }
 
     static String clean(String value) {
