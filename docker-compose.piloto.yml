@@ -22,5 +22,6 @@ services:
       # Certificado y autoridad local; nginx/https.sh los crea la primera vez. Fuera de Git.
       - ./certificados:/etc/nginx/certificados
     ports: !override
-      - "80:80"
-      - "443:443"
+      # Nginx corre sin root en 8080 y 8443 dentro del contenedor (T-98).
+      - "80:8080"
+      - "443:8443"

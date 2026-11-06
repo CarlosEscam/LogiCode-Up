@@ -15,6 +15,7 @@ services:
       TZ: UTC
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks: [datos]
     # Solo accesible desde este equipo (127.0.0.1), para herramientas de desarrollo y
     # para ejecutar el backend fuera de Docker. No se expone a la red ni a React.
     ports:
@@ -36,6 +37,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Define MINIO_ROOT_PASSWORD en el archivo .env (mínimo 8 caracteres)}
     volumes:
       - minio-data:/data
+    networks: [datos]
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -93,6 +95,7 @@ services:
       - file-storage:/var/lib/logicode/files
       - ./.local/mail-outbox:/var/lib/logicode/mail-outbox
       - backups:/var/lib/logicode/backups
+    networks: [default, datos]
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
 
@@ -132,6 +135,7 @@ services:
       - file-storage:/archivos
       - minio-data:/minio
       - backups:/respaldos
+    networks: [datos]
 
   frontend:
     build: ./frontend
@@ -140,7 +144,12 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-3000}:8080"
+
+# Red por servicio (guía 10, T-98): la interfaz, la única expuesta a la red del aula, no llega a la base ni a MinIO;
+# solo el backend y los respaldos están en la red datos.
+networks:
+  datos:
 
 volumes:
   db-data:

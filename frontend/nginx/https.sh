@@ -26,9 +26,9 @@ if [ ! -s "$dir/logicode.crt" ] || [ ! -s "$dir/logicode.key" ]; then
 fi
 
 cat > /etc/nginx/conf.d/default.conf <<'CONF'
-# Modo HTTPS (piloto), escrito por nginx/https.sh. El puerto 80 solo redirige a HTTPS.
+# Modo HTTPS (piloto), escrito por nginx/https.sh. El 8080 (80 afuera) solo redirige a HTTPS.
 server {
-    listen 80;
+    listen 8080;
     server_name _;
     server_tokens off;
     location = /nginx-salud { access_log off; return 200 "ok\n"; }
@@ -36,7 +36,7 @@ server {
 }
 
 server {
-    listen 443 ssl;
+    listen 8443 ssl;
     http2 on;
     server_name _;
     ssl_certificate /etc/nginx/certificados/logicode.crt;

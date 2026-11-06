@@ -74,7 +74,7 @@ flowchart TB
 | `db` | `postgres:17-alpine` | `127.0.0.1:${DB_PORT:-5432}` | `db-data` | Nunca se expone a la red (T-11) |
 | `minio` | `pgsty/minio:RELEASE.2026-08-04T00-00-00Z` (fork comunitario de MinIO, T-85) | Ninguno | `minio-data` | Archivos cargados. Usuario y contraseña en `.env` (`MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`) |
 | `backend` | Se construye desde `backend/` | `127.0.0.1:${BACKEND_PORT:-8080}` | `file-storage` (cargas en curso y archivos de antes de MinIO), `backups` (solo lectura de lo que deja `backup` y escritura de la petición), `./.local/mail-outbox` | Arranca cuando `db` y `minio` están sanos; aplica las migraciones Flyway al iniciar |
-| `frontend` | Se construye desde `frontend/` (Nginx) | `${FRONTEND_PORT:-3000}:80`; en el piloto `80` y `443` | En el piloto, `./certificados` | Crea la autoridad y el certificado locales si faltan (`frontend/nginx/https.sh`, T-67) |
+| `frontend` | Se construye desde `frontend/` (Nginx) | `${FRONTEND_PORT:-3000}:8080`; en el piloto `80:8080` y `443:8443` (Nginx sin root, T-98) | En el piloto, `./certificados` | Crea la autoridad y el certificado locales si faltan (`frontend/nginx/https.sh`, T-67) |
 | `backup` | `postgres:17-alpine` | Ninguno | `file-storage`, `minio-data`, `backups` | Copia diaria a la hora `BACKUP_HOUR` (Colombia), prueba de restauración y retención `BACKUP_RETENTION_DAYS` (T-63) |
 | `ollama` | `ollama/ollama:0.35.1` | Ninguno | `ollama-models` | Solo con `--profile ia`; un modelo y una petición a la vez |
 
