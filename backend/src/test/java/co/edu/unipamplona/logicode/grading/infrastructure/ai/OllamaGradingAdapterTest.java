@@ -147,6 +147,7 @@ class OllamaGradingAdapterTest {
 
     @Test
     void malformedAnswersAreTechnicalFailures() {
+        readResponse = chat("{\"legible\":true,\"transcripcion\":\"Leer a\"}");
         response = chat("no es json");
         assertThatThrownBy(() -> adapter(Duration.ofSeconds(5)).evaluate(request()))
                 .isInstanceOf(GradingProvider.GradingFailure.class).hasMessageContaining("no es JSON");
@@ -176,6 +177,25 @@ class OllamaGradingAdapterTest {
         assertThatThrownBy(() -> adapter(Duration.ofMillis(300)).evaluate(request()))
                 .isInstanceOf(GradingProvider.GradingFailure.class)
                 .hasMessageContaining("no respondió a tiempo");
+    }
+
+    @Test
+    void aReadingThatRunsAwayCountsAsIllegibleWithoutRetrying() throws Exception {
+        // Verificación de la 1.3.0 en el PC de Carlos: con S09 y S10 el modelo se repitió hasta cortarse.
+        readResponse = chat("{\"legible\":true,\"transcripcion\":\"Algoritmo Algoritmo Algoritmo");
+        GradingProvider.Result result = adapter(Duration.ofSeconds(5)).evaluate(request());
+        assertThat(result.legible()).isFalse();
+        assertThat(result.criteria()).isEmpty();
+        assertThat(result.transcription()).startsWith("[No se pudo leer:");
+        assertThat(requests).hasSize(1);
+
+        requests.clear();
+        readResponse = null;
+        status = 500;
+        response = "{\"error\":\"prediction aborted, token repeat limit reached\"}";
+        assertThat(adapter(Duration.ofSeconds(5)).evaluate(request()).legible()).isFalse();
+        assertThat(JSON.readTree(requests.get(0)).path("options").path("num_predict").intValue())
+                .isEqualTo(OllamaGradingAdapter.MAX_READ_TOKENS);
     }
 
     private OllamaGradingAdapter adapter(Duration timeout) {
