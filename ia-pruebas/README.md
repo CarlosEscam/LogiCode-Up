@@ -83,7 +83,7 @@ En el PC de Carlos, con la versión anterior a la 1.2.0 en los contenedores (sin
 
 Hallazgos:
 
-- **Copia de la respuesta esperada.** En 3 fotos ilegibles (S09, S10 y L26), la "transcripción" que devolvió el modelo fue la respuesta esperada de la rúbrica, que se le envía en el mensaje. Dos de ellas se publicaron con nota alta. L26 es una foto borrosa de código malo y salió con 5,0. Es el riesgo más serio; cómo corregirlo queda pendiente de que Carlos decida.
+- **Copia de la respuesta esperada.** En 3 fotos ilegibles (S09, S10 y L26), la "transcripción" que devolvió el modelo fue la respuesta esperada de la rúbrica, que se le envía en el mensaje. Dos de ellas se publicaron con nota alta. L26 es una foto borrosa de código malo y salió con 5,0. Es el riesgo más serio. Desde la 1.3.0 (T-107), la IA primero lee la foto sin ver la respuesta esperada y después califica lo leído. Falta repetir las pruebas para medir el efecto.
 - **La confianza de 80 a 90 no separa aciertos de errores.** En la prueba 2, las 12 notas con confianza 95 estaban bien. En la prueba 1, una ilegible tuvo 95. La regla del 80 % se mantiene (T-40). La calibración (1.1.0) deja estas notas en manos del docente.
 - **Lectura.** Lee bien fotos giradas (90° y 180°), con perspectiva, en lápiz claro, en JPEG con calidad 8, sobreexpuestas, de 640 px y en hoja cuadriculada con tinta roja en PNG. Falla con ruido fuerte y con 320 px de ancho.
 - **Trampas.** Ignoró las instrucciones escritas para la IA en la hoja. Mandó al docente la tarea equivocada, la hoja en blanco, la foto sin hoja y el PDF de 6 páginas.

@@ -11,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.imageio.ImageIO;
@@ -30,6 +31,8 @@ class OllamaGradingAdapterTest {
 
     HttpServer server;
     final AtomicReference<String> lastRequest = new AtomicReference<>();
+    final List<String> requests = new CopyOnWriteArrayList<>();
+    volatile String readResponse = null;
     volatile int status = 200;
     volatile String response = "";
     volatile long delayMs = 0;
@@ -38,13 +41,17 @@ class OllamaGradingAdapterTest {
     void start() throws IOException {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/api/chat", exchange -> {
-            lastRequest.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            String sent = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            lastRequest.set(sent);
+            requests.add(sent);
             try {
                 Thread.sleep(delayMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            byte[] body = response.getBytes(StandardCharsets.UTF_8);
+            // El paso de lectura (sin rúbrica en el esquema) puede tener su propia respuesta.
+            boolean reading = !sent.contains("\"criterios\"");
+            byte[] body = (reading && readResponse != null ? readResponse : response).getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             exchange.sendResponseHeaders(status, body.length);
             exchange.getResponseBody().write(body);
@@ -73,19 +80,29 @@ class OllamaGradingAdapterTest {
         assertThat(result.criteria()).extracting(GradingProvider.CriterionResult::points)
                 .containsExactly(new BigDecimal("5.5"), new BigDecimal("3"));
 
-        JsonNode sent = JSON.readTree(lastRequest.get());
-        assertThat(sent.path("model").asString()).isEqualTo("qwen2.5vl:7b");
+        // Dos pasos (T-107): 1) leer las imágenes sin enunciado, respuesta esperada ni rúbrica; 2) calificar el texto.
+        assertThat(requests).hasSize(2);
+        JsonNode read = JSON.readTree(requests.get(0));
+        JsonNode sent = JSON.readTree(requests.get(1));
+        assertThat(read.path("model").asString()).isEqualTo("qwen2.5vl:7b");
+        assertThat(read.path("format").path("properties").has("criterios")).isFalse();
+        JsonNode readUser = read.path("messages").get(1);
+        assertThat(readUser.path("images").size()).isEqualTo(1);
+        assertThat(requests.get(0)).doesNotContain("prom <- (a+b)/2").doesNotContain("Calcula el promedio")
+                .doesNotContain("Lectura (máximo");
         assertThat(sent.path("stream").booleanValue()).isFalse();
         assertThat(sent.path("options").path("temperature").intValue()).isZero();
         assertThat(sent.path("format").path("properties").path("criterios").path("minItems").intValue()).isEqualTo(2);
+        assertThat(sent.path("format").path("properties").has("transcripcion")).isFalse();
         JsonNode user = sent.path("messages").get(1);
-        assertThat(user.path("images").size()).isEqualTo(1);
+        assertThat(user.has("images")).isFalse();
         String content = user.path("content").asString();
         assertThat(content).contains("Estudiante: Ana Estudiante", "Lectura (máximo 6 puntos)", "Archivo 1 (PSC)",
-                "Se adjuntan 1 imagen");
-        assertThat(lastRequest.get()).doesNotContain("1000000201").doesNotContain("@");
+                "prom <- (a+b)/2", "Transcripción de la imagen de la entrega:\n<<<\nLeer a <- 0\n>>>");
+        assertThat(requests).allSatisfy(r -> assertThat(r).doesNotContain("1000000201").doesNotContain("@"));
+        JsonNode user0 = readUser;
         BufferedImage sentImage = ImageIO.read(new java.io.ByteArrayInputStream(
-                java.util.Base64.getDecoder().decode(user.path("images").get(0).asString())));
+                java.util.Base64.getDecoder().decode(user0.path("images").get(0).asString())));
         assertThat(Math.max(sentImage.getWidth(), sentImage.getHeight())).isEqualTo(100);
     }
 
@@ -96,6 +113,36 @@ class OllamaGradingAdapterTest {
         GradingProvider.Result result = adapter(Duration.ofSeconds(5)).evaluate(request());
         assertThat(result.legible()).isFalse();
         assertThat(result.criteria()).isEmpty();
+        assertThat(requests).as("si no se pudo leer, no se califica").hasSize(1);
+    }
+
+    @Test
+    void submissionsWithoutImagesAreGradedInOneStep() {
+        response = chat("""
+                {"transcripcion":"Algoritmo x","legible":true,"criterios":[
+                {"criterio":"Lectura","puntos":6,"comentario":"Bien"},{"criterio":"Cálculo","puntos":4,"comentario":"Bien"}],
+                "retroalimentacion":"Bien.","confianza":90}""");
+        GradingProvider.Request request = request();
+        GradingProvider.Result result = adapter(Duration.ofSeconds(5)).evaluate(new GradingProvider.Request(
+                request.studentName(), request.activityTitle(), request.statement(), request.expectedAnswer(),
+                request.criteria(), request.textAnswer(), request.textFiles(), List.of()));
+        assertThat(result.confidence()).isEqualTo(90);
+        assertThat(requests).hasSize(1);
+        assertThat(requests.get(0)).contains("prom <- (a+b)/2", "Algoritmo x");
+    }
+
+    @Test
+    void theGradingStepOnlySeesWhatTheReadingStepRead() throws Exception {
+        readResponse = chat("""
+                {"transcripcion":"Leer a [ilegible]","legible":true}""");
+        response = chat("""
+                {"criterios":[{"criterio":"Lectura","puntos":1,"comentario":"Incompleto"},
+                {"criterio":"Cálculo","puntos":0,"comentario":"No se ve"}],"retroalimentacion":"Revisa.","confianza":40}""");
+        GradingProvider.Result result = adapter(Duration.ofSeconds(5)).evaluate(request());
+        assertThat(result.transcription()).isEqualTo("Leer a [ilegible]");
+        assertThat(result.confidence()).isEqualTo(40);
+        assertThat(JSON.readTree(requests.get(1)).path("messages").get(1).path("content").asString())
+                .contains("<<<\nLeer a [ilegible]\n>>>");
     }
 
     @Test
