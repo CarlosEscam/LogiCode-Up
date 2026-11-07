@@ -57,6 +57,17 @@ class AiGradingPolicyTest {
     }
 
     @Test
+    void floatingPointNoiseAtTheTopOfACriterionIsAccepted() {
+        // Prueba sintética 2, L02: Qwen respondió 1.0000000000000002 en un criterio de 1 punto.
+        AiGradingPolicy.Decision decision = AiGradingPolicy.decide(RUBRIC, true, 90,
+                points("6.0000000000000002", "4"));
+        assertThat(decision.score()).isEqualByComparingTo("5.0");
+        assertThat(decision.criteria().get(0).getPoints()).isEqualByComparingTo("6");
+        assertThatThrownBy(() -> AiGradingPolicy.decide(RUBRIC, true, 90, points("6.01", "4")))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void scoreIsRoundedToOneDecimalOnTheZeroToFiveScale() {
         assertThat(AiGradingPolicy.scoreFor(new BigDecimal("7"), new BigDecimal("9"))).isEqualByComparingTo("3.9");
         assertThat(AiGradingPolicy.scoreFor(BigDecimal.ZERO, new BigDecimal("10"))).isEqualByComparingTo("0.0");
