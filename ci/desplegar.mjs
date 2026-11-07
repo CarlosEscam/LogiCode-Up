@@ -23,7 +23,7 @@ const log = (m) => console.log(`[${hora()}] ${m}`)
 
 function run(args, { quiet = false } = {}) {
   if (!quiet) log(`$ docker ${args.join(' ')}`)
-  const r = spawnSync('docker', args, { cwd: ROOT, encoding: 'utf8', stdio: quiet ? 'pipe' : ['ignore', 'pipe', 'inherit'] })
+  const r = spawnSync('docker', args, { cwd: ROOT, encoding: 'utf8', stdio: quiet ? 'pipe' : ['inherit', 'pipe', 'inherit'] })
   if (!quiet && r.stdout) process.stdout.write(r.stdout)
   return { ok: r.status === 0, out: (r.stdout || '').trim() }
 }
@@ -72,7 +72,8 @@ async function verificar(version) {
   return null
 }
 let falla = null
-if (construir && !compose('build', 'backend', 'frontend').ok) falla = 'no se pudieron construir las imágenes'
+// --progress plain: en Windows, sin consola propia, el progreso interactivo falla con "failed to get console".
+if (construir && !compose('--progress', 'plain', 'build', 'backend', 'frontend').ok) falla = 'no se pudieron construir las imágenes'
 if (!falla && !compose('up', '-d', '--no-build', '--wait', '--wait-timeout', ESPERA, 'backend', 'frontend').ok) {
   falla = 'el backend o la interfaz no quedaron sanos a tiempo'
 }
