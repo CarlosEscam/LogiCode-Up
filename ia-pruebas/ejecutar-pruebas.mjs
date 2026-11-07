@@ -244,7 +244,8 @@ function row(sample, activity, run) {
     notaIA: proposed,
     diferencia: difference,
     publicadaAutomaticamente: automatic,
-    falsoAutomatico: automatic && difference != null && difference > TOLERANCE,
+    // Una muestra ilegible que se publica sola también es un falso automático (prueba sintética 1, S10).
+    falsoAutomatico: automatic && ((difference != null && difference > TOLERANCE) || sample.legibleEsperado === false),
     lecturaCaracteres: reading.characters,
     lecturaSimbolos: reading.symbols,
     duracionModeloS: evaluation ? Math.round(evaluation.durationMs / 100) / 10 : null,
@@ -289,7 +290,7 @@ function summary(rows, env, model, file) {
 | Nota dentro de la tolerancia | ${graded.length ? `${graded.filter((r) => r.diferencia <= TOLERANCE).length} de ${graded.length}` : '—'} |
 | Diferencia media con la nota docente | ${graded.length ? average(graded.map((r) => r.diferencia)).toFixed(2).replace('.', ',') : '—'} |
 | Publicadas o retenidas por calibración (confianza ≥ 80 %) | ${auto.length} |
-| Falsos automáticos (se habrían publicado fuera de la tolerancia) | ${auto.filter((r) => r.falsoAutomatico).length} |
+| Falsos automáticos (se habrían publicado fuera de la tolerancia, o siendo ilegibles) | ${auto.filter((r) => r.falsoAutomatico).length} |
 | Coincidencia con confianza ≥ 80 % | ${bucket((r) => r.confianza >= 80)} |
 | Coincidencia con confianza < 80 % | ${bucket((r) => r.confianza < 80)} |
 | Latencia del modelo (mediana / máxima) | ${durations.length ? `${durations[Math.floor(durations.length / 2)]} s / ${durations.at(-1)} s` : '—'} |

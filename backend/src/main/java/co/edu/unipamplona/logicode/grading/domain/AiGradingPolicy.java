@@ -58,11 +58,12 @@ public final class AiGradingPolicy {
         for (int i = 0; i < criteria.size(); i++) {
             RubricCriterion criterion = criteria.get(i);
             BigDecimal points = results.get(i).points();
-            if (points == null || points.signum() < 0 || points.compareTo(criterion.getMaxPoints()) > 0) {
+            // Se redondea antes de validar: el modelo puede responder 1.0000000000000002 por un tope de 1.
+            BigDecimal normalized = points == null ? null : points.setScale(2, RoundingMode.HALF_UP);
+            if (normalized == null || normalized.signum() < 0 || normalized.compareTo(criterion.getMaxPoints()) > 0) {
                 throw new IllegalArgumentException("Puntos fuera de rango en el criterio \"" + criterion.getName()
                         + "\": " + points + " de " + criterion.getMaxPoints());
             }
-            BigDecimal normalized = points.setScale(2, RoundingMode.HALF_UP);
             scored.add(new AiCriterionScore(criterion.getName(), normalized, criterion.getMaxPoints(),
                     blankToNull(results.get(i).comment())));
             earned = earned.add(normalized);

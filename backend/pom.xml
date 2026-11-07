@@ -13,7 +13,7 @@
 
     <groupId>co.edu.unipamplona</groupId>
     <artifactId>logicode-backend</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <name>LogiCode Backend</name>
     <description>API REST de LogiCode (monolito modular Spring Boot)</description>
 

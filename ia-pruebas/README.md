@@ -72,6 +72,24 @@ En el PC de Carlos (Docker: 16 CPU, 15,6 GB), Ollama 0.35.1, qwen2.5vl:7b Q4_K_M
 
 Lectura de caracteres y de símbolos ambiguos: 100 %. RAM máxima de Ollama: 11,7 GB. Hallazgo: con estas tres imágenes la confianza reportada no separa aciertos de errores. Son sintéticas y pocas, así que no es conclusión; la regla del 80 % se mantiene (T-40) hasta medir con fotos reales.
 
+## Pruebas sintéticas del 6 y 7 de noviembre de 2026
+
+En el PC de Carlos, con la versión anterior a la 1.2.0 en los contenedores (sin calibración), qwen2.5vl:7b Q4_K_M. Las muestras se generan con los scripts `generar.py` y `generar2.py` de la carpeta del proyecto. Las notas de referencia las puso Claude antes de correr; no son de un docente.
+
+| Prueba | Muestras | Sin fallo | Nota dentro de ±0,5 | Publicadas solas | Publicadas solas con nota equivocada |
+| --- | --- | --- | --- | --- | --- |
+| 1 (12 casos) | correctas, con errores, trampas, ilegibles, 2 PDF | 12 de 12 | 7 de 10 | 10 | 4 |
+| 2 "probando límites" (30 casos) | contenido, calidad de la foto, trampas, PDF de 5 y 6 páginas | 29 de 30 | 20 de 25 | 25 | 6 |
+
+Hallazgos:
+
+- **Copia de la respuesta esperada.** En 3 fotos ilegibles (S09, S10 y L26), la "transcripción" que devolvió el modelo fue la respuesta esperada de la rúbrica, que se le envía en el mensaje. Dos de ellas se publicaron con nota alta. L26 es una foto borrosa de código malo y salió con 5,0. Es el riesgo más serio; cómo corregirlo queda pendiente de que Carlos decida.
+- **La confianza de 80 a 90 no separa aciertos de errores.** En la prueba 2, las 12 notas con confianza 95 estaban bien. En la prueba 1, una ilegible tuvo 95. La regla del 80 % se mantiene (T-40). La calibración (1.1.0) deja estas notas en manos del docente.
+- **Lectura.** Lee bien fotos giradas (90° y 180°), con perspectiva, en lápiz claro, en JPEG con calidad 8, sobreexpuestas, de 640 px y en hoja cuadriculada con tinta roja en PNG. Falla con ruido fuerte y con 320 px de ancho.
+- **Trampas.** Ignoró las instrucciones escritas para la IA en la hoja. Mandó al docente la tarea equivocada, la hoja en blanco, la foto sin hoja y el PDF de 6 páginas.
+- **Tiempos.** Unos 2 minutos por foto, 8 minutos un PDF de 5 páginas con texto y 5 minutos un escaneo de 3 páginas.
+- **Error de LogiCode encontrado (L02).** El modelo respondió 1.0000000000000002 sobre 1 punto y `AiGradingPolicy` lo rechazaba como fallo técnico. Corregido en la 1.2.1.
+
 ## Prueba con un PDF real (P-08)
 
 El arnés también acepta muestras `.pdf`: crea la actividad con entrega de documentos y sube el PDF como lo haría un estudiante, así pasa por PDFBox (texto y páginas como imágenes) antes de llegar a Qwen. Los PDF y las subcarpetas de `muestras/` quedan fuera de Git.
