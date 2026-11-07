@@ -1,6 +1,6 @@
 # API REST de LogiCode
 
-Catálogo revisado contra los controladores el 1 de noviembre de 2026: 17 controladores, todos bajo `/api/v1` (`ApiPaths.V1`). El contrato completo, con cada campo, lo genera el backend con springdoc.
+Catálogo revisado contra los controladores el 1 de noviembre de 2026: 17 controladores, todos bajo `/api/v1` (`ApiPaths.V1`). El contrato completo, con cada campo, lo genera el backend con springdoc y queda guardado en [openapi.json](openapi.json) (ver [Contrato](#contrato-y-pruebas-de-contrato)).
 
 ## Resumen por módulo
 
@@ -63,6 +63,21 @@ Ejemplos de error:
 
 Títulos usados: "Sesión requerida" (`401`), "Acceso denegado" (`403`), "Recurso no encontrado" (`404`), "Conflicto" (`409`), "Archivo demasiado grande" (`413`), "Regla de negocio incumplida" (`422`), "Demasiadas solicitudes" (`429`) y "Error interno" (`500`, sin detalles). La interfaz muestra `detail`. Con la respuesta llega la cabecera `X-Request-Id`, que sirve para encontrar la solicitud en los logs.
 
+## Contrato y pruebas de contrato
+
+Desde la 1.2.0 (guías 6 y 7, T-105 y T-106):
+
+| Qué | Dónde | Cómo se verifica |
+| --- | --- | --- |
+| Contrato OpenAPI 3.1 guardado en el repositorio: 76 rutas, 98 operaciones, 92 esquemas | [openapi.json](openapi.json) | Redocly CLI 1.34.5 con las reglas recomendadas: 0 errores, 2 avisos (falta la licencia, que no se ha decidido, y `GET /system/info` no tiene respuestas 4xx porque no las da) |
+| Seguridad declarada como es: cookie de sesión `LOGICODE_SESSION` (`sesion`) y cabecera `X-XSRF-TOKEN` (`csrf`); no JWT | `OpenApiConfig` | `ApiSecurityIT` compara las operaciones sin `sesion` del contrato con las que de verdad responden sin sesión |
+| Errores 400, 401, 403 y 404 con el esquema `Problema` (Problem Details) | `OpenApiConfig` | Mismo contrato. Los 409 y 422 propios de cada caso todavía no se listan por operación |
+| Lado del proveedor: el contrato que publica el backend es el guardado | `LogiCodeApplicationIT` | Falla si cambia; se regenera con `mvn verify -Dlogicode.contrato.actualizar=true` y se revisa el diff |
+| Lado del consumidor: cada llamada de la interfaz existe en el contrato con su método | `frontend/src/test/contrato.test.js` | Recorre el código (más de 80 llamadas); falla con la ruta y el archivo que no coinciden |
+| Colección de Postman | [postman/](postman/README.md) | 10 solicitudes y 21 verificaciones con Newman |
+
+Las respuestas públicas (biblioteca, materiales públicos, foro, información del sistema) no llevan cédula ni correo: del autor solo va `authorName`.
+
 ## Catálogo de endpoints
 
 ### Implementados (Etapa 2)
@@ -83,11 +98,11 @@ GET /api/v1/system/info
 ```json
 {
   "application": "LogiCode",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "environment": "docker",
   "serverTime": "2026-10-18T20:33:30.763-05:00",
   "timeZone": "America/Bogota",
-  "schemaVersion": "9"
+  "schemaVersion": "10"
 }
 ```
 
@@ -188,6 +203,16 @@ No hay rutas nuevas para consultar: la IA trabaja sobre la nota de la entrega.
 | `GET /api/v1/submissions/{id}/grade` | Ahora el `status` puede ser `PROCESSING` (la IA evalúa), `PENDING_REVIEW` o `PUBLISHED`. Para docente y Administradores incluye `reviewReason` (`AI_DISABLED`, `UNSUPPORTED`, `ILLEGIBLE`, `LOW_CONFIDENCE`, `AI_FAILED`), `aiEvaluations` (más reciente primero: `model`, `outcome`, `legible`, `confidence`, `proposedScore`, `criteria[{name, points, maxPoints, comment}]`, `feedback`, `transcription`, `error`, `durationMs`, `createdAt`) y `canRetryWithAi`. El estudiante no recibe motivo ni evaluaciones (T-47) |
 | `POST /api/v1/submissions/{id}/grade/ai-retry` | Volver a enviar a la IA una entrega sin nota publicada (docente del curso). `200` con el detalle y la nota en `PROCESSING`; `409` si ya está publicada o en proceso; `422` si la IA está apagada o el formato no lo lee |
 | `POST /api/v1/submissions/{id}/grade` | Sin cambios: confirmar la propuesta de la IA es calificar con `{score, feedback}`; también funciona mientras la IA trabaja (T-43) |
+
+### Calibración de la IA (versión 1.1.0, T-90 a T-92)
+
+| Método y ruta | Uso |
+| --- | --- |
+| `GET /api/v1/courses/{id}/ai-calibration` | Estado de la calibración del curso: `calibrating`, `minimum`, `compared`, `agreeing`, `wouldHaveFailed`, `concordancePercent` (entero o `null`), `closedAt` y `canChange`. Docente del curso y Administradores |
+| `POST /api/v1/courses/{id}/ai-calibration/close` | Deja que la IA publique sola las notas con confianza de 80 % o más. Solo el docente del curso (`403` si no); `422` si faltan notas comparadas; `409` si ya estaba cerrada |
+| `POST /api/v1/courses/{id}/ai-calibration/reopen` | Vuelve a calibrar: desde ahí toda propuesta de la IA pasa a Por revisar con motivo `CALIBRATION`. Solo el docente del curso |
+
+`reviewReason` puede ser `CALIBRATION`: la IA propuso una nota con confianza suficiente, pero el curso está en calibración.
 
 ### Implementados (Etapa 7 · Quizzes, PSeInt y juegos)
 

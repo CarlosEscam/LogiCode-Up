@@ -54,6 +54,7 @@ Quedan en `ia-pruebas/resultados/<fecha>/` (fuera de Git hasta que decidas conse
 Cómo leerlos:
 
 - Un **falso automático** es una nota publicada sin docente que se aleja más de la tolerancia. Es el dato más importante para confiar en el umbral.
+- Desde la versión 1.1.0 (T-90) el curso de pruebas empieza en calibración, así que ninguna nota se publica sola: el arnés cuenta como "publicada sola" la que queda en Por revisar con motivo `CALIBRATION`, que es la que la IA habría publicado. Las cifras se comparan igual que antes.
 - Si la confianza alta no coincide mejor que la baja, el umbral no está calibrado; se registra como hallazgo, no cambia la regla aprobada (T-40).
 - `SIN_TERMINAR` significa que no terminó dentro de `IA_ESPERA_MAX_MIN`; `FAILED`, un fallo técnico sin nota.
 

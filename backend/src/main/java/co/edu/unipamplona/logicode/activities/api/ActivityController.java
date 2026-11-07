@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
 import co.edu.unipamplona.logicode.activities.application.ActivityView;
 import co.edu.unipamplona.logicode.activities.application.BrowseSubmissions;
 import co.edu.unipamplona.logicode.activities.application.ManageActivities;
@@ -75,8 +78,12 @@ public class ActivityController {
     private final BrowseSubmissions browseSubmissions;
     private final ManageDeadlineExceptions manageExceptions;
 
+    private final ObservationRegistry observations;
+
     public ActivityController(ManageActivities manageActivities, SubmitWork submitWork,
-            BrowseSubmissions browseSubmissions, ManageDeadlineExceptions manageExceptions) {
+            BrowseSubmissions browseSubmissions, ManageDeadlineExceptions manageExceptions,
+            ObservationRegistry observations) {
+        this.observations = observations;
         this.manageActivities = manageActivities;
         this.submitWork = submitWork;
         this.browseSubmissions = browseSubmissions;
@@ -86,7 +93,11 @@ public class ActivityController {
     @GetMapping("/courses/{courseId}/activities")
     @Operation(summary = "Actividades del curso por fecha de cierre (borradores solo para el docente)")
     public List<ActivityView> list(@CurrentActor Actor actor, @PathVariable UUID courseId) {
-        return manageActivities.list(actor, courseId);
+        // Endpoint crítico (guía 8 y 13, T-99): tramo propio en la traza y métrica logicode.activities.list por rol.
+        // Solo el rol: la cédula y el nombre del Actor nunca van a la telemetría (Ley 1581).
+        return Observation.createNotStarted("logicode.activities.list", observations)
+                .lowCardinalityKeyValue("rol", actor.role().name())
+                .observe(() -> manageActivities.list(actor, courseId));
     }
 
     @PostMapping("/courses/{courseId}/activities")

@@ -13,7 +13,7 @@
 
     <groupId>co.edu.unipamplona</groupId>
     <artifactId>logicode-backend</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
     <name>LogiCode Backend</name>
     <description>API REST de LogiCode (monolito modular Spring Boot)</description>
 
@@ -24,6 +24,10 @@
         <archunit.version>1.5.1</archunit.version>
         <poi.version>5.5.1</poi.version>
         <pdfbox.version>3.0.8</pdfbox.version>
+        <!-- Puerta de cobertura (T-102). Medida el 6 de noviembre de 2026: 88,6 % de líneas y 71,2 % de ramas; el umbral
+             queda unos 3 puntos abajo para que un cambio sin pruebas la rompa y uno normal no. docs/calidad.md. -->
+        <logicode.cobertura.minima>0.85</logicode.cobertura.minima>
+        <logicode.cobertura.ramas.minima>0.68</logicode.cobertura.ramas.minima>
     </properties>
 
     <dependencies>
@@ -75,6 +79,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- Observabilidad (guía 13, T-99): métricas en formato Prometheus y trazas con OpenTelemetry (OTLP). Sin un
+             colector encendido no se exporta nada; el perfil observabilidad de Compose trae Prometheus, Grafana y Jaeger. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-opentelemetry</artifactId>
         </dependency>
 
         <!-- Excel (.xlsx) para la lista de estudiantes y la planilla (P-07) -->
@@ -147,6 +161,54 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+            <!-- Cobertura de pruebas unitarias y de integración juntas (guía 9, T-102). El umbral es la puerta de
+                 calidad de la CI: `mvn verify` falla si las líneas o las ramas cubiertas bajan del mínimo. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.15</version>
+                <executions>
+                    <execution>
+                        <id>agente</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>informe</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>puerta</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${logicode.cobertura.minima}</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${logicode.cobertura.ramas.minima}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

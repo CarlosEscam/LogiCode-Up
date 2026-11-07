@@ -7,10 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,6 +87,24 @@ class ApiSecurityIT {
             }
         }
         assertThat(unprotected).as("escrituras sin CSRF").isEmpty();
+    }
+
+    /** El contrato OpenAPI dice la verdad sobre la seguridad (guía 6, T-105): lo que no pide sesión es lo público. */
+    @Test
+    void openApiMarksExactlyThePublicEndpoints() throws Exception {
+        String json = mvc.perform(get("/api/v1/openapi")).andReturn().getResponse().getContentAsString();
+        Map<String, Map<String, Map<String, Object>>> paths = JsonPath.read(json, "$.paths");
+        Set<String> withoutSession = new TreeSet<>();
+        paths.forEach((path, operations) -> operations.forEach((method, operation) -> {
+            List<Map<String, Object>> security = JsonPath.read(operation, "$.security");
+            if (security.stream().noneMatch(requirement -> requirement.containsKey("sesion"))) {
+                withoutSession.add(method.toUpperCase() + " " + path);
+            }
+        }));
+        Set<String> expected = new TreeSet<>(PUBLIC);
+        expected.removeIf(endpoint -> endpoint.contains("/openapi"));
+        endpoints().stream().filter(endpoint -> endpoint.contains(" /api/v1/auth/")).forEach(expected::add);
+        assertThat(withoutSession).as("operaciones sin sesión en el contrato").isEqualTo(expected);
     }
 
     @Test

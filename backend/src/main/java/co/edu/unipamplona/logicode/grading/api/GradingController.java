@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import co.edu.unipamplona.logicode.grading.application.BrowseGrades;
+import co.edu.unipamplona.logicode.grading.application.CalibrateAi;
 import co.edu.unipamplona.logicode.grading.application.GradeDetail;
 import co.edu.unipamplona.logicode.grading.application.GradeSubmissions;
 import co.edu.unipamplona.logicode.grading.application.BlockChallengeData;
@@ -55,12 +56,14 @@ public class GradingController {
     private final ManageRubrics manageRubrics;
     private final GradeSubmissions gradeSubmissions;
     private final BrowseGrades browseGrades;
+    private final CalibrateAi calibrateAi;
 
     public GradingController(ManageRubrics manageRubrics, GradeSubmissions gradeSubmissions,
-            BrowseGrades browseGrades) {
+            BrowseGrades browseGrades, CalibrateAi calibrateAi) {
         this.manageRubrics = manageRubrics;
         this.gradeSubmissions = gradeSubmissions;
         this.browseGrades = browseGrades;
+        this.calibrateAi = calibrateAi;
     }
 
     @GetMapping("/activities/{activityId}/rubric")
@@ -92,6 +95,24 @@ public class GradingController {
     @Operation(summary = "Bandeja Por revisar del curso")
     public List<BrowseGrades.ReviewItem> reviewQueue(@CurrentActor Actor actor, @PathVariable UUID courseId) {
         return browseGrades.reviewQueue(actor, courseId);
+    }
+
+    @GetMapping("/courses/{courseId}/ai-calibration")
+    @Operation(summary = "Calibración de la IA del curso: estado y concordancia con el docente (T-90)")
+    public CalibrateAi.View aiCalibration(@CurrentActor Actor actor, @PathVariable UUID courseId) {
+        return calibrateAi.status(actor, courseId);
+    }
+
+    @PostMapping("/courses/{courseId}/ai-calibration/close")
+    @Operation(summary = "Cerrar la calibración: desde ahora la IA publica sola con confianza de 80 % o más")
+    public CalibrateAi.View closeAiCalibration(@CurrentActor Actor actor, @PathVariable UUID courseId) {
+        return calibrateAi.close(actor, courseId);
+    }
+
+    @PostMapping("/courses/{courseId}/ai-calibration/reopen")
+    @Operation(summary = "Reabrir la calibración: el docente vuelve a confirmar cada nota de la IA")
+    public CalibrateAi.View reopenAiCalibration(@CurrentActor Actor actor, @PathVariable UUID courseId) {
+        return calibrateAi.reopen(actor, courseId);
     }
 
     @GetMapping("/courses/{courseId}/grades/mine")

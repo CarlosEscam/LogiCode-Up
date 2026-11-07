@@ -43,3 +43,6 @@ ia-pruebas/resultados/
 
 # Certificados del piloto (llaves privadas)
 certificados/
+
+# Resultados de la CI local (ci/ci-local.mjs)
+ci/resultados/

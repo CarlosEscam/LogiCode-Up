@@ -90,7 +90,7 @@ Con un certificado de la Universidad o de una entidad pública no hace falta nin
 
 Cada problema que aparezca se anota en el registro de observaciones (sección 6) con la hora y, si la pantalla mostró un error, el `X-Request-Id` o una captura. Lo que impida el uso se corrige antes de cerrar el piloto; lo demás queda como mejora.
 
-Con la IA encendida, las fotos tardan varios minutos en el equipo de referencia; el piloto también sirve para registrar las pruebas de aceptación de Qwen (`ia-pruebas/`).
+Con la IA encendida, el curso del piloto empieza en calibración: el docente confirma cada propuesta de la IA ([manual del docente](manuales/manual-docente.md#calibración-de-la-ia)). Si una nota de la IA llega al estudiante sin esa confirmación, se detiene el uso de la IA (`LOGICODE_AI_ENABLED=false`) y se anota en el registro. Con la IA encendida, las fotos tardan varios minutos en el equipo de referencia; el piloto también sirve para registrar las pruebas de aceptación de Qwen (`ia-pruebas/`).
 
 ## 6. Registro de observaciones
 
@@ -113,6 +113,7 @@ Curso: ______________________ · Periodo: ________ · Fechas del piloto: del ___
 | 7 | Se restauró un respaldo de la instalación del piloto y los datos quedaron como en el momento del respaldo | ☐ Sí ☐ No | |
 | 8 | Se entregaron los manuales técnico, docente y estudiante | ☐ Sí ☐ No | |
 | 9 | Las observaciones que bloqueaban el uso quedaron resueltas | ☐ Sí ☐ No | |
+| 10 | Mientras el curso estuvo en calibración, ninguna nota de la IA llegó al estudiante sin que el docente la confirmara | ☐ Sí ☐ No | |
 
 Decisión: ☐ Piloto aceptado ☐ Aceptado con observaciones ☐ No aceptado
 

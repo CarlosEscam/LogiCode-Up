@@ -360,6 +360,7 @@ erDiagram
 - **RF-17**: cada evaluación de la IA queda guardada, incluidas las fallidas, aunque el docente califique antes o después (T-43).
 - **RN-11**: un fallo técnico no deja nota: `ai_evaluation_failed_ck` exige `proposed_score` nulo y un `error`.
 - La nota publicada sigue viviendo en `grade` con `source = AI` o `TEACHER`; confirmar la propuesta registra la nota del docente y su historial.
+- **Calibración (V10, T-90)**: `ai_calibration(course_id PK → course, closed_at, closed_by → user_account, updated_at, version)`. Un curso sin fila o con `closed_at` nulo está en calibración. `ai_calibration_closed_ck` exige que `closed_at` y `closed_by` vayan juntos. `grade.review_reason` admite `CALIBRATION`. La concordancia no se guarda: se calcula al consultar (T-91).
 
 ## Quizzes y casos de prueba (Etapa 7, implementado)
 

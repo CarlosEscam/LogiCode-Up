@@ -1,0 +1,49 @@
+# Despliegue de LogiCode (guía 11, T-104): entrega continua con aprobación manual, no despliegue continuo.
+# Por decisión de Carlos (6 de noviembre de 2026) el repositorio no se sube a GitHub; hoy el mismo paso se hace a mano
+# en el equipo servidor con `node ci/desplegar.mjs` (ci/README.md). Este archivo queda listo por si algún día se sube.
+#
+# - Solo arranca a mano (workflow_dispatch) y después de que ci.yml y ci-security.yml pasaron en ese commit.
+# - El entorno "produccion" se configura en GitHub con revisores obligatorios: alguien tiene que aprobarlo.
+# - Corre en un runner propio instalado en el equipo servidor (etiqueta logicode-servidor): no se abre SSH a internet,
+#   no se suben imágenes a Docker Hub y no hay contraseñas en este archivo; los secretos siguen en el .env del servidor.
+# - ci/desplegar.mjs hace respaldo, despliega, verifica /api/v1/system/info y vuelve atrás solo si algo falla.
+name: Despliegue
+
+on:
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: 'Qué se despliega y por qué (queda en el historial)'
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: despliegue
+  cancel-in-progress: false
+
+jobs:
+  verificar-ci:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Exigir CI y seguridad en verde para este commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for wf in ci.yml ci-security.yml; do
+            estado=$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$wf" --commit "$GITHUB_SHA" --json conclusion -q '.[0].conclusion')
+            echo "$wf: ${estado:-sin ejecutar}"
+            [ "$estado" = "success" ] || exit 1
+          done
+
+  desplegar:
+    needs: verificar-ci
+    runs-on: [self-hosted, logicode-servidor]
+    environment: produccion
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          clean: false # conserva .env, secrets/ y certificados/ del servidor, que no están en git
+      - run: node ci/desplegar.mjs

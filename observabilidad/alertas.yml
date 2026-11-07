@@ -1,0 +1,49 @@
+# SLI y SLO de LogiCode (guía 14, T-100). SLI: proporción de solicitudes de usuarios (todo menos /actuator) que
+# responden sin error 5xx y en menos de 1 s. No se filtra por /api/v1: con la base caída los 500 salen del filtro de
+# sesión antes de conocer la ruta y Micrometer los marca uri="UNKNOWN" (simulacro del 6 de noviembre). SLO: 99 % en 30 días (presupuesto de error: 1 %, unas 7,2 h al mes). Se evalúan con
+# `promtool test rules observabilidad/alertas-test.yml` (ver docs/observabilidad.md).
+groups:
+  - name: logicode-sli
+    rules:
+      # Sin solicitudes de usuarios el cociente es 0/0 (NaN): no hay dato y ninguna alerta compara contra él. Con
+      # clamp_min daba 0 % de noche y la quema rápida se disparaba sola (prueba "sin tráfico" en alertas-test.yml).
+      - record: logicode:sli_bueno:ratio_5m
+        expr: |
+          sum(rate(http_server_requests_seconds_bucket{uri!~"/actuator.*", status!~"5..", le="1.0"}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m]))
+      - record: logicode:sli_bueno:ratio_1h
+        expr: |
+          sum(rate(http_server_requests_seconds_bucket{uri!~"/actuator.*", status!~"5..", le="1.0"}[1h]))
+          /
+          sum(rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[1h]))
+
+  - name: logicode-alertas
+    rules:
+      # Quema rápida del presupuesto: con 14,4 veces la tasa permitida se gasta el 2 % del mes en una hora.
+      - alert: LogiCodePresupuestoQuemaRapida
+        expr: (1 - logicode:sli_bueno:ratio_5m) > (14.4 * 0.01) and (1 - logicode:sli_bueno:ratio_1h) > (14.4 * 0.01)
+        for: 2m
+        labels:
+          severidad: critica
+        annotations:
+          resumen: "LogiCode gasta el presupuesto de error 14 veces más rápido de lo permitido"
+          runbook: "docs/runbooks/Runbook_backend.md"
+      # Simulacro de la guía 14 (6 de noviembre): con la base detenida cada solicitud espera la conexión y termina
+      # en 500, pero llegan tan pocas que el SLI casi no se mueve. Esta alerta mira el síntoma directo.
+      - alert: LogiCodeBaseNoResponde
+        expr: increase(hikaricp_connections_timeout_total[2m]) > 0
+        for: 1m
+        labels:
+          severidad: critica
+        annotations:
+          resumen: "El backend no consigue conexión con PostgreSQL"
+          runbook: "docs/runbooks/Runbook_backend.md"
+      - alert: LogiCodeBackendCaido
+        expr: up{job="logicode-backend"} == 0
+        for: 1m
+        labels:
+          severidad: critica
+        annotations:
+          resumen: "Prometheus no puede leer el backend"
+          runbook: "docs/runbooks/Runbook_backend.md"

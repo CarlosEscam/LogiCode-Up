@@ -13,10 +13,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param keepAlive cuánto tiempo Ollama conserva el modelo en memoria entre evaluaciones
  * @param contextTokens ventana de contexto pedida al modelo (las imágenes consumen tokens)
  * @param maxImageSide lado mayor, en píxeles, al que se reducen las fotos antes de enviarlas
+ * @param calibrationMinComparisons notas comparadas que hacen falta para cerrar la calibración de un curso
  * @param workerEnabled permite apagar el worker (las pruebas lo ejecutan a mano)
  */
 @ConfigurationProperties(prefix = "logicode.ai")
 record AiProperties(boolean enabled, String ollamaUrl, String model, Duration timeout, String keepAlive,
         int contextTokens, int maxImageSide, int maxAttempts, Duration retryDelay, Duration pollInterval,
-        boolean workerEnabled) {
+        int calibrationMinComparisons, boolean workerEnabled) {
 }

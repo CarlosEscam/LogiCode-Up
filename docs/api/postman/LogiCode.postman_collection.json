@@ -1,0 +1,110 @@
+{
+  "info": {
+    "name": "LogiCode API · recorrido del estudiante",
+    "description": "Guía 6 (T-105). Recorre el contrato docs/api/openapi.json con la cuenta ficticia de estudiante de datos-demo: información pública, token CSRF, inicio de sesión, cursos, actividades del curso y cierre de sesión, más los casos sin sesión y sin CSRF. Solo contra una instalación de prueba con datos de demostración. Uso: docs/api/postman/README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "http://localhost:3000/api/v1" },
+    { "key": "cedula", "value": "1000000205" },
+    { "key": "clave", "value": "Demo#2026" }
+  ],
+  "item": [
+    {
+      "name": "1. Información pública del sistema",
+      "request": { "method": "GET", "url": "{{base}}/system/info" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 sin sesión', () => pm.response.to.have.status(200));",
+        "const b = pm.response.json();",
+        "pm.test('trae versión y esquema', () => { pm.expect(b.version).to.be.a('string'); pm.expect(b.schemaVersion).to.be.a('string'); });",
+        "pm.test('trae X-Request-Id', () => pm.expect(pm.response.headers.get('X-Request-Id')).to.not.be.empty);"
+      ] } }]
+    },
+    {
+      "name": "2. Sin sesión, los cursos responden 401",
+      "request": { "method": "GET", "url": "{{base}}/courses" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('401', () => pm.response.to.have.status(401));",
+        "pm.test('Problem Details en español', () => { const b = pm.response.json(); pm.expect(b.status).to.eql(401); pm.expect(b.title).to.be.a('string'); });"
+      ] } }]
+    },
+    {
+      "name": "3. Token CSRF",
+      "request": { "method": "GET", "url": "{{base}}/auth/csrf" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200', () => pm.response.to.have.status(200));",
+        "const b = pm.response.json();",
+        "pm.test('cabecera X-XSRF-TOKEN', () => pm.expect(b.headerName).to.eql('X-XSRF-TOKEN'));",
+        "// Como la interfaz: la cabecera lleva el valor de la cookie XSRF-TOKEN (Spring Security, modo SPA).",
+        "pm.test('deja la cookie XSRF-TOKEN', () => pm.expect(pm.cookies.get('XSRF-TOKEN')).to.not.be.empty);",
+        "pm.collectionVariables.set('xsrf', pm.cookies.get('XSRF-TOKEN'));"
+      ] } }]
+    },
+    {
+      "name": "4. Inicio de sesión sin CSRF responde 403",
+      "request": {
+        "method": "POST", "url": "{{base}}/auth/login",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"cedula\":\"{{cedula}}\",\"password\":\"{{clave}}\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('403', () => pm.response.to.have.status(403));"
+      ] } }]
+    },
+    {
+      "name": "5. Inicio de sesión del estudiante",
+      "request": {
+        "method": "POST", "url": "{{base}}/auth/login",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-XSRF-TOKEN", "value": "{{xsrf}}" }],
+        "body": { "mode": "raw", "raw": "{\"cedula\":\"{{cedula}}\",\"password\":\"{{clave}}\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200', () => pm.response.to.have.status(200));",
+        "const b = pm.response.json();",
+        "pm.test('rol estudiante', () => pm.expect(b.role).to.eql('STUDENT'));",
+        "pm.test('la respuesta no trae contraseña ni hash', () => pm.expect(JSON.stringify(b)).to.not.match(/password|hash/i));",
+        "pm.test('cookie de sesión HttpOnly', () => pm.expect(pm.response.headers.get('Set-Cookie') || '').to.match(/LOGICODE_SESSION=.*HttpOnly/i));"
+      ] } }]
+    },
+    {
+      "name": "6. Mis cursos",
+      "request": { "method": "GET", "url": "{{base}}/courses" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200', () => pm.response.to.have.status(200));",
+        "const b = pm.response.json(); const cursos = b.items || b;",
+        "pm.test('al menos un curso', () => pm.expect(cursos.length).to.be.above(0));",
+        "pm.collectionVariables.set('curso', cursos[0].id);"
+      ] } }]
+    },
+    {
+      "name": "7. Actividades del curso (endpoint crítico)",
+      "request": { "method": "GET", "url": "{{base}}/courses/{{curso}}/activities" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200', () => pm.response.to.have.status(200));",
+        "pm.test('lista de actividades', () => pm.expect(pm.response.json()).to.be.an('array').that.is.not.empty);",
+        "pm.test('responde en menos de 500 ms', () => pm.expect(pm.response.responseTime).to.be.below(500));"
+      ] } }]
+    },
+    {
+      "name": "8. Curso que no existe responde 404",
+      "request": { "method": "GET", "url": "{{base}}/courses/00000000-0000-0000-0000-000000000000/activities" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('404', () => pm.response.to.have.status(404));"
+      ] } }]
+    },
+    {
+      "name": "9. Cierre de sesión",
+      "request": { "method": "POST", "url": "{{base}}/auth/logout", "header": [{ "key": "X-XSRF-TOKEN", "value": "{{xsrf}}" }] },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('204', () => pm.response.to.have.status(204));"
+      ] } }]
+    },
+    {
+      "name": "10. Después de cerrar, la sesión ya no sirve",
+      "request": { "method": "GET", "url": "{{base}}/courses" },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('401', () => pm.response.to.have.status(401));"
+      ] } }]
+    }
+  ]
+}

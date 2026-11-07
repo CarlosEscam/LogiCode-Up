@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 2 de noviembre de 2026 · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
+Última actualización: 6 de noviembre de 2026 (versión 1.2.0: calidad, operación y observabilidad para las guías del segundo corte) · Etapa en curso: **ampliaciones después de la Etapa 10: retos de bloques (RF-12), Excel y PDF (P-07, P-08), juegos con más niveles (bloques con personajes), juego nuevo "Caza el error", rediseño visual con el Canva, juegos como catálogo y juego de Arduino con niveles de matrices, textos y ciclos en DFD entregados; documentación completa del proyecto al día con el commit `344801c`; archivos en MinIO (P-05) y correo real con Brevo (P-06) funcionando desde el 1 de noviembre; ensayo de la IA con imágenes sintéticas (1 de noviembre); dependencias revisadas otra vez (2 de noviembre); documentación completa regenerada el 2 de noviembre; maquetas de la Etapa 1 entregadas el 2 de noviembre**
 
 Leyenda: **Implementado** = existe en el código y tiene prueba o verificación. **Pendiente** = no existe todavía. **Decisión aprobada** = definido en la especificación, sin implementar.
 
@@ -28,7 +28,41 @@ Leyenda: **Implementado** = existe en el código y tiene prueba o verificación.
 | Ampliación · juego de Arduino, matrices y textos en PSeInt, ciclos en DFD | Implementada, **pendiente de revisión de Carlos** | Carlos lo pidió el 28 de octubre para cubrir los temas más flojos. Detalle abajo |
 | Ampliación · juego "Prueba de escritorio" | Implementada, **pendiente de revisión de Carlos** | Carlos pidió el 2 de noviembre uno de los dos juegos opcionales; se eligió este. El traductor DFD↔PSeInt sigue **pendiente**. Detalle abajo |
 | Ampliación · borrado automático de archivos vencidos (RNF-12) | Implementada, pendiente de revisión | Carlos la pidió el 2 de noviembre y eligió borrar solo archivos archivados o sin uso. Detalle abajo |
+| Ampliación · calibración de la IA (versión 1.1.2) | Implementada, **pendiente de revisión de Carlos** | Carlos la eligió el 4 de noviembre como el cambio real de las guías II-02 a II-06 (discrepancia D-g). Detalle abajo |
+| Versión 1.2.0 · calidad, operación y observabilidad (guías 6 a 15 de Ingeniería de Software II) | Implementada, **pendiente de revisión de Carlos y de instalar en su PC** | Carlos pidió el 6 de noviembre resolver las guías del segundo corte y eligió "todo local, sin subir a GitHub". Detalle abajo |
 | Documentación completa del proyecto | Entregada y revisada con Carlos el 2 de noviembre | Índice, visión general, casos de uso, historias, instalación, manual del administrador, arquitectura, modelo de datos, API y manuales revisados contra el commit `344801c` (1 de noviembre) y de nuevo contra `85dca33` (2 de noviembre). Detalle abajo |
+
+## Versión 1.2.0 · detalle
+
+Sin cambio de base de datos (sigue en la versión 10) ni de pantallas. Decisiones T-97 a T-106 en [decisiones.md](decisiones.md); revisión completa en [calidad.md](calidad.md#revisión-de-la-versión-120-6-de-noviembre-de-2026).
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Log de solicitudes sin cédulas (TDD) | Implementado | `LogPaths`, `RequestIdFilter` (T-97) |
+| Interfaz sin root sobre Nginx 1.30 y red `datos` aparte | Implementado | `frontend/Dockerfile`, `docker-compose.yml` (T-98). Dentro del contenedor la interfaz escucha en 8080 y 8443; los puertos del equipo no cambian (3000, y 80/443 en el piloto) |
+| Métricas, trazas, panel de Grafana, rotación de logs | Implementado; perfil apagado por defecto | [observabilidad.md](observabilidad.md) (T-99) |
+| SLI/SLO, alertas, runbook, simulacro y postmortem | Implementado; **pendiente** que las alertas avisen a una persona | [observabilidad.md](observabilidad.md), [runbooks/Runbook_backend.md](runbooks/Runbook_backend.md) (T-100) |
+| Prueba de carga k6 | Implementada; **pendiente** correrla en el equipo del piloto | [pruebas-carga](../pruebas-carga/README.md) (T-101) |
+| CI local con puertas (cobertura, Semgrep, Trivy) y workflows | Implementado; **no ensayado en Windows** | [ci/README.md](../ci/README.md) (T-102, T-103) |
+| Despliegue con verificación y vuelta atrás | Implementado; **pendiente** en el equipo real | `ci/desplegar.mjs`, `deploy.yml` (T-104) |
+| Contrato OpenAPI, pruebas de contrato y colección de Postman | Implementado | [api/README.md](api/README.md#contrato-y-pruebas-de-contrato) (T-105, T-106) |
+| Refactor de la validación de preguntas | Implementado | DT-02 en [calidad.md](calidad.md#inventario-de-deuda-técnica) |
+
+Verificación (6 de noviembre, copia de ensayo en la nube con datos ficticios): 96 pruebas unitarias y 57 de integración del backend, 78 de la interfaz, oxlint 0, cobertura 88,8 % de líneas y 72,2 % de ramas; `node ci/ci-local.mjs` con todas las etapas en OK; k6 con 50 usuarios p95 26 ms y 0 % de errores; simulacro de base caída recuperado en 11,5 s; despliegue roto vuelto atrás en 41 s (migración rota) y 64 s (con restauración de la base).
+
+## Calibración de la IA (versiones 1.1.0 a 1.1.2) · detalle
+
+Base de datos en la versión 10 (`V10__calibracion_de_la_ia.sql`). Motivo: en el ensayo del 1 de noviembre la confianza de Qwen2.5-VL no separó aciertos de errores (80 en dos notas mal puestas, 85 en la buena), así que la regla del 80 % podía publicar notas injustas.
+
+| Entregable | Estado | Dónde |
+| --- | --- | --- |
+| Curso en calibración | Implementado | Todo curso empieza en calibración. Mientras lo esté, una propuesta de la IA que antes se publicaba sola pasa a Por revisar con el motivo "Calibración de la IA"; el docente confirma o ajusta (T-90) |
+| Medida de concordancia | Implementado | Compara la última propuesta de la IA con la nota que publicó el docente: coincide si la diferencia es de 0,5 o menos; "se habría publicado mal" cuenta las que la IA habría publicado sola y no coinciden (T-91) |
+| Cerrar y volver a calibrar | Implementado | Panel "Calibración de la IA" arriba de Por revisar. Solo el docente del curso; cerrar exige `LOGICODE_AI_CALIBRATION_MIN` notas comparadas (10 por defecto). Cerrada, vuelve a regir la regla del 80 % sin cambios (T-92) |
+| Salud del backend sin base (T-93) | Corregido | Un simulacro de incidente mostró que, sin base, el backend seguía "healthy". Ahora `readiness` revisa la base y Docker lo marca `unhealthy` en unos 90 s |
+| Arnés `ia-pruebas` | Actualizado | Cuenta como "la IA la habría publicado sola" también las notas con motivo `CALIBRATION` |
+
+Verificación (4 de noviembre, en la nube): 85 pruebas unitarias y 55 de integración del backend, 75 de interfaz (versión 1.1.1). Simulacro de pérdida de la base: restaurar la última copia tomó 41 s y se perdió solo lo hecho después de la copia. Actualización ensayada de 1.0.0 a 1.1.0 sobre los datos demo: la `V10` tardó 0,03 s y todos los conteos (usuarios, entregas, notas, historial, archivos y suma de notas) quedaron iguales; el curso demo aparece "En calibración, 0 de 10"; axe-core sin hallazgos en el panel a 1280 y 390 px. Versión 1.1.1 (pruebas de la II-04): dos cierres a la vez ya no dan error 500 (T-94); el botón deshabilitado tiene el motivo como descripción accesible; la interfaz ya no responde 502 al recrear solo el backend (T-95). Versión 1.1.2 (II-05): restaurar una copia de antes de actualizar ya funciona, así que se puede volver atrás a la 1.0.0 (T-96). **Pendiente**: que Carlos lo pruebe con la IA encendida en su equipo y con 10 a 20 fotos reales (plan del 2 de noviembre).
 
 ## Datos de demostración
 

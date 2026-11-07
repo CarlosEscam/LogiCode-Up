@@ -2,7 +2,7 @@
 
 LogiCode es una plataforma web para enseñar y practicar la lógica de programación en el curso de Pensamiento Computacional de primer semestre de la Universidad de Pamplona. Reúne en un solo lugar los temas y materiales del curso, las actividades con su rúbrica, las entregas, la calificación (manual, automática y con inteligencia artificial), la planilla de notas, los quizzes, un intérprete de PSeInt, juegos de práctica y un foro.
 
-Versión 1.0.0. Fecha objetivo de entrega: 10 de diciembre de 2026. Estado detallado en [estado.md](estado.md).
+Versión 1.2.0 (calidad, operación y observabilidad: CI local con puertas, despliegue con vuelta atrás, métricas, trazas, SLO y contrato de la API, 6 de noviembre de 2026; la 1.1.2 trajo la calibración de la IA). Fecha objetivo de entrega: 10 de diciembre de 2026. Estado detallado en [estado.md](estado.md).
 
 <img src="manuales/img/inicio.jpg" alt="Página de inicio de LogiCode con la presentación, los botones de ingreso y registro y el algoritmo de ejemplo" width="640">
 

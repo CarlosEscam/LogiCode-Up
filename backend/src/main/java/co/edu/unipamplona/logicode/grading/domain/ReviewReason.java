@@ -13,5 +13,7 @@ public enum ReviewReason {
     /** Falló el procesamiento técnico después de los reintentos; no hay nota. */
     AI_FAILED,
     /** La actividad tiene casos de prueba, pero el programa PSeInt no se pudo leer para ejecutarlo. */
-    CODE_ERROR
+    CODE_ERROR,
+    /** El curso está en calibración: la IA propuso una nota que habría publicado sola, pero la confirma el docente. */
+    CALIBRATION
 }

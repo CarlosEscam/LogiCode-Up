@@ -1,0 +1,4 @@
+# Etiqueta del runner propio del equipo servidor (deploy.yml), para que actionlint la reconozca.
+self-hosted-runner:
+  labels:
+    - logicode-servidor

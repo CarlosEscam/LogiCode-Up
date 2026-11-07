@@ -68,6 +68,7 @@ public class RunAiGrading {
     private final AiSubmissionContent content;
     private final GradingProvider provider;
     private final AiGradingSettings settings;
+    private final CalibrateAi calibration;
     private final TransactionTemplate transaction;
     private final TransactionTemplate readOnly;
     private final Clock clock;
@@ -75,7 +76,7 @@ public class RunAiGrading {
     public RunAiGrading(AiGradingJobRepository jobs, AiEvaluationRepository evaluations, GradeRepository grades,
             GradeChangeRepository changes, RubricRepository rubrics, ActivityCatalog catalog,
             AiSubmissionContent content, GradingProvider provider, AiGradingSettings settings,
-            PlatformTransactionManager transactionManager, Clock clock) {
+            CalibrateAi calibration, PlatformTransactionManager transactionManager, Clock clock) {
         this.jobs = jobs;
         this.evaluations = evaluations;
         this.grades = grades;
@@ -85,6 +86,7 @@ public class RunAiGrading {
         this.content = content;
         this.provider = provider;
         this.settings = settings;
+        this.calibration = calibration;
         this.transaction = new TransactionTemplate(transactionManager);
         this.readOnly = new TransactionTemplate(transactionManager);
         this.readOnly.setReadOnly(true);
@@ -234,6 +236,8 @@ public class RunAiGrading {
         Grade grade = processing.get();
         if (result.unreadable()) {
             grade.sendToReview(ReviewReason.UNSUPPORTED, now);
+        } else if (result.decision().publishes() && calibrating(grade)) {
+            grade.sendToReview(ReviewReason.CALIBRATION, now);
         } else if (result.decision().publishes()) {
             changes.save(grade.publish(result.decision().score(), result.evaluation().getFeedback(), GradeSource.AI,
                     null, now));
@@ -241,6 +245,12 @@ public class RunAiGrading {
             grade.sendToReview(result.decision().reviewReason(), now);
         }
         grades.save(grade);
+    }
+
+    /** En un curso en calibración la IA no publica sola (T-90); sin curso conocido, se asume en calibración. */
+    private boolean calibrating(Grade grade) {
+        return catalog.submission(grade.getSubmissionId()).map(s -> calibration.isCalibrating(s.courseId()))
+                .orElse(true);
     }
 
     private static long elapsedMs(long startedNanos) {

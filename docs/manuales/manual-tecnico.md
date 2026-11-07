@@ -8,7 +8,7 @@ Para quien instala, opera y mantiene LogiCode. La instalación paso a paso está
 | --- | --- | --- |
 | Interfaz | React 19 (Vite), servida por Nginx, que además termina HTTPS y reenvía `/api` | `frontend/` |
 | API | Java 21, Spring Boot 4.1, REST JSON con prefijo `/api/v1`, monolito modular por capas | `backend/`, [arquitectura.md](../arquitectura.md), [api/README.md](../api/README.md) |
-| Base de datos | PostgreSQL 17 con migraciones Flyway (versión 9) | [modelo-de-datos.md](../modelo-de-datos.md) |
+| Base de datos | PostgreSQL 17 con migraciones Flyway (versión 10) | [modelo-de-datos.md](../modelo-de-datos.md) |
 | Archivos | MinIO en Docker (servicio `minio`, volumen `minio-data`; P-05) | README, "Iniciar" |
 | Respaldos | Servicio `backup` con copia diaria y prueba de restauración | [respaldos/README.md](../../respaldos/README.md) |
 | IA (opcional) | Ollama + Qwen2.5-VL 7B en Docker, perfil `ia` | README, "Calificación con IA" |
@@ -77,7 +77,9 @@ Menú **Administración** (cuentas Administrador). Paso a paso en el [manual del
 3. `docker compose up -d --build --wait`. Flyway aplica las migraciones nuevas al arrancar el backend; si una falla, el backend no arranca y la base queda como estaba.
 4. Revisa "Estado de la plataforma" (versión y esquema).
 
-Para volver atrás: `git checkout` de la versión anterior, `docker compose up -d --build --wait` y restaurar el respaldo del paso 1 (una base migrada no sirve a una versión anterior).
+Desde la 1.2.0 los pasos 1, 3 y 4 los hace `node ci/desplegar.mjs`, que además vuelve atrás solo si la versión nueva no queda sana ([ci/README.md](../../ci/README.md)).
+
+Para volver atrás a mano, en este orden: `docker compose stop backend minio`, `docker compose run --rm --no-deps backup restaurar <copia del paso 1>` (con la versión nueva todavía instalada; una base migrada no sirve a una versión anterior, T-96), `git checkout` de la versión anterior y `docker compose up -d --build --wait`.
 
 ### Pasar la instalación a otro PC
 

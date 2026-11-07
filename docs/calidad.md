@@ -35,7 +35,66 @@ Riesgos aceptados o que pasaron a la Etapa 10 (no críticos):
 | Accesibilidad (RNF-11) y móvil | axe-core 4.10 (WCAG 2.1 A y AA: contraste, etiquetas, teclado, nombres de botones) en 37 vistas de visitante, estudiante, docente y administradora, incluidas todas las pestañas del curso, a 1280 px y a 390 px; también se mide desplazamiento horizontal | D9-01; después, 0 hallazgos y nada se sale de la pantalla |
 | Dependencias | `npm audit`: 0 vulnerabilidades; Java: 0 avisos en OSV (Etapa 10 y de nuevo el 2 de noviembre) | R9-05 (resuelto) |
 
+## Revisión de la versión 1.2.0 (6 de noviembre de 2026)
+
+Hecha para las guías del segundo corte de Ingeniería de Software II, con herramientas que corren en el propio equipo ([ci/README.md](../ci/README.md)). Línea base: la 1.1.2.
+
+### Defectos encontrados y corregidos
+
+| Id | Severidad | Defecto | Estado |
+| --- | --- | --- | --- |
+| D12-01 | Seria (Ley 1581) | El log de cada solicitud guardaba la cédula cuando va en la ruta (`DELETE …/enrollments/600001 204`, visto en el log de pruebas de la 1.1.2) | Corregido con TDD (T-97): la ruta pasa por `LogPaths.sanitize`; también la URL de las trazas |
+| D12-02 | Media (seguridad) | La interfaz corría como root dentro del contenedor (Trivy DS-0002) y sobre Nginx 1.29, con 51 CVE altos o críticos en su Alpine | Corregido (T-98): usuario `nginx`, puertos 8080/8443, rama estable 1.30 (0 CVE) |
+| D12-03 | Media (operación) | Con la base caída, ninguna alerta lo notaba: los 500 salen como `uri="UNKNOWN"` y el SLI solo miraba `/api/v1` | Corregido en el simulacro de la guía 14 (T-100): SLI sin filtrar por ruta y alerta `LogiCodeBaseNoResponde` ([observabilidad.md](observabilidad.md)) |
+| D12-04 | Baja (operación) | El SLI usaba el balde `le="1.0"`, que Micrometer no crea por sí solo: el panel decía "No data" | Corregido: `management.metrics.distribution.slo.http.server.requests: 1s` |
+| D12-05 | Baja (operación) | Los logs de Docker no tenían límite y podían llenar el disco | Corregido: `json-file` con 5 archivos de 10 MB por servicio (ADR 13) |
+| D12-06 | Media (operación) | Sin solicitudes de usuarios (de noche) el SLI daba 0 % en vez de "sin dato", y tras una hora la alerta de quema rápida se dispararía sola. Visto en el panel de Grafana durante la redacción de la guía 13 | Corregido con prueba primero: caso "sin tráfico" en `alertas-test.yml` en rojo, luego el SLI sin `clamp_min` (0/0 no compara) y en verde |
+
+### Herramientas y resultados
+
+| Revisión | Herramienta | Resultado |
+| --- | --- | --- |
+| Complejidad ciclomática | lizard 1.17 | Backend: 888 funciones, promedio 2,30, 21 con más de 10 (antes 22) y 6 con más de 15 (antes 7). La más alta sigue en el intérprete de PSeInt (`Lexer.tokens`, 38). Interfaz: 584 funciones, promedio 2,41, 11 con más de 10, máximo 20 (`QuizAttemptPage`) |
+| SAST | Semgrep 1.184.0, reglas de Java, JavaScript, secretos, Dockerfile y Compose (553 reglas) | 12 hallazgos, 0 ERROR. 9 INFO: imágenes base sin fijar por digest (se fijan por versión), `HEALTHCHECK` en forma de texto, y `App.jsx:167` (falso positivo: el texto no es una plantilla). 3 WARNING `no-replaceall` en `ActivityPage.jsx:325`, `TopicsPanel.jsx:333` y `PseintPage.jsx:86`: falsos positivos, `replaceAll` con un texto reemplaza todas las apariciones desde ES2021 |
+| SCA, secretos y configuración del repositorio | Trivy 0.69.3 `fs` | 0 HIGH o CRITICAL en `package-lock.json`, Dockerfiles, compose y secretos. `backend/pom.xml` se excluye: Trivy lo lee sin el BOM de Spring Boot y adivina versiones. Dio 4 falsos positivos el 6 de noviembre: CVE-2026-49844 en `log4j-api` (leída 2.24.3, se usa 2.25.5) y, con la base de Trivy de la tarde, CVE-2026-68497, CVE-2026-91776 y CVE-2026-91777 en `jackson-databind` (leída 2.22.1, se usa 2.21.7, ya corregida). Las dependencias Java se revisan en el jar de la imagen, con las versiones reales: 0 |
+| Imágenes | Trivy 0.69.3 `image` | Interfaz: 0. Backend: 2 HIGH, CVE-2026-109518 en `apt` y `libapt-pkg7.0` de la base `eclipse-temurin:21-jre` (la más reciente, del 29 de octubre). Riesgo aceptado hasta el 31 de enero de 2027: el contenedor corre como `logicode`, sin permiso para usar apt, y nada lo ejecuta ([.trivyignore.yaml](../.trivyignore.yaml)). `postgres:17-alpine` (imagen de terceros): 26 en el Go de `gosu`, que solo cambia de usuario al arrancar |
+| Cobertura del backend | JaCoCo 0.8.15 (unitarias + integración) | 88,6 % de líneas y 71,2 % de ramas al poner la puerta (85 % y 68 %); 88,8 % y 72,2 % con las pruebas nuevas de la 1.2.0 |
+| Contrato de la API | Redocly CLI 1.34.5 | 0 errores, 2 avisos (licencia sin decidir; `GET /system/info` sin respuestas 4xx) |
+| Carga | k6 1.4.2, 50 usuarios virtuales | p95 26 a 31 ms, 0 % de errores ([pruebas-carga](../pruebas-carga/README.md)) |
+
+### Pirámide de pruebas
+
+| Nivel | Cuántas | Dónde | Tiempo |
+| --- | --- | --- | --- |
+| Unitarias y de arquitectura | 96 del backend (JUnit, ArchUnit) y 78 de la interfaz (Vitest, Testing Library) | `backend/src/test` (`*Test`), `frontend/src/**/*.test.*` | Segundos |
+| Integración | 57 con PostgreSQL real en un contenedor desechable (Testcontainers), servidor completo y MockMvc; MinIO también real (`MinioStorageIT`). Solo se reemplazan en el borde la IA (`GradingProvider` con respuestas guionadas) y el correo (`EmailSender`), nunca la lógica de negocio | `backend/src/test` (`*IT`) | Unos 2 minutos |
+| Contrato | 1 del proveedor (`LogiCodeApplicationIT`) y 1 del consumidor (`contrato.test.js`) sobre `docs/api/openapi.json` | Ver [api/README.md](api/README.md) | Segundos |
+| De punta a punta (E2E) | 0 automatizadas. Se hacen a mano en cada etapa (capturas y axe-core con Playwright) y con la colección de Postman | — | — |
+
+Las pruebas de integración nunca tocan la base de desarrollo: cada clase crea su propio PostgreSQL y lo borra al terminar.
+
+### Inventario de deuda técnica
+
+Cuadrante de Fowler: deliberada o inadvertida, prudente o imprudente.
+
+| Id | Deuda | Estado | Cuadrante | Qué se hace |
+| --- | --- | --- | --- | --- |
+| DT-01 | Intérprete de PSeInt con funciones muy complejas (`Lexer.tokens` 38, `Parser.statement` 34, `Builtins.call` 28) | Pendiente | Deliberada y prudente: un analizador escrito a mano es así, y tiene muchas pruebas | Partir solo si hay que agregar sintaxis nueva |
+| DT-02 | `ManageQuestionBank.validate` con complejidad 26 y sin pruebas unitarias | **Pagada** (6 de noviembre): pruebas de caracterización primero (`51abfc5`), luego el refactor (complejidad 9) | Inadvertida y prudente | — |
+| DT-03 | El reto de bloques se evalúa con la misma lógica escrita dos veces (`BlockChallenge` en Java y `blocks.js` en la interfaz) | Pendiente | Deliberada y prudente (T-72: el servidor debe recalcular la nota) | Pruebas que corran los mismos programas en los dos lados |
+| DT-04 | `QuizAttemptPage` (20) y `QuizPanel` (18) en la interfaz | Pendiente | Inadvertida y prudente | Partir cuando se toque el quiz |
+| DT-05 | Cédula en el log de solicitudes | **Pagada** (D12-01) | Inadvertida e imprudente | — |
+| DT-06 | Nginx como root y en una rama sin parches | **Pagada** (D12-02) | Inadvertida y prudente | — |
+| DT-07 | Sin métricas, trazas ni alertas | **Pagada en parte** (T-99, T-100) | Deliberada y prudente (no hacían falta antes del piloto) | Falta que las alertas avisen a una persona |
+| DT-08 | El `ci.yml` existía pero nunca se ejecutó | **Pagada** (T-102): `ci/ci-local.mjs` | Deliberada y prudente (no se sube a GitHub) | — |
+| DT-09 | CVE de `apt` en la imagen base del backend | Aceptada hasta el 31 de enero de 2027 | Deliberada y prudente | `docker compose build --pull` cuando haya imagen corregida |
+| DT-10 | Al terminar las pruebas de integración se ven 5 errores `CannotCreateTransactionException` de la tarea que limpia sesiones (la base ya se cerró) | Pendiente | Inadvertida y prudente | Apagar las tareas programadas en las pruebas |
+| DT-11 | La espera de conexión de 30 s hace que un estudiante espere medio minuto para ver un error si la base cae | Pendiente (postmortem de la guía 14) | Inadvertida y prudente | Bajar a 5 s después de medirlo con la prueba de carga |
+| DT-12 | Sin pruebas E2E automáticas ni cobertura medida en la interfaz | Pendiente | Deliberada y prudente | Ver la hoja de ruta (guía 15) |
+
 ## Observabilidad
+
+Desde la 1.2.0, métricas, trazas, panel, SLO y alertas están en [observabilidad.md](observabilidad.md). Lo de esta sección sigue valiendo:
 
 - Cada solicitud a la API deja una línea: `GET /api/v1/courses/… 200 12 ms`, con el identificador de la solicitud. En Docker los logs son JSON (ECS): `docker compose logs backend`.
 - Cuando un usuario reporta un error, la respuesta trae `X-Request-Id`; con ese valor se encuentran todas sus líneas: `docker compose logs backend | grep <id>`.
