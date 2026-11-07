@@ -181,8 +181,10 @@ sequenceDiagram
     loop cada 5 s
         W->>DB: toma un trabajo (FOR UPDATE SKIP LOCKED, token de toma)
     end
-    W->>O: /api/chat con rúbrica, texto e imágenes (fuera de transacción)
-    O-->>W: JSON con puntos por criterio, legibilidad y confianza
+    W->>O: con imágenes, paso 1: /api/chat solo con las imágenes (fuera de transacción)
+    O-->>W: JSON con transcripción y legibilidad
+    W->>O: /api/chat con rúbrica, texto y la transcripción del paso 1
+    O-->>W: JSON con puntos por criterio y confianza
     W->>DB: ai_evaluation + nota PUBLISHED o PENDING_REVIEW
 ```
 
@@ -190,6 +192,7 @@ sequenceDiagram
 - **Reintentos:** un fallo técnico se reintenta hasta `LOGICODE_AI_MAX_ATTEMPTS` veces con espera creciente; al agotarse, la nota pasa a Por revisar con motivo `AI_FAILED` y sin nota (RF-15, RNF-06).
 - **Decisión:** el dominio (`AiGradingPolicy`) calcula la nota con la rúbrica y publica solo si el contenido es legible y la confianza es de 80 % o más; si no, la propuesta espera al docente (RN-09, RN-11). El umbral es fijo (T-40).
 - **Contenido:** respuestas escritas, fotos PNG/JPG (enderezadas y reducidas en `ImagePreparer`), `.psc`/`.ino` como texto y, desde P-08, PDF de hasta 5 páginas (texto y cada página como imagen, `PdfContent`, T-77). Word, PowerPoint, video y `.sb3` van al docente como "Formato que la IA no lee".
+- **Dos pasos con imágenes (T-107, 1.3.0):** la lectura no ve el enunciado, la respuesta esperada ni la rúbrica, para que una foto ilegible no se "lea" como la respuesta modelo; la calificación recibe solo esa transcripción. Si la lectura dice que no es legible, no se califica. Sin imágenes hay un solo paso.
 - **Privacidad:** al modelo van el nombre del estudiante, el enunciado, la respuesta esperada, los criterios y el contenido con etiquetas neutras; nunca cédula, correo ni nombres de archivo (T-44).
 - **Sin IA:** con `LOGICODE_AI_ENABLED=false` no hay worker; las entregas van a Por revisar como `AI_DISABLED`.
 - **Integración:** el puerto `GradingProvider` (aplicación) lo implementa `OllamaGradingAdapter` (infraestructura).

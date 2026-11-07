@@ -1,0 +1,250 @@
+{
+  "descripcion": "Verificación de la 1.3.0 (T-107, leer primero y calificar después) con 12 casos de las pruebas sintéticas del 6 y 7 de noviembre de 2026. Necesita las carpetas ia-pruebas/muestras/sintetica y ia-pruebas/muestras/limites (fuera de Git). Compara con resultados anteriores: S09, S10, L26 y L27 son ilegibles; S10 y L26 se habían publicado con 5,0 copiando la respuesta esperada.",
+  "actividades": {
+    "mayor": {
+      "titulo": "Mayor de dos números",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea dos números enteros y muestre cuál es el mayor. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo Mayor\n  Leer a, b\n  Si a > b Entonces\n    Escribir \"El mayor es \", a\n  SiNo\n    Escribir \"El mayor es \", b\n  FinSi\nFinAlgoritmo",
+      "criterios": [
+        {
+          "nombre": "Lee los dos números",
+          "puntos": 1
+        },
+        {
+          "nombre": "Condición correcta",
+          "puntos": 2.5
+        },
+        {
+          "nombre": "Muestra el mayor en ambos casos",
+          "puntos": 1.5
+        }
+      ]
+    },
+    "par": {
+      "titulo": "Par o impar",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea un número entero y diga si es par o impar usando MOD. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo ParImpar\n  Leer n\n  Si n MOD 2 = 0 Entonces\n    Escribir \"Par\"\n  SiNo\n    Escribir \"Impar\"\n  FinSi\nFinAlgoritmo",
+      "criterios": [
+        {
+          "nombre": "Lee el número",
+          "puntos": 1
+        },
+        {
+          "nombre": "Condición con MOD 2 = 0",
+          "puntos": 2.5
+        },
+        {
+          "nombre": "Muestra \"Par\" e \"Impar\" en el caso correcto",
+          "puntos": 1.5
+        }
+      ]
+    },
+    "promedio": {
+      "titulo": "Promedio de tres notas",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea tres notas y muestre su promedio. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo Promedio\n  Leer n1, n2, n3\n  prom <- (n1 + n2 + n3) / 3\n  Escribir \"El promedio es \", prom\nFinAlgoritmo",
+      "criterios": [
+        {
+          "nombre": "Lee las tres notas",
+          "puntos": 1
+        },
+        {
+          "nombre": "Calcula bien el promedio (suma entre paréntesis y divide entre 3)",
+          "puntos": 3
+        },
+        {
+          "nombre": "Muestra el promedio",
+          "puntos": 1
+        }
+      ]
+    },
+    "suma": {
+      "titulo": "Suma de 1 a N",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea un número entero positivo n y muestre la suma 1 + 2 + ... + n usando un ciclo Para. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo SumaN\n  Definir n, i, suma Como Entero\n  Leer n\n  suma <- 0\n  Para i <- 1 Hasta n Hacer\n    suma <- suma + i\n  FinPara\n  Escribir \"La suma es \", suma\nFinAlgoritmo",
+      "criterios": [
+        {
+          "nombre": "Lee n",
+          "puntos": 1
+        },
+        {
+          "nombre": "Inicializa el acumulador en 0",
+          "puntos": 1
+        },
+        {
+          "nombre": "Ciclo Para de 1 hasta n que acumula i",
+          "puntos": 2
+        },
+        {
+          "nombre": "Muestra la suma al final",
+          "puntos": 1
+        }
+      ]
+    },
+    "tabla": {
+      "titulo": "Tabla de multiplicar con Mientras",
+      "enunciado": "Escribe a mano en PSeInt un algoritmo que lea un número n y muestre su tabla de multiplicar del 1 al 10 usando un ciclo Mientras. Toma una foto clara de la hoja.",
+      "respuestaEsperada": "Algoritmo Tabla\n  Leer n\n  i <- 1\n  Mientras i <= 10 Hacer\n    Escribir n, \" x \", i, \" = \", n * i\n    i <- i + 1\n  FinMientras\nFinAlgoritmo",
+      "criterios": [
+        {
+          "nombre": "Lee n",
+          "puntos": 1
+        },
+        {
+          "nombre": "Ciclo Mientras de 1 a 10 que termina (inicia e incrementa i)",
+          "puntos": 2
+        },
+        {
+          "nombre": "Muestra cada línea de la tabla",
+          "puntos": 2
+        }
+      ]
+    }
+  },
+  "muestras": [
+    {
+      "id": "S09",
+      "archivo": "sintetica/S09-suma-borrosa.jpg",
+      "actividad": "suma",
+      "condicion": "ilegible: muy desenfocada y oscura",
+      "legibleEsperado": false,
+      "puntosDocente": null,
+      "transcripcion": null
+    },
+    {
+      "id": "S10",
+      "archivo": "sintetica/S10-par-diminuta.jpg",
+      "actividad": "par",
+      "condicion": "ilegible: foto diminuta (160 px) y movida",
+      "legibleEsperado": false,
+      "puntosDocente": null,
+      "transcripcion": null
+    },
+    {
+      "id": "L26",
+      "archivo": "limites/L26-suma-mala-y-borrosa.jpg",
+      "actividad": "suma",
+      "condicion": "ilegible, y lo que dice está MAL: si la IA \"lee\" el código correcto, lo está copiando de la respuesta esperada",
+      "legibleEsperado": false,
+      "puntosDocente": null,
+      "transcripcion": null
+    },
+    {
+      "id": "L27",
+      "archivo": "limites/L27-par-foto-del-escritorio.jpg",
+      "actividad": "par",
+      "condicion": "foto de un escritorio con un lápiz, sin hoja",
+      "legibleEsperado": false,
+      "puntosDocente": null,
+      "transcripcion": null
+    },
+    {
+      "id": "L01",
+      "archivo": "limites/L01-suma-correcta.jpg",
+      "actividad": "suma",
+      "condicion": "correcta (referencia)",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        1,
+        2,
+        1
+      ],
+      "transcripcion": "Algoritmo SumaN\nDefinir n, i, suma Como Entero\nLeer n\nsuma <- 0\nPara i <- 1 Hasta n Hacer\nsuma <- suma + i\nFinPara\nEscribir \"La suma es \", suma\nFinAlgoritmo"
+    },
+    {
+      "id": "L07",
+      "archivo": "limites/L07-promedio-correcto.jpg",
+      "actividad": "promedio",
+      "condicion": "correcta",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        3,
+        1
+      ],
+      "transcripcion": "Algoritmo Promedio\nLeer n1, n2, n3\nprom <- (n1 + n2 + n3) / 3\nEscribir \"El promedio es \", prom\nFinAlgoritmo"
+    },
+    {
+      "id": "L10",
+      "archivo": "limites/L10-tabla-correcta.jpg",
+      "actividad": "tabla",
+      "condicion": "correcta",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        2,
+        2
+      ],
+      "transcripcion": "Algoritmo Tabla\nLeer n\ni <- 1\nMientras i <= 10 Hacer\nEscribir n, \" x \", i, \" = \", n * i\ni <- i + 1\nFinMientras\nFinAlgoritmo"
+    },
+    {
+      "id": "S02",
+      "archivo": "sintetica/S02-suma-hasta-n-menos-1.jpg",
+      "actividad": "suma",
+      "condicion": "legible, error leve: el ciclo va hasta n - 1",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "transcripcion": "Algoritmo SumaN\nLeer n\nsuma <- 0\nPara i <- 1 Hasta n - 1 Hacer\nsuma <- suma + i\nFinPara\nEscribir \"La suma es \", suma\nFinAlgoritmo"
+    },
+    {
+      "id": "S03",
+      "archivo": "sintetica/S03-suma-sin-acumular.jpg",
+      "actividad": "suma",
+      "condicion": "legible, errores graves: no inicializa ni acumula, escribe dentro del ciclo",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        0,
+        0.5,
+        0
+      ],
+      "transcripcion": "Algoritmo SumaN\nLeer n\nPara i <- 1 Hasta n Hacer\nsuma <- i\nEscribir suma\nFinPara\nFinAlgoritmo"
+    },
+    {
+      "id": "L06",
+      "archivo": "limites/L06-mayor-sin-sino.jpg",
+      "actividad": "mayor",
+      "condicion": "solo muestra el mayor cuando es a (sin SiNo)",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        2.5,
+        0.5
+      ],
+      "transcripcion": "Algoritmo Mayor\nLeer a, b\nSi a > b Entonces\nEscribir \"El mayor es \", a\nFinSi\nFinAlgoritmo"
+    },
+    {
+      "id": "L20",
+      "archivo": "limites/L20-mayor-320px.jpg",
+      "actividad": "mayor",
+      "condicion": "resolución baja: 320 px de ancho",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        2.5,
+        1.5
+      ],
+      "transcripcion": "Algoritmo Mayor\nLeer a, b\nSi a > b Entonces\nEscribir \"El mayor es \", a\nSiNo\nEscribir \"El mayor es \", b\nFinSi\nFinAlgoritmo"
+    },
+    {
+      "id": "L28",
+      "archivo": "limites/L28-suma-pdf-5-paginas.pdf",
+      "actividad": "suma",
+      "condicion": "PDF con texto de 5 páginas (justo en el límite)",
+      "legibleEsperado": true,
+      "puntosDocente": [
+        1,
+        1,
+        2,
+        1
+      ],
+      "transcripcion": "Taller: suma de 1 a N\nCurso de lógica de programación\nEntrega del taller en PDF\n1. Enunciado\nLeer un entero positivo n y mostrar la suma 1 + 2 + ... + n\nusando un ciclo Para.\n2. Algoritmo\nAlgoritmo SumaN\nDefinir n, i, suma Como Entero\nLeer n\nsuma <- 0\nPara i <- 1 Hasta n Hacer\nsuma <- suma + i\nFinPara\nEscribir \"La suma es \", suma\nFinAlgoritmo\n3. Prueba de escritorio\nn = 4\ni = 1 -> suma = 1\ni = 2 -> suma = 3\ni = 3 -> suma = 6\ni = 4 -> suma = 10\nSalida: La suma es 10\n4. Conclusión\nEl acumulador empieza en 0 y el ciclo Para recorre de 1 a n."
+    }
+  ]
+}
