@@ -4,7 +4,7 @@ import { FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { formatDateTime } from './labels.js'
 
-// Calibración de la IA del curso (T-90): mientras está abierta, la IA propone y el docente confirma; LogiCode
+// Calibración de la IA del curso (T-90), opcional: mientras está abierta, la IA propone y el docente confirma; LogiCode
 // muestra cuánto coinciden para decidir cuándo dejar que la IA publique sola con la regla del 80 %.
 export default function CalibrationPanel({ courseId }) {
   const status = useQuery(`/courses/${courseId}/ai-calibration`)
@@ -28,8 +28,10 @@ export default function CalibrationPanel({ courseId }) {
         </p>
       ) : (
         <p>
-          <span className="badge badge--ok">Calibración cerrada</span> Desde {formatDateTime(c.closedAt)} la IA publica
-          sola las notas legibles con confianza de 80 % o más.
+          <span className="badge badge--ok">La IA publica sola</span>{' '}
+          {c.closedAt ? `Desde ${formatDateTime(c.closedAt)}, la IA publica` : 'La IA publica'} las notas legibles con
+          confianza de 80 % o más; las demás llegan a Por revisar. Si quieres comparar sus notas con las tuyas antes de
+          confiar, enciende la calibración.
         </p>
       )}
       <dl className="facts">
@@ -63,7 +65,7 @@ export default function CalibrationPanel({ courseId }) {
       )}
       {c.canChange && !c.calibrating && (
         <button type="button" className="button button--secondary" disabled={reopen.pending} onClick={() => reopen.submit()}>
-          Volver a calibrar
+          {c.closedAt ? 'Volver a calibrar' : 'Calibrar la IA'}
         </button>
       )}
       <FormStatus error={close.error ?? reopen.error} />

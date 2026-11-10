@@ -40,7 +40,7 @@ describe('Calibración de la IA', () => {
     vi.stubGlobal('fetch', fetchMock)
     render(<CalibrationPanel courseId="c1" />)
     fireEvent.click(await screen.findByRole('button', { name: 'Dejar que la IA publique sola' }))
-    expect(await screen.findByText('Calibración cerrada')).toBeInTheDocument()
+    expect(await screen.findByText('La IA publica sola')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Volver a calibrar' })).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([url, o]) => url.endsWith('/ai-calibration/close') && o?.method === 'POST')).toBe(true)
   })

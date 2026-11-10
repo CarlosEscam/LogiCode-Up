@@ -10,9 +10,10 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 /**
- * Calibración de la IA en un curso (T-90). Mientras está abierta, la IA no publica notas sola aunque su confianza sea
- * de 80 % o más: el docente confirma cada propuesta y así se mide cuánto coincide la IA con él. Se cierra cuando hay
- * suficientes comparaciones; desde entonces vuelve a aplicar la regla del 80 % (RN-09, RN-11).
+ * Calibración de la IA en un curso (T-90). Es opcional: un curso sin registro no está en calibración. Mientras está
+ * abierta, la IA no publica notas sola aunque su confianza sea de 80 % o más: el docente confirma cada propuesta y así
+ * se mide cuánto coincide la IA con él. Se cierra cuando hay suficientes comparaciones; desde entonces vuelve a aplicar
+ * la regla del 80 % (RN-09, RN-11).
  */
 @Entity
 @Table(name = "ai_calibration")
@@ -37,7 +38,7 @@ public class AiCalibration {
     protected AiCalibration() {
     }
 
-    /** Un curso empieza en calibración. */
+    /** El docente enciende la calibración del curso. */
     public static AiCalibration open(UUID courseId, Instant now) {
         AiCalibration calibration = new AiCalibration();
         calibration.courseId = courseId;

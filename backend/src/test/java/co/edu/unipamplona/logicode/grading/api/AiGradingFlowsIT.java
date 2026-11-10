@@ -258,10 +258,18 @@ class AiGradingFlowsIT {
 
     @Test
     @Order(0)
-    void aNewCourseIsInCalibrationUntilTheTeacherHasComparedEnoughProposals() throws Exception {
+    void calibrationIsOptionalAndLastsUntilTheTeacherHasComparedEnoughProposals() throws Exception {
         String calibration = "/api/v1/courses/" + courseId + "/ai-calibration";
+        // Un curso nuevo no está en calibración: la IA publica sola con 80 % o más.
         mvc.perform(get(calibration).cookie(teacher))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calibrating").value(false))
+                .andExpect(jsonPath("$.closedAt").doesNotExist());
+        mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf())).andExpect(status().isConflict());
+        mvc.perform(post(calibration + "/reopen").cookie(teacher).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calibrating").value(true));
+        mvc.perform(get(calibration).cookie(teacher))
                 .andExpect(jsonPath("$.calibrating").value(true))
                 .andExpect(jsonPath("$.minimum").value(2))
                 .andExpect(jsonPath("$.compared").value(0))

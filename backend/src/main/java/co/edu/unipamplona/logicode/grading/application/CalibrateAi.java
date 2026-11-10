@@ -49,9 +49,12 @@ public class CalibrateAi {
         this.clock = clock;
     }
 
-    /** Un curso sin registro está en calibración. */
+    /**
+     * Un curso sin registro no está en calibración: la IA publica sola con la regla del 80 % (Carlos, 10 de noviembre).
+     * El docente la enciende con "Calibrar la IA" si quiere comparar antes de confiar.
+     */
     public boolean isCalibrating(UUID courseId) {
-        return calibrations.findByCourse(courseId).map(AiCalibration::isOpen).orElse(true);
+        return calibrations.findByCourse(courseId).map(AiCalibration::isOpen).orElse(false);
     }
 
     @Transactional(readOnly = true)
@@ -64,8 +67,9 @@ public class CalibrateAi {
     public View close(Actor actor, UUID courseId) {
         requireChange(actor, courseId);
         CalibrationStats stats = stats(courseId);
+        boolean started = calibrations.findByCourse(courseId).isPresent();
         AiCalibration calibration = calibrations.lockForChange(courseId, clock.instant());
-        if (!calibration.isOpen()) {
+        if (!started || !calibration.isOpen()) {
             throw ApplicationException.conflict("La calibración de este curso ya está cerrada.");
         }
         try {
@@ -79,7 +83,12 @@ public class CalibrateAi {
     @Transactional
     public View reopen(Actor actor, UUID courseId) {
         requireChange(actor, courseId);
+        boolean started = calibrations.findByCourse(courseId).isPresent();
+        // Sin registro, crearlo ya enciende la calibración.
         AiCalibration calibration = calibrations.lockForChange(courseId, clock.instant());
+        if (!started) {
+            return view(actor, courseId, calibration, stats(courseId));
+        }
         if (calibration.isOpen()) {
             throw ApplicationException.conflict("La calibración de este curso ya está abierta.");
         }
@@ -114,9 +123,9 @@ public class CalibrateAi {
     }
 
     private View view(Actor actor, UUID courseId, AiCalibration calibration, CalibrationStats stats) {
-        boolean open = calibration == null || calibration.isOpen();
+        boolean open = calibration != null && calibration.isOpen();
         return new View(open, settings.calibrationMinComparisons(), stats.compared(), stats.agreeing(),
-                stats.wouldHaveFailed(), stats.concordancePercent(), open ? null : calibration.getClosedAt(),
+                stats.wouldHaveFailed(), stats.concordancePercent(), calibration == null ? null : calibration.getClosedAt(),
                 access.canGrade(actor, courseId));
     }
 }

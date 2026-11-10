@@ -77,7 +77,7 @@ Base de datos en la versión 10 (`V10__calibracion_de_la_ia.sql`). Motivo: en el
 
 | Entregable | Estado | Dónde |
 | --- | --- | --- |
-| Curso en calibración | Implementado | Todo curso empieza en calibración. Mientras lo esté, una propuesta de la IA que antes se publicaba sola pasa a Por revisar con el motivo "Calibración de la IA"; el docente confirma o ajusta (T-90) |
+| Curso en calibración | Implementado; **opcional desde el 10 de noviembre (T-109)** | Un curso nuevo ya no empieza en calibración: el docente la enciende con **Calibrar la IA**. Mientras lo esté, una propuesta de la IA que antes se publicaba sola pasa a Por revisar con el motivo "Calibración de la IA"; el docente confirma o ajusta (T-90) |
 | Medida de concordancia | Implementado | Compara la última propuesta de la IA con la nota que publicó el docente: coincide si la diferencia es de 0,5 o menos; "se habría publicado mal" cuenta las que la IA habría publicado sola y no coinciden (T-91) |
 | Cerrar y volver a calibrar | Implementado | Panel "Calibración de la IA" arriba de Por revisar. Solo el docente del curso; cerrar exige `LOGICODE_AI_CALIBRATION_MIN` notas comparadas (10 por defecto). Cerrada, vuelve a regir la regla del 80 % sin cambios (T-92) |
 | Salud del backend sin base (T-93) | Corregido | Un simulacro de incidente mostró que, sin base, el backend seguía "healthy". Ahora `readiness` revisa la base y Docker lo marca `unhealthy` en unos 90 s |
