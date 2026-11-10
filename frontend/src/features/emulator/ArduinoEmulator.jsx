@@ -4,6 +4,7 @@ import { ArduinoHighlight } from './highlight.jsx'
 import FileBar from './FileBar.jsx'
 import { ArduinoError, PIN_COUNT, compileArduino, createBoard, createMachine } from './arduino.js'
 import { useDraft } from './storage.js'
+import UsbBoards from './UsbBoards.jsx'
 
 const EXAMPLE = `// Parpadeo: el LED de la placa (pin 13) se prende y se apaga cada medio segundo.
 int vueltas = 0;
@@ -205,6 +206,7 @@ export default function ArduinoEmulator() {
               <span className="arduino-ide__dot" aria-hidden="true" data-on={running || undefined} /> Arduino Uno (virtual)
             </span>
           </div>
+          <UsbBoards />
           <FileBar idPrefix="arduino" extension=".ino" defaultName="mi-programa" getText={() => code} onOpen={(text) => edit(text)} onNew={() => edit('void setup() {\n\n}\n\nvoid loop() {\n\n}\n')} />
           <div className="field ide__examples">
             <label htmlFor="arduino-ejemplo">Ejemplos</label>

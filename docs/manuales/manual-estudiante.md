@@ -85,7 +85,7 @@ En el menú, **Emulador** abre el mismo editor para practicar cuando quieras, co
 - **Arduino**: escribe el código. Los números de línea te ayudan a encontrar el error, que queda marcado en rojo.
 - **DFD**: arrastra una figura de la paleta (Leer, Escribir, asignación, decisión y ciclos) hasta un **+** del diagrama, o elígela y haz clic en el **+**. Haz clic en una figura para escribir lo que hace, moverla o quitarla. A la derecha ves el mismo programa en PSeInt. Al ejecutar (▶ Ejecutar o F5), cada Leer te pide el dato en la consola.
 - **Scratch**: arma el programa con bloques (preguntar, decir, variables, si, repetir).
-- **Arduino**: como en el editor de Arduino, **✓ Verificar** solo compila y **→ Ejecutar** corre el programa en una placa virtual (a la derecha) con LED, botones y potenciómetros. Abajo, **Salida** dice si compila y **Monitor Serie** muestra lo que escribe la placa. **■ Detener** lo para.
+- **Arduino**: como en el editor de Arduino, **✓ Verificar** solo compila y **→ Ejecutar** corre el programa en una placa virtual (a la derecha) con LED, botones y potenciómetros. Abajo, **Salida** dice si compila y **Monitor Serie** muestra lo que escribe la placa. **■ Detener** lo para. Con **🔌 Detectar placa USB** (en Chrome o Edge) LogiCode reconoce tu Arduino conectado al computador; el navegador te pide permiso la primera vez.
 
 Al ejecutar verás primero **✓ Compila** o **✗ No compila**, y luego si corrió sin errores. Lo que escribes se guarda en este navegador; con **Guardar en mi equipo** descargas el archivo y con **Abrir archivo…** lo vuelves a cargar.
 

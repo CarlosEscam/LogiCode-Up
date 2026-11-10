@@ -4,6 +4,7 @@ import App from '../../app/App.jsx'
 import { compileArduino, simulate } from './arduino.js'
 import { checkFlow, newStep, parseProject, projectText, toPseint } from './flow.js'
 import PseintHighlight, { ArduinoHighlight } from './highlight.jsx'
+import UsbBoards from './UsbBoards.jsx'
 
 const STUDENT = {
   id: 's1',
@@ -177,6 +178,36 @@ describe('Colores de PSeInt', () => {
     expect(kinds('function')).toEqual(['setup', 'pinMode', 'Serial', 'println'])
     expect(kinds('number')).toEqual(['OUTPUT'])
     expect(kinds('string')).toEqual(['"hola"'])
+  })
+})
+
+describe('Placas por USB', () => {
+  it('muestra las placas conectadas, la que se conecta después y avisa si el navegador no puede', async () => {
+    const listeners = {}
+    const uno = { getInfo: () => ({ usbVendorId: 0x2341, usbProductId: 0x0043 }) }
+    const clone = { getInfo: () => ({ usbVendorId: 0x1a86, usbProductId: 0x7523 }) }
+    let granted = [uno]
+    const serial = {
+      getPorts: vi.fn(async () => granted),
+      requestPort: vi.fn(async () => clone),
+      addEventListener: (name, listener) => (listeners[name] = listener),
+      removeEventListener: () => {},
+    }
+    Object.defineProperty(navigator, 'serial', { value: serial, configurable: true })
+    try {
+      render(<UsbBoards />)
+      expect(await screen.findByText(/Arduino Uno conectada/)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: '🔌 Detectar placa USB' }))
+      expect(await screen.findByText(/Placa compatible con chip CH340 .* conectada/)).toBeInTheDocument()
+      expect(serial.requestPort).toHaveBeenCalledWith({ filters: expect.arrayContaining([{ usbVendorId: 0x2341 }]) })
+      granted = []
+      await act(async () => listeners.disconnect())
+      expect(screen.getByText('Ninguna placa conectada')).toBeInTheDocument()
+    } finally {
+      delete navigator.serial
+    }
+    render(<UsbBoards />)
+    expect(screen.getByText(/abre LogiCode en Chrome o Edge/)).toBeInTheDocument()
   })
 })
 

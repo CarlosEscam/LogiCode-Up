@@ -2767,3 +2767,31 @@ td .console {
   background: var(--color-surface);
   color: var(--color-text);
 }
+
+/* Placas Arduino detectadas por USB (Web Serial). */
+.usb-boards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.usb-boards__list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--color-muted);
+}
+
+.usb-boards__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border: 1.5px solid var(--color-ok);
+  border-radius: 999px;
+  background: #e7f4ec;
+  color: var(--color-ok);
+  font-weight: 600;
+}
