@@ -19,10 +19,10 @@ import LibraryPage from '../features/content/LibraryPage.jsx'
 import MaterialPage from '../features/content/MaterialPage.jsx'
 import CoursePage from '../features/courses/CoursePage.jsx'
 import CoursesPage from '../features/courses/CoursesPage.jsx'
+import EmulatorPage from '../features/emulator/EmulatorPage.jsx'
 import ForumPage from '../features/forum/ForumPage.jsx'
 import ThreadPage from '../features/forum/ThreadPage.jsx'
 import GamesPage from '../features/games/GamesPage.jsx'
-import PseintPage from '../features/pseint/PseintPage.jsx'
 import QuizAttemptPage from '../features/quizzes/QuizAttemptPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import { Link } from '../shared/router/Link.jsx'
@@ -50,7 +50,10 @@ const ROUTES = {
   '/entregas/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <SubmissionPage key={id} id={id} /> },
   '/quiz-intentos/:id': { access: ['VIEW_PRIVATE_COURSE_CONTENT'], render: ({ id }) => <QuizAttemptPage key={id} id={id} /> },
   '/juegos': { access: 'public', render: () => <GamesPage /> },
-  '/pseint': { access: 'account', render: () => <PseintPage /> },
+  '/emulador': { access: 'account', render: () => <EmulatorPage /> },
+  '/emulador/:tool': { access: 'account', render: ({ tool }) => <EmulatorPage tool={tool} /> },
+  // Dirección anterior del editor de PSeInt (enlaces guardados).
+  '/pseint': { access: 'account', render: () => <Redirect to="/emulador/pseint" /> },
   '/foro': { access: 'public', render: () => <ForumPage /> },
   '/foro/:id': { access: 'public', render: ({ id }) => <ThreadPage key={id} id={id} /> },
   '/admin': { access: ['MANAGE_USERS'], render: () => <AdminPanelPage /> },
@@ -107,8 +110,8 @@ function Layout() {
             Juegos
           </NavLink>
           {session.account && (
-            <NavLink to="/pseint" icon="pseint" current={path === '/pseint'}>
-              PSeInt
+            <NavLink to="/emulador" icon="pseint" current={path.startsWith('/emulador')}>
+              Emulador
             </NavLink>
           )}
           <NavLink to="/foro" icon="foro" current={path.startsWith('/foro')}>

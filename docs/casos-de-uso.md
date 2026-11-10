@@ -328,7 +328,7 @@ Los casos de uso de cuentas (CU-03, CU-04, CU-07) aplican a todos los actores co
 ### CU-24 Practicar con el editor de PSeInt
 
 - **Actor:** Estudiante, Docente (con sesión). **Requisitos:** RNF-05. **Estado:** Implementado.
-- **Flujo principal:** **PSeInt** del menú: escribir un programa, entradas (una por línea), **Ejecutar**; ver la salida o el error con su línea.
+- **Flujo principal:** **Emulador** del menú, pestaña **PSeInt**: escribir un programa, entradas (una por línea), **Ejecutar**; ver si compila y la salida o el error con su línea. Las pestañas DFD, Scratch y Arduino hacen lo mismo con un diagrama, con bloques o con un programa de Arduino.
 - **Excepciones:** ciclo infinito, demasiados pasos, salida enorme o recursión sin fin → se corta con un mensaje; intérprete ocupado → `429`. El perfil estricto de PSeInt: **Pendiente**.
 
 ### CU-25 Jugar en el catálogo de juegos

@@ -1933,3 +1933,257 @@ td .console {
     box-shadow: 3px 3px 0 var(--color-text);
   }
 }
+
+/* Emulador: práctica libre de PSeInt, DFD, Scratch y Arduino */
+.emulator {
+  padding-top: 0.75rem;
+}
+
+.file-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.file-bar .field {
+  margin-bottom: 0.5rem;
+}
+
+.file-bar .field input {
+  max-width: 18rem;
+}
+
+.file-bar > p {
+  flex-basis: 100%;
+  margin: 0 0 0.5rem;
+}
+
+.code-editor {
+  display: flex;
+  border: 1.5px solid var(--color-input);
+  border-radius: 12px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.code-editor__gutter {
+  margin: 0;
+  padding: 0.625rem 0.5rem;
+  min-width: 2.75rem;
+  overflow: hidden;
+  text-align: right;
+  color: var(--color-muted);
+  background: var(--color-band);
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  user-select: none;
+}
+
+.code-editor__gutter span {
+  display: block;
+}
+
+.code-editor__error {
+  color: #fff;
+  background: var(--color-error);
+  border-radius: 4px;
+}
+
+.field textarea.code-editor__text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border: none;
+  border-radius: 0;
+  line-height: 1.5;
+  white-space: pre;
+  overflow: auto;
+  resize: vertical;
+}
+
+.verdict {
+  margin: 0.75rem 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.verdict--ok {
+  color: var(--color-ok);
+  background: #e7f4ec;
+}
+
+.verdict--warn {
+  color: #8a4b00;
+  background: #fff3df;
+}
+
+.verdict--error {
+  color: var(--color-error);
+  background: #fbe9eb;
+}
+
+.flow-emulator {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .flow-emulator {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dfd--emulator {
+  max-width: 100%;
+}
+
+.dfd__shape--error {
+  stroke: var(--color-error);
+  stroke-width: 3;
+  fill: #fbe9eb;
+}
+
+.step-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.4rem 0;
+}
+
+.step {
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border-left: 5px solid var(--color-primary);
+  background: #f4eefb;
+}
+
+.step--error {
+  outline: 3px solid var(--color-error);
+}
+
+.step__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.step__word {
+  font-weight: 600;
+}
+
+.step__input {
+  max-width: 100%;
+  padding: 0.2rem 0.4rem;
+  border: 1.5px solid var(--color-input);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.step__actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.step__branch {
+  margin: 0.35rem 0 0 1rem;
+  padding-left: 0.5rem;
+  border-left: 2px dotted var(--color-border);
+}
+
+.step__branch--target {
+  border-left: 2px solid var(--color-ok);
+}
+
+/* Colores por categoría: DFD (entrada/salida, proceso, decisión, ciclo) y Scratch (sensores, apariencia, variables, control). */
+.step--io { border-left-color: #1f7a8c; background: #e6f3f5; }
+.step--process { border-left-color: var(--color-primary); background: #f4eefb; }
+.step--control { border-left-color: #b45309; background: #fffbeb; }
+.step--loop { border-left-color: #a3242f; background: #fdf0f1; }
+.step--sensing { border-left-color: #0f6fa8; background: #e5f2fb; }
+.step--looks { border-left-color: #6d3fc0; background: #f1ebfb; }
+.step--variables { border-left-color: #c2570c; background: #fff1e6; }
+
+.step-button.step--io,
+.step-button.step--process,
+.step-button.step--control,
+.step-button.step--loop,
+.step-button.step--sensing,
+.step-button.step--looks,
+.step-button.step--variables {
+  color: var(--color-text);
+  border: 1.5px solid var(--color-input);
+  border-left-width: 5px;
+}
+
+.arduino-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  margin: 1rem 0;
+}
+
+@media (max-width: 760px) {
+  .arduino-board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.arduino-pins {
+  list-style: none;
+  padding: 0.75rem;
+  margin: 0 0 1rem;
+  border-radius: 12px;
+  background: #0f5e6e;
+  color: #fff;
+}
+
+.arduino-pin {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgb(255 255 255 / 20%);
+}
+
+.arduino-pin:last-child {
+  border-bottom: none;
+}
+
+.arduino-pin__name {
+  min-width: 6.5rem;
+  font-family: var(--font-code);
+  font-weight: 700;
+}
+
+.arduino-pin .page__note {
+  color: #d6eef2;
+}
+
+.arduino-led {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: #ff3b3b;
+  box-shadow: 0 0 10px #ff3b3b;
+}
+
+.arduino-serial {
+  min-height: 10rem;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.arduino-warnings {
+  padding-left: 1.25rem;
+  color: #8a4b00;
+}

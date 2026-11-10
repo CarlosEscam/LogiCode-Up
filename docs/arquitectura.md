@@ -264,7 +264,7 @@ frontend/src
 └── test/         Configuración de Vitest + Testing Library
 ```
 
-Rutas principales: `/`, `/ingresar`, `/registro/estudiante`, `/registro/docente`, `/mi-cuenta`, `/biblioteca`, `/materiales/:id`, `/cursos`, `/cursos/:id` (pestañas por `?seccion=`), `/actividades/:id`, `/entregas/:id`, `/quiz-intentos/:id`, `/juegos` (`?juego=<clave>&nivel=<id>`), `/pseint`, `/foro`, `/foro/:id`, `/admin`, `/admin/usuarios`, `/admin/habilitaciones`, `/admin/auditoria`.
+Rutas principales: `/`, `/ingresar`, `/registro/estudiante`, `/registro/docente`, `/mi-cuenta`, `/biblioteca`, `/materiales/:id`, `/cursos`, `/cursos/:id` (pestañas por `?seccion=`), `/actividades/:id`, `/entregas/:id`, `/quiz-intentos/:id`, `/juegos` (`?juego=<clave>&nivel=<id>`), `/emulador/:herramienta` (`pseint`, `dfd`, `scratch` o `arduino`; `/pseint` lleva a `/emulador/pseint`), `/foro`, `/foro/:id`, `/admin`, `/admin/usuarios`, `/admin/habilitaciones`, `/admin/auditoria`.
 
 Regla: la interfaz muestra estado y recoge acciones; **no decide permisos, notas oficiales ni reglas del curso**. Ocultar una opción del menú es solo comodidad; toda autorización se aplica en el backend.
 

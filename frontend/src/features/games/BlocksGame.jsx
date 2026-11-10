@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Solved from './Solved.jsx'
-import { BLOCK_LABELS, countBlocks, parseLevel, runProgram } from './blocks.js'
+import { BLOCK_LABELS, change, contains, countBlocks, insert, parseLevel, remove, runProgram } from './blocks.js'
 import { loadSkin, saveSkin } from './progress.js'
 import { RobotSkin, SkinPicker } from './skins.jsx'
 
@@ -27,30 +27,6 @@ const copy = (blocks) =>
     const base = newBlock(block.type)
     return { ...base, ...block, id: base.id, body: block.body ? copy(block.body) : base.body, else: block.else ? copy(block.else) : base.else }
   })
-
-// Inserta, cambia o quita bloques en el árbol del programa (target: { id, branch } o null = programa principal).
-function insert(blocks, target, block) {
-  if (!target) return [...blocks, block]
-  return blocks.map((item) => ({
-    ...item,
-    ...(item.body && { body: item.id === target.id && target.branch === 'body' ? [...item.body, block] : insert(item.body, target, block) }),
-    ...(item.else && { else: item.id === target.id && target.branch === 'else' ? [...item.else, block] : insert(item.else, target, block) }),
-  }))
-}
-function change(blocks, id, update) {
-  return blocks.map((item) => {
-    if (item.id === id) return { ...item, ...update }
-    return { ...item, ...(item.body && { body: change(item.body, id, update) }), ...(item.else && { else: change(item.else, id, update) }) }
-  })
-}
-function remove(blocks, id) {
-  return blocks
-    .filter((item) => item.id !== id)
-    .map((item) => ({ ...item, ...(item.body && { body: remove(item.body, id) }), ...(item.else && { else: remove(item.else, id) }) }))
-}
-function contains(blocks, id) {
-  return blocks.some((item) => item.id === id || contains(item.body ?? [], id) || contains(item.else ?? [], id))
-}
 
 // También se usa en los retos de bloques de una actividad (RF-12): sin título, y avisando cada cambio del programa.
 export default function BlocksGame({ level, onSolved, onNext, onProgramChange }) {

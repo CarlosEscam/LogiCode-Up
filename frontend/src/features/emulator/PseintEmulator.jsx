@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import PseintRunner from './PseintRunner.jsx'
+import PseintRunner from '../pseint/PseintRunner.jsx'
+import { errorLineOf } from '../pseint/errorLine.js'
+import CodeEditor from './CodeEditor.jsx'
+import FileBar from './FileBar.jsx'
+import { useDraft } from './storage.js'
 
 const EXAMPLES = {
   saludo: `Algoritmo Saludo
@@ -43,48 +47,53 @@ FinAlgoritmo`,
 
 const EXAMPLE_INPUTS = { saludo: 'Ana', promedio: '3\n4\n3.5\n5', mayor: '7\n12', paraCada: '3\n4.5\n5\n2.5' }
 
-// Editor de PSeInt para practicar sin instalar nada (RF-12). El servidor ejecuta el programa con límites
-// de tiempo, pasos, memoria y salida; el intérprete no tiene acceso a archivos ni a la red.
-export default function PseintPage() {
-  const [code, setCode] = useState(EXAMPLES.saludo)
-  const [example, setExample] = useState('saludo')
+// Emulador de PSeInt (RF-12): código libre, sin nota ni entrega. El servidor ejecuta el programa con límites de tiempo,
+// pasos, memoria y salida; el intérprete no tiene acceso a archivos ni a la red.
+export default function PseintEmulator() {
+  const [code, setCode] = useDraft('pseint', EXAMPLES.saludo)
+  const [example, setExample] = useState('')
+  const [errorLine, setErrorLine] = useState(null)
+  const edit = (next) => {
+    setCode(next)
+    setErrorLine(null)
+  }
   return (
-    <section className="card card--wide" aria-labelledby="pseint-titulo">
-      <h1 id="pseint-titulo">Editor de PSeInt</h1>
+    <>
       <p>
         Escribe tu algoritmo, pon las entradas que leería con <code>Leer</code> y ejecútalo. Es el mismo intérprete que califica las
         actividades con casos de prueba.
       </p>
-      <div className="field">
-        <label htmlFor="pseint-ejemplo">Ejemplo</label>
+      <FileBar
+        idPrefix="pseint"
+        extension=".psc"
+        defaultName="mi-algoritmo"
+        getText={() => code}
+        onOpen={(text) => edit(text)}
+        onNew={() => edit('Algoritmo SinTitulo\n    \nFinAlgoritmo\n')}
+      />
+      <div className="field field--short">
+        <label htmlFor="pseint-ejemplo">Cargar un ejemplo</label>
         <select
           id="pseint-ejemplo"
           value={example}
           onChange={(event) => {
-            setExample(event.target.value)
-            setCode(EXAMPLES[event.target.value])
+            const key = event.target.value
+            if (key && (Object.values(EXAMPLES).includes(code) || window.confirm('El ejemplo reemplaza lo que hay en el editor. ¿Continuar?'))) {
+              setExample(key)
+              edit(EXAMPLES[key])
+            }
           }}
         >
+          <option value="">Elige…</option>
           <option value="saludo">Saludo (Leer y Escribir)</option>
           <option value="promedio">Promedio de notas (Para)</option>
           <option value="mayor">El mayor de dos números (Si)</option>
           <option value="paraCada">Promedio de un arreglo (Para Cada)</option>
         </select>
       </div>
-      <div className="field">
-        <label htmlFor="pseint-codigo">Programa</label>
-        <textarea
-          id="pseint-codigo"
-          rows={16}
-          maxLength={20000}
-          spellCheck={false}
-          className="code"
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-        />
-      </div>
-      <p className="page__note">Entradas de ejemplo: {EXAMPLE_INPUTS[example].replaceAll('\n', ', ')}</p>
-      <PseintRunner code={code} idPrefix="pseint" />
+      <CodeEditor id="pseint-codigo" label="Programa (.psc)" value={code} onChange={edit} errorLine={errorLine} />
+      {example && <p className="page__note">Entradas de ejemplo: {EXAMPLE_INPUTS[example].replaceAll('\n', ', ')}</p>}
+      <PseintRunner code={code} idPrefix="pseint" onResult={(result) => setErrorLine(errorLineOf(result.error))} />
       <details>
         <summary>Qué entiende el intérprete</summary>
         <p>
@@ -94,6 +103,6 @@ export default function PseintPage() {
         </p>
         <p>Límites por ejecución: 2 segundos, un millón de pasos, 20 000 caracteres de salida y 10 000 posiciones en arreglos.</p>
       </details>
-    </section>
+    </>
   )
 }

@@ -106,6 +106,43 @@ export function runProgram(program, level) {
   }
 }
 
+// Inserta, cambia, mueve o quita bloques en el árbol del programa (también lo usa el Emulador) (target: { id, branch } o null = programa principal).
+export function insert(blocks, target, block) {
+  if (!target) return [...blocks, block]
+  return blocks.map((item) => ({
+    ...item,
+    ...(item.body && { body: item.id === target.id && target.branch === 'body' ? [...item.body, block] : insert(item.body, target, block) }),
+    ...(item.else && { else: item.id === target.id && target.branch === 'else' ? [...item.else, block] : insert(item.else, target, block) }),
+  }))
+}
+export function change(blocks, id, update) {
+  return blocks.map((item) => {
+    if (item.id === id) return { ...item, ...update }
+    return { ...item, ...(item.body && { body: change(item.body, id, update) }), ...(item.else && { else: change(item.else, id, update) }) }
+  })
+}
+export function remove(blocks, id) {
+  return blocks
+    .filter((item) => item.id !== id)
+    .map((item) => ({ ...item, ...(item.body && { body: remove(item.body, id) }), ...(item.else && { else: remove(item.else, id) }) }))
+}
+export function contains(blocks, id) {
+  return blocks.some((item) => item.id === id || contains(item.body ?? [], id) || contains(item.else ?? [], id))
+}
+
+// Sube (-1) o baja (+1) un bloque dentro de su misma lista.
+export function move(blocks, id, delta) {
+  const index = blocks.findIndex((item) => item.id === id)
+  if (index >= 0) {
+    const to = index + delta
+    if (to < 0 || to >= blocks.length) return blocks
+    const next = [...blocks]
+    ;[next[index], next[to]] = [next[to], next[index]]
+    return next
+  }
+  return blocks.map((item) => ({ ...item, ...(item.body && { body: move(item.body, id, delta) }), ...(item.else && { else: move(item.else, id, delta) }) }))
+}
+
 // Reto de bloques del docente (RF-12): mismas reglas del tablero que valida el servidor (BlockChallenge.java).
 export function boardProblem(rows) {
   if (rows.length === 0 || rows.length > 12) return 'El tablero debe tener entre 1 y 12 filas.'

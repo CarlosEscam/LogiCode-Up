@@ -113,7 +113,7 @@ Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, 
 | Camila | Le falta `FinPara` | Por revisar como "El programa no se pudo ejecutar" |
 | David | Archivo `suma.psc` con la fórmula n × (n + 1) / 2 | 5,0 automática |
 
-En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar casos de prueba" para ver caso por caso. El editor está en **PSeInt** del menú (con sesión).
+En la entrega de Camila (o cualquier otra), el docente puede usar "Ejecutar casos de prueba" para ver caso por caso. El editor está en **Emulador** del menú, pestaña PSeInt (con sesión).
 
 Desde el 2 de noviembre el intérprete entiende `Para Cada elemento De arreglo`. Para mostrarlo no hace falta cargar nada: en el editor, el ejemplo "Promedio de un arreglo (Para Cada)" lee 4 notas en un arreglo y las recorre (con 3, 4.5, 5 y 2.5 escribe `Promedio: 3.75`).
 

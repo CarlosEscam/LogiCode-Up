@@ -75,7 +75,18 @@ Algunos talleres se califican solos: LogiCode ejecuta tu programa con varias ent
 2. Antes de enviar, pruébalo: escribe entradas en **Entradas para probar** (una por línea) y pulsa **Ejecutar**.
 3. Pulsa **Enviar entrega**. La nota aparece en segundos. Si el programa tiene un error y no se puede ejecutar, la entrega pasa a tu docente.
 
-En el menú, **PSeInt** abre el mismo editor para practicar cuando quieras, con ejemplos.
+En el menú, **Emulador** abre el mismo editor para practicar cuando quieras, con ejemplos.
+
+### Emulador: practica libre
+
+**Emulador** del menú tiene una pestaña por herramienta: **PSeInt**, **DFD**, **Scratch** y **Arduino**. Ahí escribes o armas lo que quieras; no tiene nota ni se entrega.
+
+- **PSeInt** y **Arduino**: escribe el código. Los números de línea te ayudan a encontrar el error, que queda marcado en rojo.
+- **DFD**: agrega pasos (Leer, Escribir, asignación, decisión y ciclos) y el diagrama se dibuja solo. Para meter un paso dentro de una decisión o un ciclo, pulsa **agregar aquí** en esa rama.
+- **Scratch**: arma el programa con bloques (preguntar, decir, variables, si, repetir).
+- **Arduino**: **✓ Verificar** solo compila; **▶ Ejecutar** corre el programa en una placa virtual con LED, botones, potenciómetros y Monitor Serie. **■ Detener** lo para.
+
+Al ejecutar verás primero **✓ Compila** o **✗ No compila**, y luego si corrió sin errores. Lo que escribes se guarda en este navegador; con **Guardar en mi equipo** descargas el archivo y con **Abrir archivo…** lo vuelves a cargar.
 
 ### Retos de bloques con nota
 
