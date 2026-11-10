@@ -1,5 +1,6 @@
 import { navigate } from '../../shared/router/router.js'
 import ArduinoEmulator from './ArduinoEmulator.jsx'
+import DfdEmulator from './DfdEmulator.jsx'
 import FlowEmulator from './FlowEmulator.jsx'
 import PseintEmulator from './PseintEmulator.jsx'
 
@@ -7,7 +8,7 @@ import PseintEmulator from './PseintEmulator.jsx'
 // nota ni entrega; al ejecutar se dice si el programa compila y si corrió sin errores.
 const TOOLS = [
   { key: 'pseint', label: 'PSeInt', render: () => <PseintEmulator /> },
-  { key: 'dfd', label: 'DFD', render: () => <FlowEmulator mode="dfd" /> },
+  { key: 'dfd', label: 'DFD', render: () => <DfdEmulator /> },
   { key: 'scratch', label: 'Scratch', render: () => <FlowEmulator mode="scratch" /> },
   { key: 'arduino', label: 'Arduino', render: () => <ArduinoEmulator /> },
 ]

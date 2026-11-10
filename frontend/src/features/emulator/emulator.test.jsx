@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { compileArduino, simulate } from './arduino.js'
@@ -21,7 +21,10 @@ function respond(status, body) {
 }
 
 function stubApi(routes) {
-  const fetchMock = vi.fn(async (url, options = {}) => routes[`${options.method ?? 'GET'} ${url.split('?')[0]}`] ?? respond(404, {}))
+  const fetchMock = vi.fn(async (url, options = {}) => {
+    const handler = routes[`${options.method ?? 'GET'} ${url.split('?')[0]}`] ?? respond(404, {})
+    return typeof handler === 'function' ? handler(url, options) : handler
+  })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
@@ -194,9 +197,14 @@ describe('Programa de DFD y Scratch', () => {
 describe('Pestaña Emulador', () => {
   it('reúne un emulador por tema y ejecuta el DFD traducido a PSeInt', async () => {
     window.history.replaceState(null, '', '/')
+    const missing = { completed: false, errorKind: 'RUNTIME', error: 'Línea 2: faltan datos de entrada para «Leer a, b».', steps: 1, durationMs: 1 }
     const fetchMock = stubApi({
       'GET /api/v1/me': respond(200, STUDENT),
-      'POST /api/v1/pseint/runs': respond(200, { output: 'El mayor es 9\n', completed: true, errorKind: null, error: null, steps: 5, durationMs: 1 }),
+      'POST /api/v1/pseint/runs': (url, options) => {
+        const { input } = JSON.parse(options.body)
+        if (input !== '9\n4') return respond(200, { ...missing, output: '' })
+        return respond(200, { output: 'El mayor es 9\nListo\n', completed: true, errorKind: null, error: null, steps: 5, durationMs: 1 })
+      },
     })
     render(<App />)
     fireEvent.click(await screen.findByRole('link', { name: 'Emulador' }))
@@ -204,14 +212,40 @@ describe('Pestaña Emulador', () => {
     expect(tabs.map((tab) => tab.textContent)).toEqual(['PSeInt', 'DFD', 'Scratch', 'Arduino'])
 
     fireEvent.click(screen.getByRole('tab', { name: 'DFD' }))
-    expect(screen.getByRole('img', { name: /Diagrama de flujo: Inicio; Leer a, b; decisión ¿a > b\?/ })).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('Entradas para probar (una por línea)'), { target: { value: '9\n4' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Ejecutar' }))
-    const result = await screen.findByRole('status', { name: 'Resultado de la ejecución' })
-    expect(result).toHaveTextContent('✓ Compila y se ejecutó sin errores.')
-    expect(result).toHaveTextContent('El mayor es 9')
+    expect(screen.getByRole('group', { name: /Diagrama de flujo: Inicio; Leer a, b; decisión ¿a > b\?/ })).toBeInTheDocument()
+
+    // Elegir la figura en la paleta, ponerla en el último + del programa y escribir lo que hace.
+    fireEvent.click(screen.getByRole('button', { name: 'Escribir (salida)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Insertar aquí: programa principal, posición 3' }))
+    fireEvent.change(screen.getByLabelText('Escribir (salida): valor'), { target: { value: '"Listo"' } })
+    expect(screen.getByRole('group', { name: /Diagrama de flujo: .*; Escribir "Listo"; Fin\./ })).toBeInTheDocument()
+    expect(document.querySelector('.dfd-code__text').textContent).toContain('    Escribir "Listo"\nFinAlgoritmo')
+
+    fireEvent.click(screen.getByRole('button', { name: '▶ Ejecutar' }))
+    for (const value of ['9', '4']) {
+      fireEvent.change(await screen.findByLabelText('> Dato para Leer'), { target: { value } })
+      fireEvent.submit(screen.getByLabelText('> Dato para Leer').closest('form'))
+      await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url === '/api/v1/pseint/runs').length).toBeGreaterThan(value === '9' ? 1 : 2))
+    }
+    const result = await screen.findByText('✓ Compila y se ejecutó sin errores.')
+    expect(result).toBeInTheDocument()
+    expect(screen.getByRole('log', { name: 'Consola de salida' }).textContent).toContain('9\n4\nEl mayor es 9\nListo\n')
     const call = fetchMock.mock.calls.find(([url]) => url === '/api/v1/pseint/runs')
     expect(JSON.parse(call[1].body).code).toContain('Si a > b Entonces')
+  })
+
+  it('en el DFD una figura sin escribir no compila y queda marcada', async () => {
+    window.history.replaceState(null, '', '/emulador/dfd')
+    const fetchMock = stubApi({ 'GET /api/v1/me': respond(200, STUDENT) })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Decisión' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Insertar aquí: programa principal, posición 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    fireEvent.click(screen.getByRole('button', { name: '▶ Ejecutar' }))
+    expect(await screen.findByText('✗ No compila: corrige el error de abajo y vuelve a ejecutar.')).toBeInTheDocument()
+    expect(screen.getByText(/En «¿\?»: falta la condición\./)).toBeInTheDocument()
+    expect(document.querySelector('.dfd__shape--error')).not.toBeNull()
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/v1/pseint/runs')).toBe(false)
   })
 
   it('en Scratch un bloque vacío no compila y no llama al servidor', async () => {

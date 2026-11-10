@@ -2,6 +2,9 @@
 // intérprete del servidor. Así los dos dicen si compila y dan los mismos errores, sin un intérprete más.
 // Es puro (sin React) para probarlo.
 
+// Tipo de dato al arrastrar una figura de la paleta del DFD al lienzo.
+export const DRAG_TYPE = 'application/x-logicode-paso'
+
 // fields: campos de texto de cada paso. branches: listas de pasos que lleva adentro.
 export const STEP_TYPES = {
   leer: { fields: ['vars'] },
@@ -216,4 +219,19 @@ export function stepText(step) {
     default:
       return step.type
   }
+}
+
+// Inserta un paso en la posición index de una lista: la principal (target null) o la rama { id, branch } de un paso.
+export function insertAt(steps, target, index, step) {
+  if (!target) return [...steps.slice(0, index), step, ...steps.slice(index)]
+  return steps.map((item) => {
+    const copy = { ...item }
+    for (const branch of STEP_TYPES[item.type].branches ?? []) {
+      copy[branch] =
+        item.id === target.id && target.branch === branch
+          ? [...item[branch].slice(0, index), step, ...item[branch].slice(index)]
+          : insertAt(item[branch], target, index, step)
+    }
+    return copy
+  })
 }

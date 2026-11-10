@@ -2315,12 +2315,19 @@ td .console {
   background: rgb(109 179 255 / 35%);
 }
 
-.tok--keyword { color: #6db3ff; font-weight: 600; }
-.tok--function { color: #dcdcaa; }
-.tok--string { color: #f0836e; }
-.tok--number { color: #b5cea8; }
-.tok--comment { color: #6a9955; font-style: italic; }
-.tok--op { color: #c586c0; }
+/* Colores de sintaxis: con fondo claro (pseudocódigo del DFD) y con el fondo oscuro del editor de PSeInt. */
+.tok--keyword { color: var(--color-primary); font-weight: 700; }
+.tok--function { color: #8a4b00; }
+.tok--string { color: #a3242f; }
+.tok--number { color: #1f6b45; }
+.tok--comment { color: var(--color-muted); font-style: italic; }
+.tok--op { color: #1f7a8c; }
+.ide .tok--keyword { color: #6db3ff; font-weight: 600; }
+.ide .tok--function { color: #dcdcaa; }
+.ide .tok--string { color: #f0836e; }
+.ide .tok--number { color: #b5cea8; }
+.ide .tok--comment { color: #6a9955; }
+.ide .tok--op { color: #c586c0; }
 
 .ide-console {
   display: flex;
@@ -2397,4 +2404,244 @@ td .console {
   color: var(--ide-muted);
   background: var(--ide-panel);
   border-top: 1px solid var(--ide-line);
+}
+
+/* Emulador de DFD con aspecto de editor de diagramas (paleta, lienzo, pseudocódigo y ejecución) y colores de LogiCode. */
+.dfd-ide {
+  --ide-bg: var(--color-surface);
+  --ide-panel: var(--color-band);
+  --ide-line: var(--color-border);
+  --ide-text: var(--color-text);
+  --ide-muted: var(--color-muted);
+  margin: 0.75rem 0 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.dfd-ide__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-band);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dfd-ide__toolbar .file-bar,
+.dfd-ide__toolbar .file-bar .field,
+.dfd-ide__toolbar .toolbar {
+  margin: 0;
+}
+
+.dfd-ide__title {
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-eyebrow);
+  background: var(--color-band);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dfd-ide__layout {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr) minmax(12rem, 18rem);
+  min-height: 28rem;
+}
+
+.dfd-ide__layout--no-code {
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .dfd-ide__layout,
+  .dfd-ide__layout--no-code {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dfd-palette {
+  border-right: 1px solid var(--color-border);
+}
+
+.dfd-palette ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dfd-palette .page__note {
+  padding: 0 0.75rem;
+}
+
+.dfd-palette__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: grab;
+}
+
+.dfd-palette__item:hover,
+.dfd-palette__item[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-band);
+}
+
+.dfd-canvas {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* Cuadrícula de puntos, como un lienzo de dibujo. */
+  background: radial-gradient(circle, var(--color-band-strong) 1px, transparent 1px) 0 0 / 18px 18px, var(--color-bg);
+}
+
+.dfd-canvas > .notice {
+  margin: 0.5rem;
+}
+
+.dfd-canvas__scroll {
+  flex: 1;
+  overflow: auto;
+  max-height: 40rem;
+  padding: 0.75rem;
+}
+
+.dfd-canvas__scroll .dfd--emulator {
+  display: block;
+  max-width: none;
+  margin: 0 auto;
+}
+
+.dfd-code {
+  min-width: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+.dfd-code__text {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  max-height: 40rem;
+  overflow: auto;
+  white-space: pre;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.dfd-ide__exec {
+  border-top: 1px solid var(--color-border);
+}
+
+.dfd-ide .ide-console__screen {
+  min-height: 7rem;
+  max-height: 16rem;
+  background: var(--color-text);
+  color: #efe9f7;
+}
+
+.dfd-ide .ide-console__typed {
+  color: #c9b6ee;
+}
+
+.dfd-ide .ide-console__input {
+  color: #efe9f7;
+}
+
+.dfd-ide .ide__play {
+  border-color: var(--color-ok);
+  background: var(--color-ok);
+}
+
+.dfd-properties {
+  margin: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--color-primary);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 3px 3px 0 var(--color-band-strong);
+}
+
+.dfd-properties h3 {
+  margin: 0 0 0.4rem;
+}
+
+.dfd-properties__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Figuras del DFD con los colores de LogiCode (mismos tonos que los pasos del emulador). */
+.dfd__shape--terminal { fill: #e7f4ec; stroke: var(--color-ok); }
+.dfd__shape--io { fill: #e6f3f5; stroke: #1f7a8c; }
+.dfd__shape--process { fill: #f4eefb; stroke: var(--color-primary); }
+.dfd__shape--decision { fill: #fffbeb; stroke: #b45309; }
+.dfd__shape--loop { fill: #fdf0f1; stroke: #a3242f; }
+
+.dfd__node {
+  cursor: pointer;
+}
+
+.dfd__node:focus {
+  outline: none;
+}
+
+.dfd__node:focus-visible .dfd__shape,
+.dfd__shape--selected {
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 4px rgb(86 55 138 / 45%));
+}
+
+.dfd__slot {
+  cursor: pointer;
+}
+
+.dfd__slot:focus {
+  outline: none;
+}
+
+.dfd__slot-area {
+  fill: transparent;
+}
+
+.dfd__slot-dot {
+  fill: var(--color-surface);
+  stroke: var(--color-input);
+  stroke-width: 1.5;
+}
+
+.dfd__slot-plus {
+  stroke: var(--color-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.dfd__slot:hover .dfd__slot-dot,
+.dfd__slot:focus-visible .dfd__slot-dot,
+.dfd__slot--armed .dfd__slot-dot,
+.dfd__slot--over .dfd__slot-dot {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+}
+
+.dfd__slot:hover .dfd__slot-plus,
+.dfd__slot:focus-visible .dfd__slot-plus,
+.dfd__slot--armed .dfd__slot-plus,
+.dfd__slot--over .dfd__slot-plus {
+  stroke: #fff;
 }

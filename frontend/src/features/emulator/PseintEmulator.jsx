@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { apiPost } from '../../shared/api/httpClient.js'
-import { Verdict } from '../pseint/PseintRunner.jsx'
-import { ERROR_KIND_LABELS, errorLineOf } from '../pseint/errorLine.js'
+import { useState } from 'react'
+import { errorLineOf } from '../pseint/errorLine.js'
 import CodeEditor from './CodeEditor.jsx'
 import FileBar from './FileBar.jsx'
 import PseintHighlight from './highlight.jsx'
+import RunConsole from './RunConsole.jsx'
 import { useDraft } from './storage.js'
+import { statusText, useConsole } from './useConsole.js'
 
 const EXAMPLES = {
   saludo: `Algoritmo Saludo
@@ -54,43 +54,6 @@ const EXAMPLE_LABELS = {
   paraCada: 'Promedio de un arreglo (Para Cada)',
 }
 
-const NEEDS_INPUT = /faltan datos de entrada/
-const MAX_READS = 200
-
-// Corre el programa en el servidor como si la consola fuera interactiva. El servidor necesita todas las entradas de una
-// vez, así que cuando el programa llega a un Leer sin dato se muestra lo que alcanzó a escribir, la consola pide el dato
-// y se vuelve a ejecutar con todos los datos dados. El intérprete es determinista (AZAR tiene semilla fija), así que cada
-// ejecución repite la salida anterior y sigue desde ahí.
-function useConsole(code, onDone) {
-  const [state, setState] = useState({ status: 'idle', reads: [], result: null, error: null })
-  const turn = useRef(0) // descarta la respuesta de una ejecución que se detuvo o se reemplazó
-
-  async function execute(reads, fresh) {
-    const mine = ++turn.current
-    setState((current) => ({ ...current, ...(fresh && { result: null }), status: 'running', reads, error: null }))
-    try {
-      const result = await apiPost('/pseint/runs', { code, input: reads.map((read) => read.value).join('\n') })
-      if (mine !== turn.current) return
-      const waiting = result.errorKind === 'RUNTIME' && NEEDS_INPUT.test(result.error ?? '') && reads.length < MAX_READS
-      setState({ status: waiting ? 'waiting' : 'done', reads, result, error: null })
-      if (!waiting) onDone(result)
-    } catch (error) {
-      if (mine !== turn.current) return
-      setState({ status: 'idle', reads, result: null, error: error instanceof TypeError ? 'No fue posible conectar con el servidor. Intenta de nuevo.' : error.message })
-    }
-  }
-
-  return {
-    ...state,
-    start: () => (code.trim() ? execute([], true) : setState({ status: 'idle', reads: [], result: null, error: 'Escribe el programa antes de ejecutarlo.' })),
-    answer: (value) => execute([...state.reads, { value, at: state.result.output.length }]),
-    stop: () => {
-      turn.current += 1
-      setState((current) => ({ ...current, status: current.result ? 'stopped' : 'idle' }))
-    },
-  }
-}
-
 // Emulador de PSeInt (RF-12) con aspecto de editor: código con colores a la izquierda y consola a la derecha, donde
 // Leer pide el dato. Código libre, sin nota ni entrega. El servidor ejecuta con límites de tiempo, pasos, memoria y
 // salida; el intérprete no tiene acceso a archivos ni a la red.
@@ -98,14 +61,7 @@ export default function PseintEmulator() {
   const [code, setCode] = useDraft('pseint', EXAMPLES.saludo)
   const [errorLine, setErrorLine] = useState(null)
   const [position, setPosition] = useState([1, 1])
-  const [answer, setAnswer] = useState('')
-  const answerInput = useRef(null)
   const run = useConsole(code, (result) => setErrorLine(errorLineOf(result.error)))
-  const busy = run.status === 'running' || run.status === 'waiting'
-
-  useEffect(() => {
-    if (run.status === 'waiting') answerInput.current?.focus()
-  }, [run.status])
 
   const edit = (next) => {
     setCode(next)
@@ -113,35 +69,8 @@ export default function PseintEmulator() {
   }
   const start = () => {
     setErrorLine(null)
-    setAnswer('')
     run.start()
   }
-
-  // El texto de la consola: lo que escribió el programa, con cada dato que dio la persona en su lugar.
-  const pieces = []
-  if (run.result || run.reads.length > 0) {
-    let shown = 0
-    const output = run.result?.output ?? ''
-    run.reads.forEach((read, index) => {
-      pieces.push(<span key={`o${index}`}>{output.slice(shown, read.at)}</span>)
-      pieces.push(
-        <span key={`i${index}`} className="ide-console__typed">
-          {read.value}
-          {'\n'}
-        </span>,
-      )
-      shown = read.at
-    })
-    pieces.push(<span key="fin">{run.status === 'running' ? output.slice(shown, shown) : output.slice(shown)}</span>)
-  }
-  const result = run.status === 'done' ? run.result : null
-  const statusText = {
-    idle: 'Intérprete listo',
-    running: 'Ejecutando…',
-    waiting: 'Esperando un dato en la consola',
-    done: result && !result.errorKind ? `Ejecución exitosa · ${result.steps} pasos · ${result.durationMs} ms` : 'El programa se detuvo por un error',
-    stopped: 'Ejecución detenida',
-  }[run.status]
 
   return (
     <>
@@ -154,7 +83,7 @@ export default function PseintEmulator() {
         onKeyDown={(event) => {
           if (event.key === 'F9' || (event.key === 'Enter' && (event.ctrlKey || event.metaKey))) {
             event.preventDefault()
-            if (!busy) start()
+            if (!run.busy) start()
           }
         }}
       >
@@ -188,7 +117,7 @@ export default function PseintEmulator() {
             </select>
           </div>
           <div className="ide__run">
-            {busy && (
+            {run.busy && (
               <button type="button" className="button button--secondary" onClick={run.stop}>
                 ■ Detener
               </button>
@@ -210,52 +139,10 @@ export default function PseintEmulator() {
             Highlight={PseintHighlight}
             onCursor={(line, column) => setPosition([line, column])}
           />
-          <section className="ide-console" aria-labelledby="pseint-consola">
-            <h2 id="pseint-consola" className="ide-console__title">
-              Consola de salida
-            </h2>
-            <div className="ide-console__screen" role="log" aria-live="polite" aria-label="Consola de salida">
-              {run.status === 'idle' && !run.error && <span className="ide-console__hint">Pulsa ▶ Ejecutar para correr tu algoritmo.</span>}
-              {run.status !== 'idle' && <span className="ide-console__hint">▶ Ejecutando…{'\n'}</span>}
-              {pieces}
-              {run.status === 'waiting' && (
-                <form
-                  className="ide-console__ask"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    run.answer(answer)
-                    setAnswer('')
-                  }}
-                >
-                  <label htmlFor="pseint-dato" className="ide-console__prompt">
-                    &gt;<span className="visually-hidden"> Dato para Leer</span>
-                  </label>
-                  <input
-                    ref={answerInput}
-                    id="pseint-dato"
-                    className="ide-console__input"
-                    value={answer}
-                    maxLength={500}
-                    autoComplete="off"
-                    spellCheck={false}
-                    onChange={(event) => setAnswer(event.target.value)}
-                  />
-                </form>
-              )}
-            </div>
-            <div role="status" aria-label="Resultado de la ejecución">
-              {result && <Verdict errorKind={result.errorKind} />}
-              {result?.error && (
-                <p className="notice notice--error">
-                  <strong>{ERROR_KIND_LABELS[result.errorKind] ?? 'Error'}:</strong> {result.error}
-                </p>
-              )}
-              {run.error && <p className="notice notice--error">{run.error}</p>}
-            </div>
-          </section>
+          <RunConsole run={run} idPrefix="pseint" hint="Pulsa ▶ Ejecutar para correr tu algoritmo." />
         </div>
         <div className="ide__status">
-          <span>{statusText}</span>
+          <span>{statusText(run)}</span>
           <span>
             Línea {position[0]}, Col {position[1]}
           </span>
