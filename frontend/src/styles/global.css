@@ -1960,12 +1960,16 @@ td .console {
   margin: 0 0 0.5rem;
 }
 
+/* Alto fijo (el de las filas pedidas, y se puede estirar desde la esquina): así el área de texto se desplaza por dentro
+   en vez de crecer con los números de línea y quedar recortada. */
 .code-editor {
   display: flex;
   border: 1.5px solid var(--color-input);
   border-radius: 12px;
   background: var(--color-surface);
   overflow: hidden;
+  resize: vertical;
+  min-height: 8rem;
 }
 
 .code-editor__gutter {
@@ -2002,7 +2006,7 @@ td .console {
   line-height: 1.5;
   white-space: pre;
   overflow: auto;
-  resize: vertical;
+  resize: none;
 }
 
 .verdict {
@@ -2188,15 +2192,15 @@ td .console {
   color: #8a4b00;
 }
 
-/* Emulador de PSeInt con aspecto de editor: código con colores a la izquierda y consola a la derecha (tema oscuro). */
+/* Emulador de PSeInt con aspecto de editor: código con colores a la izquierda y consola a la derecha, con los colores de LogiCode. */
 .ide {
-  --ide-bg: #1e1e22;
-  --ide-panel: #26262b;
-  --ide-line: #3a3a42;
-  --ide-text: #e8e8ea;
-  --ide-muted: #a3a3ad;
+  --ide-bg: var(--color-surface);
+  --ide-panel: var(--color-band);
+  --ide-line: var(--color-border);
+  --ide-text: var(--color-text);
+  --ide-muted: var(--color-muted);
   margin: 0.75rem 0 1rem;
-  border: 1px solid var(--ide-line);
+  border: 1.5px solid var(--ide-line);
   border-radius: 12px;
   background: var(--ide-bg);
   color: var(--ide-text);
@@ -2248,8 +2252,8 @@ td .console {
 }
 
 .ide__play {
-  border-color: #2f9e5b;
-  background: #2f9e5b;
+  border-color: var(--color-ok);
+  background: var(--color-ok);
 }
 
 .ide__panes {
@@ -2282,7 +2286,7 @@ td .console {
 
 .ide .code-editor__gutter {
   background: var(--ide-panel);
-  color: #6f6f7a;
+  color: var(--color-muted);
 }
 
 .code-editor__body {
@@ -2315,19 +2319,14 @@ td .console {
   background: rgb(109 179 255 / 35%);
 }
 
-/* Colores de sintaxis: con fondo claro (pseudocódigo del DFD) y con el fondo oscuro del editor de PSeInt. */
+/* Colores de sintaxis de PSeInt (editor de PSeInt y pseudocódigo del DFD). */
 .tok--keyword { color: var(--color-primary); font-weight: 700; }
 .tok--function { color: #8a4b00; }
 .tok--string { color: #a3242f; }
 .tok--number { color: #1f6b45; }
 .tok--comment { color: var(--color-muted); font-style: italic; }
 .tok--op { color: #1f7a8c; }
-.ide .tok--keyword { color: #6db3ff; font-weight: 600; }
-.ide .tok--function { color: #dcdcaa; }
-.ide .tok--string { color: #f0836e; }
-.ide .tok--number { color: #b5cea8; }
-.ide .tok--comment { color: #6a9955; }
-.ide .tok--op { color: #c586c0; }
+
 
 .ide-console {
   display: flex;
@@ -2375,7 +2374,7 @@ td .console {
 }
 
 .ide-console__prompt {
-  color: #2f9e5b;
+  color: #c9b6ee;
   font-weight: 700;
 }
 
@@ -2384,7 +2383,7 @@ td .console {
   min-width: 0;
   padding: 0.15rem 0.3rem;
   border: none;
-  border-bottom: 1px solid #2f9e5b;
+  border-bottom: 1px solid #c9b6ee;
   background: transparent;
   color: var(--ide-text);
   font: inherit;
@@ -2546,6 +2545,7 @@ td .console {
   border-top: 1px solid var(--color-border);
 }
 
+.ide .ide-console__screen,
 .dfd-ide .ide-console__screen {
   min-height: 7rem;
   max-height: 16rem;
@@ -2553,18 +2553,16 @@ td .console {
   color: #efe9f7;
 }
 
+.ide .ide-console__typed,
 .dfd-ide .ide-console__typed {
   color: #c9b6ee;
 }
 
+.ide .ide-console__input,
 .dfd-ide .ide-console__input {
   color: #efe9f7;
 }
 
-.dfd-ide .ide__play {
-  border-color: var(--color-ok);
-  background: var(--color-ok);
-}
 
 .dfd-properties {
   margin: 0.5rem;

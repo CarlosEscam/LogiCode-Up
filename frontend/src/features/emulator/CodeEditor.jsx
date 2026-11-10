@@ -36,7 +36,8 @@ export default function CodeEditor({ id, label, value, onChange, errorLine, rows
       <label htmlFor={id} className={hideLabel ? 'visually-hidden' : undefined}>
         {label}
       </label>
-      <div className={`code-editor${Highlight ? ' code-editor--colors' : ''}`}>
+      {/* Alto de las filas pedidas (línea de 1,35 rem) más el relleno: el texto se desplaza por dentro. */}
+      <div className={`code-editor${Highlight ? ' code-editor--colors' : ''}`} style={{ height: `${rows * 1.35 + 1.25}rem` }}>
         <pre ref={gutter} className="code-editor__gutter" aria-hidden="true">
           {Array.from({ length: count }, (_, index) => (
             <span key={index} className={index + 1 === errorLine ? 'code-editor__error' : undefined}>
