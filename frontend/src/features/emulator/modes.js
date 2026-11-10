@@ -34,11 +34,27 @@ export const MODES = {
     key: 'scratch',
     title: 'proyecto',
     defaultName: 'mi-proyecto',
-    palette: ['preguntar', 'escribir', 'asignar', 'cambiar', 'si', 'veces', 'repetir'],
-    kinds: { preguntar: 'sensing', escribir: 'looks', asignar: 'variables', cambiar: 'variables', si: 'control', veces: 'control', repetir: 'control' },
+    // Categorías como en Scratch, con los colores de LogiCode (clase step--<kind>).
+    categories: [
+      { key: 'motion', label: 'Movimiento', types: ['mover', 'girarDerecha', 'girarIzquierda', 'irA'] },
+      { key: 'looks', label: 'Apariencia', types: ['escribir'] },
+      { key: 'sensing', label: 'Sensores', types: ['preguntar'] },
+      { key: 'control', label: 'Control', types: ['esperar', 'veces', 'repetir', 'si'] },
+      { key: 'variables', label: 'Variables', types: ['asignar', 'cambiar'] },
+    ],
+    palette: ['mover', 'girarDerecha', 'girarIzquierda', 'irA', 'escribir', 'preguntar', 'esperar', 'veces', 'repetir', 'si', 'asignar', 'cambiar'],
+    kinds: {
+      mover: 'motion', girarDerecha: 'motion', girarIzquierda: 'motion', irA: 'motion', escribir: 'looks', preguntar: 'sensing',
+      esperar: 'control', veces: 'control', repetir: 'control', si: 'control', asignar: 'variables', cambiar: 'variables',
+    },
     labels: {
+      mover: { button: 'mover pasos', phrase: ['mover', field('pasos', 'steps', '10', 3), 'pasos'] },
+      girarDerecha: { button: 'girar a la derecha', phrase: ['girar ↻', field('grados', 'deg', '15', 3), 'grados'] },
+      girarIzquierda: { button: 'girar a la izquierda', phrase: ['girar ↺', field('grados', 'deg', '15', 3), 'grados'] },
+      irA: { button: 'ir a x, y', phrase: ['ir a x:', field('x', 'x', '0', 3), 'y:', field('y', 'y', '0', 3)] },
       preguntar: { button: 'preguntar y esperar', phrase: ['preguntar', field('pregunta', 'prompt', '"¿Cómo te llamas?"', 14), 'y guardar en', field('variable', 'var', 'respuesta', 8)] },
       escribir: { button: 'decir', phrase: ['decir', field('mensaje', 'expr', '"¡Hola!"', 14)] },
+      esperar: { button: 'esperar segundos', phrase: ['esperar', field('segundos', 'secs', '1', 3), 'segundos'] },
       asignar: { button: 'fijar variable', phrase: ['fijar', field('variable', 'var', 'puntos', 6), 'a', field('valor', 'expr', '0', 6)] },
       cambiar: { button: 'cambiar variable', phrase: ['cambiar', field('variable', 'var', 'puntos', 6), 'por', field('valor', 'expr', '1', 4)] },
       si: { button: 'si … entonces', phrase: ['si', field('condición', 'cond', 'puntos > 5', 12), 'entonces'], branches: { body: 'entonces', else: 'si no' } },
@@ -47,8 +63,13 @@ export const MODES = {
     },
     text: (step) =>
       ({
+        mover: `mover ${step.steps} pasos`,
+        girarDerecha: `girar ↻ ${step.deg} grados`,
+        girarIzquierda: `girar ↺ ${step.deg} grados`,
+        irA: `ir a x: ${step.x} y: ${step.y}`,
         preguntar: `preguntar ${step.prompt} y guardar en ${step.var}`,
         escribir: `decir ${step.expr}`,
+        esperar: `esperar ${step.secs} segundos`,
         asignar: `fijar ${step.var} a ${step.expr}`,
         cambiar: `cambiar ${step.var} por ${step.expr}`,
         si: `si ${step.cond} entonces`,
@@ -58,9 +79,8 @@ export const MODES = {
     start: [
       ['preguntar', { prompt: '"¿Cómo te llamas?"', var: 'nombre' }],
       ['escribir', { expr: '"¡Hola, ", nombre, "!"' }],
-      ['asignar', { var: 'puntos', expr: '0' }],
-      ['veces', { times: '3', body: [{ type: 'cambiar', var: 'puntos', expr: '5' }] }],
-      ['escribir', { expr: '"Tienes ", puntos, " puntos"' }],
+      ['veces', { times: '4', body: [{ type: 'mover', steps: '60' }, { type: 'girarDerecha', deg: '90' }, { type: 'esperar', secs: '0.5' }] }],
+      ['escribir', { expr: '"¡Di una vuelta completa!"' }],
     ],
   },
 }

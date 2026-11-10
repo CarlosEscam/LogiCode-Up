@@ -4,7 +4,8 @@ import { ERROR_KIND_LABELS } from '../pseint/errorLine.js'
 
 // Consola de salida del Emulador (PSeInt y DFD): muestra lo que escribe el programa con cada dato que dio la persona en
 // su lugar, pide el dato de cada Leer y al final dice si compila y si corrió sin errores. run viene de useConsole.
-export default function RunConsole({ run, idPrefix, formatError = (error) => error, hint }) {
+// clean cambia el texto antes de mostrarlo (Scratch quita las líneas de movimiento, que se ven en el escenario).
+export default function RunConsole({ run, idPrefix, formatError = (error) => error, hint, clean = (text) => text }) {
   const [answer, setAnswer] = useState('')
   const input = useRef(null)
 
@@ -17,7 +18,7 @@ export default function RunConsole({ run, idPrefix, formatError = (error) => err
     let shown = 0
     const output = run.result?.output ?? ''
     run.reads.forEach((read, index) => {
-      pieces.push(<span key={`o${index}`}>{output.slice(shown, read.at)}</span>)
+      pieces.push(<span key={`o${index}`}>{clean(output.slice(shown, read.at))}</span>)
       pieces.push(
         <span key={`i${index}`} className="ide-console__typed">
           {read.value}
@@ -26,7 +27,7 @@ export default function RunConsole({ run, idPrefix, formatError = (error) => err
       )
       shown = read.at
     })
-    if (run.status !== 'running') pieces.push(<span key="fin">{output.slice(shown)}</span>)
+    if (run.status !== 'running') pieces.push(<span key="fin">{clean(output.slice(shown))}</span>)
   }
   const result = run.status === 'done' ? run.result : null
 

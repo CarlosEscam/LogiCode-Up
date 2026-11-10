@@ -17,9 +17,15 @@ export const STEP_TYPES = {
   para: { fields: ['var', 'from', 'to', 'step'], branches: ['body'] },
   repetir: { fields: ['cond'], branches: ['body'] },
   veces: { fields: ['times'], branches: ['body'] },
+  // Escenario de Scratch: el programa escribe una marca (§) que el escenario convierte en movimiento o pausa.
+  mover: { fields: ['steps'] },
+  girarDerecha: { fields: ['deg'] },
+  girarIzquierda: { fields: ['deg'] },
+  irA: { fields: ['x', 'y'] },
+  esperar: { fields: ['secs'] },
 }
 
-const DEFAULTS = { step: '1', times: '10' }
+const DEFAULTS = { step: '1', times: '10', steps: '10', deg: '15', x: '0', y: '0', secs: '1' }
 const FIELD_NAMES = {
   vars: 'las variables',
   prompt: 'la pregunta',
@@ -30,6 +36,11 @@ const FIELD_NAMES = {
   to: 'el valor final',
   step: 'el paso',
   times: 'el número de veces',
+  steps: 'los pasos',
+  deg: 'los grados',
+  x: 'la x',
+  y: 'la y',
+  secs: 'los segundos',
 }
 const OPTIONAL = new Set(['prompt'])
 const IDENTIFIER = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-z0-9_ÁÉÍÓÚÜÑáéíóúüñ]*$/
@@ -136,6 +147,21 @@ export function toPseint(steps) {
           emit(depth, 'FinPara', id)
           break
         }
+        case 'mover':
+          emit(depth, `Escribir "§mover ", ${expr(step.steps)}`, id)
+          break
+        case 'girarDerecha':
+          emit(depth, `Escribir "§girar ", ${expr(step.deg)}`, id)
+          break
+        case 'girarIzquierda':
+          emit(depth, `Escribir "§girar ", -(${expr(step.deg)})`, id)
+          break
+        case 'irA':
+          emit(depth, `Escribir "§ir ", ${expr(step.x)}, " ", ${expr(step.y)}`, id)
+          break
+        case 'esperar':
+          emit(depth, `Escribir "§esperar ", ${expr(step.secs)}`, id)
+          break
         default:
           throw new Error(`Paso desconocido: ${step.type}`)
       }

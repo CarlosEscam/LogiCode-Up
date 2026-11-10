@@ -1,37 +1,43 @@
-import { useState } from 'react'
-import { change, contains, insert, move, remove } from '../games/blocks.js'
-import { STEP_TYPES, newStep } from './flow.js'
+import { change, contains, move, remove } from '../games/blocks.js'
+import { DRAG_TYPE, STEP_TYPES } from './flow.js'
 
-// Editor del árbol de pasos de DFD y Scratch. mode trae, por tipo de paso, el nombre del botón, la frase con sus
-// campos y los nombres de las ramas. Los pasos nuevos van al final de la rama elegida («agregar aquí»).
-export default function StepEditor({ mode, steps, onChange, errorId }) {
-  const [target, setTarget] = useState(null)
-  const tools = { mode, errorId, target, setTarget, onChange, steps }
+// Área del programa del emulador de Scratch: los bloques apilados bajo «al presionar ▶». target es la rama donde van los
+// bloques nuevos (null = el programa principal); onDropType(target, tipo) recibe un bloque soltado desde la paleta.
+export default function StepEditor({ mode, steps, onChange, errorId, target, onTarget, onDropType }) {
+  const tools = { mode, errorId, target, onTarget, onChange, steps, onDropType }
   return (
-    <div className={`step-editor step-editor--${mode.key}`}>
-      <p className="page__note">
-        Agregando en: <strong>{target ? branchName(mode, steps, target) : 'el programa principal'}</strong>{' '}
-        {target && (
-          <button type="button" className="button button--secondary button--small" onClick={() => setTarget(null)}>
-            Volver al principal
-          </button>
-        )}
-      </p>
-      <div className="toolbar" aria-label="Pasos disponibles">
-        {mode.palette.map((type) => (
-          <button
-            key={type}
-            type="button"
-            className={`button button--small step-button step--${mode.kinds[type]}`}
-            onClick={() => onChange(insert(steps, target, newStep(type)))}
-          >
-            + {mode.labels[type].button}
-          </button>
-        ))}
+    <div className={`step-editor step-editor--${mode.key}`} {...dropProps(null, onDropType)}>
+      <div className="step step--hat">
+        <span className="step__word">al presionar ▶</span>
       </div>
-      {steps.length === 0 ? <p>El programa está vacío. Agrega pasos con los botones.</p> : <StepList list={steps} {...tools} />}
+      {steps.length > 0 && <StepList list={steps} {...tools} />}
+      <button
+        type="button"
+        className={`step-editor__end${target ? '' : ' step-editor__end--target'}`}
+        aria-pressed={!target}
+        onClick={() => onTarget(null)}
+      >
+        {steps.length === 0 ? 'Arrastra aquí un bloque de la izquierda (o haz clic en él)' : 'Los bloques nuevos van al final del programa'}
+      </button>
     </div>
   )
+}
+
+// Soltar un bloque de la paleta en una rama (o en el programa principal si target es null).
+function dropProps(target, onDropType) {
+  if (!onDropType) return {}
+  return {
+    onDragOver: (event) => {
+      if (event.dataTransfer.types.includes(DRAG_TYPE)) event.preventDefault()
+    },
+    onDrop: (event) => {
+      const type = event.dataTransfer.getData(DRAG_TYPE)
+      if (!type) return
+      event.preventDefault()
+      event.stopPropagation()
+      onDropType(target, type)
+    },
+  }
 }
 
 function StepList({ list, ...tools }) {
@@ -45,7 +51,7 @@ function StepList({ list, ...tools }) {
 }
 
 function StepItem({ step, first, last, ...tools }) {
-  const { mode, errorId, onChange, steps, target, setTarget } = tools
+  const { mode, errorId, onChange, steps, target, onTarget, onDropType } = tools
   const label = mode.labels[step.type]
   const update = (values) => onChange(change(steps, step.id, values))
   const name = label.button
@@ -72,52 +78,38 @@ function StepItem({ step, first, last, ...tools }) {
           ),
         )}
         <span className="step__actions">
-          <button type="button" className="button button--secondary button--small" aria-label={`Subir ${name}`} disabled={first} onClick={() => onChange(move(steps, step.id, -1))}>
+          <button type="button" className="step__tool" aria-label={`Subir ${name}`} disabled={first} onClick={() => onChange(move(steps, step.id, -1))}>
             ↑
           </button>
-          <button type="button" className="button button--secondary button--small" aria-label={`Bajar ${name}`} disabled={last} onClick={() => onChange(move(steps, step.id, 1))}>
+          <button type="button" className="step__tool" aria-label={`Bajar ${name}`} disabled={last} onClick={() => onChange(move(steps, step.id, 1))}>
             ↓
           </button>
           <button
             type="button"
-            className="button button--danger button--small"
+            className="step__tool"
             aria-label={`Quitar ${name}`}
             onClick={() => {
               const next = remove(steps, step.id)
-              if (target && (target.id === step.id || !contains(next, target.id))) setTarget(null)
+              if (target && (target.id === step.id || !contains(next, target.id))) onTarget(null)
               onChange(next)
             }}
           >
-            Quitar
+            ✕
           </button>
         </span>
       </div>
       {STEP_TYPES[step.type].branches?.map((branch) => {
         const selected = target?.id === step.id && target.branch === branch
+        const where = { id: step.id, branch }
         return (
-          <div key={branch} className={`step__branch${selected ? ' step__branch--target' : ''}`}>
-            <button type="button" className="button button--secondary button--small" aria-pressed={selected} onClick={() => setTarget({ id: step.id, branch })}>
-              {label.branches[branch]}: agregar aquí
-            </button>
+          <div key={branch} className={`step__branch${selected ? ' step__branch--target' : ''}`} {...dropProps(where, onDropType)}>
             {step[branch].length > 0 && <StepList list={step[branch]} {...tools} />}
+            <button type="button" className="step__slot" aria-pressed={selected} onClick={() => onTarget(where)}>
+              {selected ? `Los bloques nuevos van aquí (${label.branches[branch]})` : `Poner bloques en «${label.branches[branch]}»`}
+            </button>
           </div>
         )
       })}
     </li>
   )
-}
-
-function branchName(mode, steps, target) {
-  const find = (list) => {
-    for (const step of list) {
-      if (step.id === target.id) return step
-      for (const branch of STEP_TYPES[step.type].branches ?? []) {
-        const inner = find(step[branch])
-        if (inner) return inner
-      }
-    }
-    return null
-  }
-  const step = find(steps)
-  return step ? `«${mode.labels[step.type].branches[target.branch]}» de ${mode.labels[step.type].button}` : 'el programa principal'
 }

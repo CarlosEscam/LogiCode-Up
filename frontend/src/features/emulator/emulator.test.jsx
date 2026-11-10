@@ -299,12 +299,30 @@ describe('Pestaña Emulador', () => {
     window.history.replaceState(null, '', '/emulador/scratch')
     const fetchMock = stubApi({ 'GET /api/v1/me': respond(200, STUDENT) })
     render(<App />)
-    fireEvent.click(await screen.findByRole('button', { name: '+ si … entonces' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Ejecutar' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Agregar bloque: si … entonces' }))
+    fireEvent.click(screen.getByRole('button', { name: '▶ Ejecutar' }))
     const result = await screen.findByRole('status', { name: 'Resultado de la ejecución' })
     expect(result).toHaveTextContent('✗ No compila')
     expect(result).toHaveTextContent('En «si entonces»: falta la condición.')
     expect(fetchMock.mock.calls.some(([url]) => url === '/api/v1/pseint/runs')).toBe(false)
+  })
+
+  it('en Scratch el personaje se mueve y dice lo que escribe el programa', async () => {
+    window.history.replaceState(null, '', '/emulador/scratch')
+    window.localStorage.setItem(
+      'logicode.emulador.scratch',
+      JSON.stringify({ herramienta: 'scratch', version: 1, pasos: [{ type: 'mover', steps: '50' }, { type: 'girarIzquierda', deg: '90' }, { type: 'mover', steps: '20' }, { type: 'escribir', expr: '"¡Llegué!"' }] }),
+    )
+    const fetchMock = stubApi({
+      'GET /api/v1/me': respond(200, STUDENT),
+      'POST /api/v1/pseint/runs': respond(200, { output: '§mover 50\n§girar -90\n§mover 20\n¡Llegué!\n', completed: true, errorKind: null, error: null, steps: 4, durationMs: 1 }),
+    })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: '▶ Ejecutar' }))
+    expect(await screen.findByRole('img', { name: 'Escenario: el personaje está en x 50, y 20, mirando a 0 grados y dice «¡Llegué!».' }, { timeout: 2000 })).toBeInTheDocument()
+    expect(screen.getByRole('log', { name: 'Consola de salida' }).textContent).not.toContain('§')
+    const body = JSON.parse(fetchMock.mock.calls.find(([url]) => url === '/api/v1/pseint/runs')[1].body)
+    expect(body.code).toContain('Escribir "§girar ", -(90)')
   })
 
   it('Arduino verifica el programa en el navegador y marca la línea del error', async () => {

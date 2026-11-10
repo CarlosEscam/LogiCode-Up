@@ -2795,3 +2795,357 @@ td .console {
   color: var(--color-ok);
   font-weight: 600;
 }
+
+/* Emulador de Scratch organizado como el editor de Scratch, con los colores de LogiCode y su personaje propio. */
+.scratch-ide {
+  --cat-motion: #1f7a8c;
+  --cat-looks: var(--color-primary);
+  --cat-sensing: #0f6fa8;
+  --cat-control: #9a4b05;
+  --cat-variables: #a8470a;
+  --cat-hat: var(--color-ok);
+  margin: 0.75rem 0 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.scratch-ide__bar {
+  padding: 0.6rem 0.75rem;
+  background: var(--color-band);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.scratch-ide__bar .file-bar,
+.scratch-ide__bar .file-bar .field {
+  margin: 0;
+}
+
+.scratch-ide__layout {
+  display: grid;
+  grid-template-columns: 5.5rem 15rem minmax(0, 1fr) minmax(16rem, 24rem);
+  min-height: 30rem;
+}
+
+@media (max-width: 1100px) {
+  .scratch-ide__layout {
+    grid-template-columns: 5.5rem 15rem minmax(0, 1fr);
+  }
+
+  .scratch-stage-column {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 760px) {
+  .scratch-ide__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scratch-categories {
+    display: flex;
+    overflow-x: auto;
+  }
+}
+
+.scratch-ide .step--motion { --cat: var(--cat-motion); }
+.scratch-ide .step--looks { --cat: var(--cat-looks); }
+.scratch-ide .step--sensing { --cat: var(--cat-sensing); }
+.scratch-ide .step--control { --cat: var(--cat-control); }
+.scratch-ide .step--variables { --cat: var(--cat-variables); }
+.scratch-ide .step--hat { --cat: var(--cat-hat); }
+
+.scratch-categories {
+  padding: 0.5rem 0.25rem;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.scratch-categories__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.4rem 0.2rem;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.scratch-categories__item:hover {
+  background: var(--color-band);
+  border-radius: 8px;
+}
+
+.scratch-categories__dot {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--cat);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px var(--cat);
+}
+
+.scratch-palette {
+  max-height: 40rem;
+  overflow-y: auto;
+  padding: 0 0.6rem 0.75rem;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+}
+
+.scratch-palette__title {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.scratch-palette ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+}
+
+.scratch-block {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--cat);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: grab;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 22%);
+}
+
+.scratch-block__pill {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text);
+  font-family: var(--font-code);
+  font-weight: 400;
+}
+
+.scratch-script {
+  min-width: 0;
+  max-height: 40rem;
+  overflow: auto;
+  padding: 0.75rem;
+  background: radial-gradient(circle, var(--color-band-strong) 1px, transparent 1px) 0 0 / 18px 18px, var(--color-surface);
+}
+
+.scratch-ide .step-editor {
+  min-height: 100%;
+}
+
+.scratch-ide .step-list {
+  margin: 0;
+}
+
+.scratch-ide .step {
+  margin: 0 0 2px;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--cat);
+  color: #fff;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 22%);
+}
+
+.scratch-ide .step--hat {
+  display: inline-block;
+  margin-bottom: 2px;
+  padding: 0.6rem 0.9rem 0.4rem;
+  border-radius: 18px 18px 6px 6px;
+  font-weight: 700;
+}
+
+.scratch-ide .step--error {
+  outline: 3px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+.scratch-ide .step__word {
+  font-weight: 600;
+}
+
+.scratch-ide .step__input {
+  border: none;
+  background: #fff;
+}
+
+.scratch-ide .step__branch {
+  margin: 0.35rem 0 0.2rem 0.8rem;
+  padding: 0.3rem;
+  border-left: none;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 92%);
+}
+
+.scratch-ide .step__branch--target {
+  outline: 2px dashed var(--color-ok);
+}
+
+.step__tool {
+  min-width: 1.6rem;
+  padding: 0.1rem 0.3rem;
+  border: none;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 25%);
+  color: inherit;
+  cursor: pointer;
+}
+
+.step__tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.step__slot,
+.step-editor__end {
+  display: block;
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px dashed var(--color-input);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.step__slot[aria-pressed='true'],
+.step-editor__end--target {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+  font-weight: 600;
+}
+
+.scratch-stage-column {
+  min-width: 0;
+  padding: 0.5rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.scratch-stage__bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.scratch-flag,
+.scratch-stop {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.scratch-flag {
+  background: var(--color-ok);
+  color: #fff;
+}
+
+.scratch-stop {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.scratch-flag:disabled,
+.scratch-stop:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.scratch-stage {
+  display: block;
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.scratch-stage__bg {
+  fill: #fdfbff;
+}
+
+.scratch-stage__floor {
+  stroke: var(--color-band-strong);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+
+.scratch-stage__bubble {
+  fill: #fff;
+  stroke: var(--color-input);
+  stroke-width: 1.5;
+}
+
+.scratch-stage__text {
+  font-size: 13px;
+  fill: var(--color-text);
+}
+
+.scratch-stage__info {
+  margin: 0.3rem 0 0.5rem;
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.scratch-stage-column .ide-console__screen {
+  min-height: 5rem;
+  max-height: 12rem;
+  border-radius: 8px;
+  background: var(--color-text);
+  color: #efe9f7;
+}
+
+.scratch-stage-column .ide-console__title {
+  padding: 0.3rem 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-eyebrow);
+}
+
+.scratch-stage-column .ide-console__typed {
+  color: #c9b6ee;
+}
+
+.scratch-stage-column .ide-console__input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid #c9b6ee;
+  background: transparent;
+  color: #efe9f7;
+  font: inherit;
+}
+
+/* Logi, el personaje de LogiCode en el escenario. */
+.logi__body { fill: var(--color-primary); stroke: #3d2766; stroke-width: 2; }
+.logi__screen { fill: #eee6f5; }
+.logi__eye { fill: var(--color-text); }
+.logi__smile { fill: none; stroke: var(--color-text); stroke-width: 2; stroke-linecap: round; }
+.logi__antenna { stroke: #3d2766; stroke-width: 3; }
+.logi__light { fill: #f2b84b; }
