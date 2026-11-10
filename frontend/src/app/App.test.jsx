@@ -47,6 +47,27 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/ingresar')
+    expect(new URLSearchParams(window.location.search).get('volver')).toBe('/mi-cuenta')
+  })
+
+  it('después de ingresar vuelve a la página que se pidió sin sesión', async () => {
+    window.history.replaceState(null, '', '/ingresar?volver=%2Fmi-cuenta')
+    let loggedIn = false
+    stubApi({
+      'GET /api/v1/me': () => (loggedIn ? respond(200, ADMIN) : respond(401, {})),
+      'POST /api/v1/auth/login': () => {
+        loggedIn = true
+        return respond(200, {})
+      },
+    })
+
+    render(<App />)
+    fireEvent.change(await screen.findByLabelText('Cédula'), { target: { value: '900001' } })
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Clave#2026' } })
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ingresar' })))
+
+    expect(await screen.findByRole('heading', { name: 'Mi cuenta' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/mi-cuenta')
   })
 
   it('inicia sesión y muestra solo las opciones que permite la cuenta', async () => {
@@ -65,11 +86,17 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Clave#2026' } })
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ingresar' })))
 
-    expect(await screen.findByRole('heading', { name: 'Mi cuenta' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Administración' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/admin')
     const nav = screen.getByRole('navigation', { name: 'Principal' })
-    expect(nav).toHaveTextContent('Usuarios')
-    expect(nav).toHaveTextContent('Auditoría')
-    expect(nav).not.toHaveTextContent('Habilitar estudiantes')
+    // Con el panel de administración, el menú tiene una sola opción; el panel lleva a Usuarios y Auditoría.
+    expect(nav).toHaveTextContent('Administración')
+    expect(nav).not.toHaveTextContent('Usuarios')
+    expect(nav).not.toHaveTextContent('Auditoría')
+    const panel = screen.getByRole('navigation', { name: 'Tareas administrativas' })
+    expect(panel).toHaveTextContent('Usuarios y docentes')
+    expect(panel).toHaveTextContent('Auditoría')
+    expect(panel).not.toHaveTextContent('Habilitar estudiantes')
   })
 
   it('muestra el error de la API cuando la contraseña es incorrecta', async () => {

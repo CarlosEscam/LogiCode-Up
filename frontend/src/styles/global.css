@@ -226,16 +226,19 @@ body {
     margin-left: auto;
   }
 
-  .topbar__who {
+  /* En el celular queda solo el nombre, que lleva a Mi cuenta. */
+  .topbar__role {
     display: none;
   }
 
-  /* En el celular el menú es una fila que se desliza de lado. */
+  /* En el celular el menú es una fila que se desliza de lado; el borde derecho se desvanece
+     para que se note que hay más opciones. */
   .topbar__nav {
     order: 3;
     flex: 1 0 100%;
     margin: 0 -1rem;
-    padding: 0.25rem 0.75rem 0.5rem;
+    padding: 0.25rem 2.5rem 0.5rem 0.75rem;
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
   }
 }
 
@@ -3149,3 +3152,22 @@ td .console {
 .logi__smile { fill: none; stroke: var(--color-text); stroke-width: 2; stroke-linecap: round; }
 .logi__antenna { stroke: #3d2766; stroke-width: 3; }
 .logi__light { fill: #f2b84b; }
+
+/* ---------- Usabilidad: grupos de actividades del estudiante ---------- */
+.activities__group {
+  margin: 1.25rem 0 0.25rem;
+  font: 600 0.8rem var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.home-pending {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.home-pending .card {
+  margin: 0;
+}

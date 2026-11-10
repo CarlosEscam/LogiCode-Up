@@ -12,6 +12,7 @@ import LoginPage from '../features/auth/LoginPage.jsx'
 import PasswordRecoveryPage from '../features/auth/PasswordRecoveryPage.jsx'
 import PasswordResetPage from '../features/auth/PasswordResetPage.jsx'
 import RegistrationPage from '../features/auth/RegistrationPage.jsx'
+import { landingFor } from '../features/auth/landing.js'
 import { SessionProvider } from '../features/auth/SessionProvider.jsx'
 import { useSession } from '../features/auth/useSession.js'
 import VerifyEmailPage from '../features/auth/VerifyEmailPage.jsx'
@@ -118,7 +119,10 @@ function Layout() {
             Foro
           </NavLink>
           {session.account &&
-            NAV.filter((item) => item.to !== '/cursos' && item.access.some(session.can)).map((item) => (
+            NAV.filter((item) => item.to !== '/cursos' && item.access.some(session.can))
+              // Quien entra al panel de administración llega desde allí a las demás páginas: una sola opción en el menú.
+              .filter((item, _, items) => item.to === '/admin' || !items.some((other) => other.to === '/admin'))
+              .map((item) => (
               <NavLink key={item.to} to={item.to} icon={item.icon} current={path === item.to || path.startsWith(`${item.to}/`)}>
                 {item.label}
               </NavLink>
@@ -128,7 +132,8 @@ function Layout() {
           {session.account ? (
             <>
               <Link to="/mi-cuenta" className="topbar__who" aria-current={path === '/mi-cuenta' ? 'page' : undefined}>
-                <strong>{session.account.fullName.split(' ')[0]}</strong> · {roleLabel(session.account.role)}
+                <strong>{session.account.fullName.split(' ')[0]}</strong>
+                <span className="topbar__role"> · {roleLabel(session.account.role)}</span>
               </Link>
               <button
                 type="button"
@@ -198,9 +203,9 @@ function Route({ path, session }) {
   if (session.status === 'loading') return <p role="status">Cargando…</p>
 
   if (route.access === 'guest') {
-    return session.account ? <Redirect to="/mi-cuenta" /> : route.render(params)
+    return session.account ? <Redirect to={landingFor(session.account, new URLSearchParams(window.location.search).get('volver'))} /> : route.render(params)
   }
-  if (!session.account) return <Redirect to="/ingresar" />
+  if (!session.account) return <Redirect to={`/ingresar?volver=${encodeURIComponent(path + window.location.search)}`} />
   if (Array.isArray(route.access) && !route.access.some(session.can)) {
     return (
       <section className="card">

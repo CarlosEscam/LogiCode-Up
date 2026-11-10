@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
-import { fromBogotaInput, toBogotaInput } from './labels.js'
+import { fromBogotaInput, timeLeft, toBogotaInput } from './labels.js'
 
 const STUDENT = {
   id: 's1',
@@ -97,6 +97,7 @@ describe('Actividades y entregas', () => {
         { ...ACTIVITY, progress: { ...ACTIVITY.progress, state: 'SUBMITTED', canSubmit: false, attemptsUsed: 1 } },
         { ...ACTIVITY, id: 'a2', title: 'Ciclos', progress: { ...ACTIVITY.progress, state: 'OVERDUE', canSubmit: false } },
         { ...ACTIVITY, id: 'a3', title: 'Foto del cuaderno', progress: { ...ACTIVITY.progress, state: 'SUBMITTED', canSubmit: false, attemptsUsed: 1 } },
+        { ...ACTIVITY, id: 'a4', title: 'Tabla de multiplicar', progress: { ...ACTIVITY.progress, deadline: new Date(Date.now() + 3 * 864e5 + 6e4).toISOString() } },
       ]),
       'GET /api/v1/courses/c1/grades/mine': respond(200, [
         { activityId: 'a1', submissionId: 'e1', attempt: 1, status: 'PUBLISHED', score: 4, feedback: 'Bien', gradedAt: '2026-10-09T15:00:00Z' },
@@ -107,6 +108,10 @@ describe('Actividades y entregas', () => {
     render(<App />)
 
     expect(await screen.findByText('Calificada: 4,0')).toBeInTheDocument()
+    // Lo que aún se puede entregar va primero, con el tiempo que queda.
+    const titles = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+    expect(titles.slice(0, 3)).toEqual(['Por hacer', 'Tabla de multiplicar', 'Las demás'])
+    expect(screen.getByText('Pendiente · faltan 3 días')).toBeInTheDocument()
     expect(screen.getByText('Vencida sin entrega: 0,0')).toBeInTheDocument()
     expect(screen.getByText('Entregada, calificando con IA')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Actividades' })).toHaveAttribute('aria-selected', 'true')
@@ -323,5 +328,17 @@ describe('Actividades y entregas', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar con IA' }))
     await vi.waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/ai-retry'))).toBe(true))
+  })
+})
+
+describe('timeLeft', () => {
+  const now = Date.parse('2026-11-10T12:00:00Z')
+  it('dice en palabras cuánto falta para el cierre', () => {
+    expect(timeLeft('2026-11-10T12:30:00Z', now)).toBe('cierra en menos de una hora')
+    expect(timeLeft('2026-11-10T17:00:00Z', now)).toBe('cierra en 5 h')
+    expect(timeLeft('2026-11-11T13:00:00Z', now)).toBe('falta 1 día')
+    expect(timeLeft('2026-11-14T12:00:00Z', now)).toBe('faltan 4 días')
+    expect(timeLeft('2026-11-09T12:00:00Z', now)).toBeNull()
+    expect(timeLeft(null, now)).toBeNull()
   })
 })

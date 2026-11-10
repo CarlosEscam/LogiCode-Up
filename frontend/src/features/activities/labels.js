@@ -85,7 +85,18 @@ export function studentSituation(progress, grade) {
   if (progress.state === 'OVERDUE') return { label: 'Vencida sin entrega: 0,0', tone: 'danger' }
   if (progress.state === 'NOT_OPEN') return { label: 'Aún no abre', tone: 'muted' }
   if (progress.state === 'CLOSED') return { label: 'Cerrado', tone: 'muted' }
-  return { label: 'Pendiente', tone: 'warning' }
+  const left = timeLeft(progress.deadline)
+  return { label: left ? `Pendiente · ${left}` : 'Pendiente', tone: 'warning' }
+}
+
+// Tiempo que queda para entregar, en palabras: "faltan 3 días", "cierra en 5 h".
+export function timeLeft(deadline, now = Date.now()) {
+  const hours = (new Date(deadline) - now) / 36e5
+  if (!(hours >= 0)) return null
+  if (hours < 1) return 'cierra en menos de una hora'
+  if (hours < 24) return `cierra en ${Math.floor(hours)} h`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? 'falta 1 día' : `faltan ${days} días`
 }
 
 export function formatScore(score) {

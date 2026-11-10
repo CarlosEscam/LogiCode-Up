@@ -16,11 +16,11 @@ El privilegio completo no es un rol: es una marca que solo tienen las dos cuenta
 
 ## 2. Menú
 
-La barra superior tiene iconos y muestra solo lo que tu cuenta puede usar: **Inicio, Cursos, Biblioteca, Juegos, PSeInt, Foro, Administración, Usuarios, Habilitar estudiantes, Auditoría**. En el celular la barra se desliza de lado.
+Al ingresar llegas al panel de **Administración**. La barra superior tiene iconos y muestra solo lo que tu cuenta puede usar: **Inicio, Cursos, Biblioteca, Juegos, Emulador, Foro** y **Administración**. Usuarios, Habilitar estudiantes y Auditoría se abren desde el panel, y cada una tiene arriba el enlace **Administración** para volver. En el celular la barra se desliza de lado; el borde derecho se desvanece cuando hay más opciones.
 
 ## 3. Panel de administración
 
-**Administración** (`/admin`) muestra accesos rápidos (**Usuarios y docentes, Habilitar estudiantes, Auditoría, Biblioteca, Foro**) y las cifras de la plataforma:
+**Administración** (`/admin`) muestra accesos rápidos (**Usuarios y docentes, Habilitar estudiantes, Auditoría, Biblioteca, Foro**) y las cifras de la plataforma. **Docentes por aprobar**, **Administradores** y **Cuentas desactivadas** son enlaces: abren Usuarios ya filtrado.
 
 | Cifra | Qué cuenta |
 | --- | --- |

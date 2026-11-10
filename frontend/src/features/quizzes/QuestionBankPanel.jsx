@@ -69,7 +69,7 @@ function BankQuestion({ question, canManage, onChanged }) {
               {editing ? 'Cancelar' : 'Editar'}
             </button>
           )}
-          <button type="button" className="button button--danger button--small" disabled={archive.pending} onClick={() => archive.submit()}>
+          <button type="button" className="button button--danger button--small" disabled={archive.pending} onClick={() => window.confirm('¿Archivar esta pregunta? Los quizzes ya no podrán elegirla.') && archive.submit()}>
             Archivar
           </button>
         </div>

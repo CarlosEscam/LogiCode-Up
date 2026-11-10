@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AdminCrumb } from './AdminCrumb.jsx'
 import { apiPost, apiUpload } from '../../shared/api/httpClient.js'
 import { Pager } from '../../shared/ui/Pager.jsx'
 import { usePagedQuery } from '../../shared/api/usePagedQuery.js'
@@ -34,6 +35,7 @@ export default function EnablementsPage() {
   return (
     <>
       <section className="card" aria-labelledby="habilitar-titulo">
+        <AdminCrumb />
         <h1 id="habilitar-titulo">Habilitar estudiantes</h1>
         <form onSubmit={single.submit} noValidate className="form-row">
           <Field label="Cédula" name="cedula" inputMode="numeric" required error={single.fieldErrors.cedula} />

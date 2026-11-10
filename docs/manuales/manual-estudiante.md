@@ -13,13 +13,13 @@ Tu docente te da la dirección de LogiCode (por ejemplo `https://192.168.1.50`) 
 1. En la página de inicio, pulsa **Registrarme como estudiante**.
 2. Escribe tu cédula, tu nombre completo, tu correo y una contraseña de **mínimo 8 caracteres con al menos un número y un carácter especial** (por ejemplo `#`, `*` o `!`).
 3. Revisa tu correo y abre el enlace **Confirmar correo** (vence en 24 horas). Confirmarlo es lo que te permite recuperar la contraseña si la olvidas.
-4. Pulsa **Iniciar sesión** (arriba a la derecha), escribe tu **cédula** y tu contraseña y pulsa **Ingresar**.
+4. Pulsa **Iniciar sesión** (arriba a la derecha), escribe tu **cédula** y tu contraseña y pulsa **Ingresar**. Llegas a **Cursos**; si abriste un enlace sin haber iniciado sesión (por ejemplo, una actividad), vuelves a ese enlace.
 
 Si dice que tu cédula no está habilitada, pídele a tu docente que la agregue al curso.
 
 ## 2. Tu cuenta
 
-La barra superior tiene un icono por opción: **Inicio, Cursos, Biblioteca, Juegos, PSeInt** y **Foro**. En el celular se desliza de lado para ver todas.
+La barra superior tiene un icono por opción: **Inicio, Cursos, Biblioteca, Juegos, Emulador** y **Foro**. En el celular se desliza de lado para ver todas. Con sesión, **Inicio** muestra **Tus pendientes**: las actividades que aún puedes entregar en cada curso y cuánto falta para el cierre.
 
 En el menú, tu nombre abre **Mi cuenta**: ahí ves tus datos y lo que puedes hacer, reenvías el correo de verificación y cambias tu contraseña. **Al cambiarla se cierran todas tus sesiones**, también las del celular.
 
@@ -34,7 +34,7 @@ En el menú, tu nombre abre **Mi cuenta**: ahí ves tus datos y lo que puedes ha
 | Sección | Qué hay |
 | --- | --- |
 | **Temas** | Los temas de PSeInt, DFD, Scratch y Arduino con sus materiales. El tema marcado **Próxima clase** va primero. "Ver" abre el material en la página (PDF, imágenes, video); "Descargar" lo guarda |
-| **Actividades** | Tareas, talleres, evaluaciones y quizzes con su cierre, su porcentaje y en qué vas |
+| **Actividades** | Tareas, talleres, evaluaciones y quizzes con su cierre, su porcentaje y en qué vas. Arriba, en **Por hacer**, van las que aún puedes entregar, con el tiempo que queda ("faltan 3 días") |
 | **Mis notas** | Tus notas, tu avance parcial y tu nota definitiva |
 
 La **Biblioteca** del menú tiene los materiales públicos, que cualquiera puede ver sin cuenta.

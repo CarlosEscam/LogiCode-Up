@@ -3,6 +3,7 @@ import { navigate, useLocation } from '../../shared/router/router.js'
 import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
 import { BrainMascot } from '../games/skins.jsx'
+import { landingFor } from './landing.js'
 import { useSession } from './useSession.js'
 
 export default function LoginPage() {
@@ -11,8 +12,8 @@ export default function LoginPage() {
   const passwordChanged = query.get('motivo') === 'contrasena-cambiada'
   const { pending, error, submit } = useSubmit(async (event) => {
     const { cedula, password } = formValues(event)
-    await login(cedula.trim(), password)
-    navigate('/mi-cuenta', { replace: true })
+    const account = await login(cedula.trim(), password)
+    navigate(landingFor(account, query.get('volver')), { replace: true })
   })
 
   return (

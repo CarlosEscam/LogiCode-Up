@@ -177,7 +177,7 @@ function MaterialRow({ material, run, isFirst, isLast, onMove }) {
         {material.description && <p className="material__description">{material.description}</p>}
       </div>
       <div className="material__actions">
-        <MaterialLinks material={material} />
+        <MaterialLinks material={material} fromCourse />
         {material.canEdit && (
           <>
             <button

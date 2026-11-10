@@ -1,5 +1,6 @@
 import { useQuery } from '../../shared/api/usePagedQuery.js'
 import { Link } from '../../shared/router/Link.jsx'
+import { useLocation } from '../../shared/router/router.js'
 import { FormStatus } from '../../shared/ui/forms.jsx'
 import { KIND_LABELS, TOOL_LABELS, VISIBILITY_LABELS, downloadUrl, formatSize, previewUrl } from './labels.js'
 import { MaterialLinks } from './MaterialLinks.jsx'
@@ -7,6 +8,7 @@ import { MaterialLinks } from './MaterialLinks.jsx'
 // Detalle de un material con vista en página para PDF, imágenes y videos (RF-25).
 export default function MaterialPage({ id }) {
   const material = useQuery(`/materials/${id}`)
+  const fromCourse = useLocation().query.get('desde') === 'curso'
 
   if (material.status === 'loading') return <p role="status">Cargando…</p>
   if (material.status === 'error') {
@@ -25,7 +27,12 @@ export default function MaterialPage({ id }) {
   return (
     <section className="card card--wide" aria-labelledby="material-titulo">
       <p className="page__note">
-        <Link to="/biblioteca">Biblioteca</Link> · {TOOL_LABELS[item.tool]} · {item.topicTitle}
+        {fromCourse && item.courseId ? (
+          <Link to={`/cursos/${item.courseId}`}>{item.courseName}</Link>
+        ) : (
+          <Link to="/biblioteca">Biblioteca</Link>
+        )}{' '}
+        · {TOOL_LABELS[item.tool]} · {item.topicTitle}
       </p>
       <h1 id="material-titulo">{item.title}</h1>
       <p className="material__meta">

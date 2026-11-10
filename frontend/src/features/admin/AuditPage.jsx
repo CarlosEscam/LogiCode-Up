@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AdminCrumb } from './AdminCrumb.jsx'
 import { Pager } from '../../shared/ui/Pager.jsx'
 import { usePagedQuery } from '../../shared/api/usePagedQuery.js'
 import { FormStatus } from '../../shared/ui/forms.jsx'
@@ -35,6 +36,7 @@ export default function AuditPage() {
 
   return (
     <section className="card card--wide" aria-labelledby="auditoria-titulo">
+      <AdminCrumb />
       <h1 id="auditoria-titulo">Auditoría</h1>
       <FormStatus error={events.error} />
       <div className="table-wrap" tabIndex={0}>

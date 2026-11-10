@@ -1,5 +1,7 @@
 import SystemStatus from '../features/system/SystemStatus.jsx'
+import { formatDateTime, timeLeft } from '../features/activities/labels.js'
 import { useSession } from '../features/auth/useSession.js'
+import { useQuery } from '../shared/api/usePagedQuery.js'
 import { BrainMascot } from '../features/games/skins.jsx'
 import { Link } from '../shared/router/Link.jsx'
 import { Icon } from '../shared/ui/Icon.jsx'
@@ -7,7 +9,7 @@ import { Icon } from '../shared/ui/Icon.jsx'
 // Página de inicio (RF-23): misión, visión y explicación de la plataforma.
 // La misión y la visión se redactaron con el propósito de la especificación; el equipo puede ajustar el texto aquí.
 export default function HomePage() {
-  const { account } = useSession()
+  const { account, can } = useSession()
 
   return (
     <>
@@ -64,6 +66,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {can('ANSWER_ACTIVITIES') && <MyPending />}
 
       <section aria-labelledby="como-titulo" className="home-section">
         <h2 id="como-titulo">Qué puedes hacer</h2>
@@ -133,10 +137,54 @@ export default function HomePage() {
         </section>
       </div>
 
-      <section aria-labelledby="estado-titulo" className="home-status">
-        <h2 id="estado-titulo">Estado de la plataforma</h2>
-        <SystemStatus />
-      </section>
+      {/* Dato técnico: lo ven los visitantes (para revisar la instalación) y los administradores. */}
+      {(!account || can('MANAGE_USERS')) && (
+        <section aria-labelledby="estado-titulo" className="home-status">
+          <h2 id="estado-titulo">Estado de la plataforma</h2>
+          <SystemStatus />
+        </section>
+      )}
     </>
+  )
+}
+
+// Actividades que el estudiante aún puede entregar, curso por curso.
+function MyPending() {
+  const courses = useQuery('/courses')
+  if (!courses.data?.length) return null
+  return (
+    <section aria-labelledby="pendientes-titulo" className="home-section">
+      <h2 id="pendientes-titulo">Tus pendientes</h2>
+      <div className="home-pending">
+        {courses.data.map((course) => (
+          <CoursePending key={course.id} course={course} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CoursePending({ course }) {
+  const activities = useQuery(`/courses/${course.id}/activities`)
+  const todo = (activities.data ?? []).filter((activity) => activity.progress?.state === 'OPEN')
+  return (
+    <section className="card" aria-label={course.name}>
+      <h3 className="material__title">
+        <Link to={`/cursos/${course.id}?seccion=actividades`}>{course.name}</Link>
+      </h3>
+      {activities.data && todo.length === 0 && <p className="page__note">Nada pendiente en este curso.</p>}
+      {todo.length > 0 && (
+        <ul className="links">
+          {todo.map((activity) => (
+            <li key={activity.id}>
+              <Link to={`/actividades/${activity.id}`}>{activity.title}</Link>{' '}
+              <span className="material__meta">
+                · {timeLeft(activity.progress.deadline) ?? `cierra ${formatDateTime(activity.progress.deadline)}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

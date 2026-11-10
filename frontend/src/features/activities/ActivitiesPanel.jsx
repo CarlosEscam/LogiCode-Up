@@ -14,6 +14,10 @@ export default function ActivitiesPanel({ course }) {
   const activities = useQuery(`/courses/${course.id}/activities`)
   const grades = useQuery(course.enrolled ? `/courses/${course.id}/grades/mine` : null)
   const gradeByActivity = Object.fromEntries((grades.data ?? []).map((grade) => [grade.activityId, grade]))
+  // El estudiante ve primero lo que aún puede entregar (ya vienen por fecha de cierre).
+  const all = activities.data ?? []
+  const todo = all.filter((activity) => activity.progress?.state === 'OPEN')
+  const rest = all.filter((activity) => !todo.includes(activity))
 
   return (
     <>
@@ -22,16 +26,27 @@ export default function ActivitiesPanel({ course }) {
         <FormStatus error={activities.error} />
         {activities.status === 'loading' && !activities.data && <p role="status">Cargando…</p>}
         {activities.data?.length === 0 && <p>Este curso aún no tiene actividades.</p>}
-        {activities.data?.length > 0 && (
-          <ul className="materials">
-            {activities.data.map((activity) => (
-              <ActivityRow key={activity.id} activity={activity} grade={gradeByActivity[activity.id]} enrolledCount={course.enrolledCount} />
-            ))}
-          </ul>
+        {todo.length > 0 && (
+          <>
+            <h3 className="activities__group">Por hacer</h3>
+            <ActivityList activities={todo} grades={gradeByActivity} enrolledCount={course.enrolledCount} />
+            {rest.length > 0 && <h3 className="activities__group">Las demás</h3>}
+          </>
         )}
+        {rest.length > 0 && <ActivityList activities={rest} grades={gradeByActivity} enrolledCount={course.enrolledCount} />}
       </section>
       {course.canManageContent && <NewActivity courseId={course.id} />}
     </>
+  )
+}
+
+function ActivityList({ activities, grades, enrolledCount }) {
+  return (
+    <ul className="materials">
+      {activities.map((activity) => (
+        <ActivityRow key={activity.id} activity={activity} grade={grades[activity.id]} enrolledCount={enrolledCount} />
+      ))}
+    </ul>
   )
 }
 

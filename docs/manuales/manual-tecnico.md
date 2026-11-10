@@ -54,7 +54,7 @@ Menú **Administración** (cuentas Administrador). Paso a paso en el [manual del
 | Tarea | Comando o lugar |
 | --- | --- |
 | Arrancar | `docker compose up -d --wait` (con IA: `docker compose --profile ia up -d --wait`) |
-| Estado | `docker compose ps` (todos `healthy`); página de inicio → "Estado de la plataforma"; `http://localhost:8080/actuator/health` en el equipo servidor (`BACKEND_PORT`) |
+| Estado | `docker compose ps` (todos `healthy`); página de inicio → "Estado de la plataforma" (se ve sin sesión o con una cuenta de administrador); `http://localhost:8080/actuator/health` en el equipo servidor (`BACKEND_PORT`) |
 | Detener sin borrar nada | `docker compose stop` o `docker compose down` |
 | Logs | `docker compose logs backend --since 1h`. Cada solicitud deja una línea con su `X-Request-Id` ([calidad.md](../calidad.md#observabilidad)) |
 | Métricas | `http://localhost:8080/actuator/metrics/...`, solo desde el equipo servidor |

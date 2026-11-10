@@ -31,9 +31,9 @@ export default function AdminPanelPage() {
           <dl className="overview">
             <Figure label="Estudiantes activos" value={data.activeStudents} />
             <Figure label="Docentes activos" value={data.activeTeachers} />
-            <Figure label="Docentes por aprobar" value={data.pendingTeachers} />
-            <Figure label="Administradores" value={data.activeAdmins} />
-            <Figure label="Cuentas desactivadas" value={data.disabledAccounts} />
+            <Figure label="Docentes por aprobar" value={data.pendingTeachers} to="/admin/usuarios?rol=TEACHER&estado=PENDING_APPROVAL" />
+            <Figure label="Administradores" value={data.activeAdmins} to="/admin/usuarios?rol=ADMIN" />
+            <Figure label="Cuentas desactivadas" value={data.disabledAccounts} to="/admin/usuarios?estado=DISABLED" />
             <Figure label="Cursos" value={data.courses} />
             <Figure label="Actividades publicadas" value={data.publishedActivities} />
             <Figure label="Entregas" value={data.submissions} />
@@ -52,11 +52,11 @@ export default function AdminPanelPage() {
   )
 }
 
-function Figure({ label, value }) {
+function Figure({ label, value, to }) {
   return (
     <div>
       <dt>{label}</dt>
-      <dd>{value}</dd>
+      <dd>{to && value > 0 ? <Link to={to}>{value}</Link> : value}</dd>
     </div>
   )
 }

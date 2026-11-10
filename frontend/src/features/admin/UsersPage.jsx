@@ -5,10 +5,14 @@ import { usePagedQuery } from '../../shared/api/usePagedQuery.js'
 import { FormStatus } from '../../shared/ui/forms.jsx'
 import { ROLE_LABELS, STATUS_LABELS, roleLabel } from '../account/labels.js'
 import { useSession } from '../auth/useSession.js'
+import { useLocation } from '../../shared/router/router.js'
+import { AdminCrumb } from './AdminCrumb.jsx'
 
 export default function UsersPage() {
   const { account, can } = useSession()
-  const [filters, setFilters] = useState({ q: '', role: '', status: '', page: 0 })
+  const { query } = useLocation()
+  // ?rol=…&estado=… llega desde las cifras del panel de administración.
+  const [filters, setFilters] = useState(() => ({ q: '', role: query.get('rol') ?? '', status: query.get('estado') ?? '', page: 0 }))
   const [search, setSearch] = useState('')
   const [feedback, setFeedback] = useState({ error: null, success: null })
   const users = usePagedQuery('/admin/users', { ...filters, size: 20 })
@@ -30,6 +34,7 @@ export default function UsersPage() {
 
   return (
     <section className="card card--wide" aria-labelledby="usuarios-titulo">
+      <AdminCrumb />
       <h1 id="usuarios-titulo">Usuarios</h1>
       <form
         className="filters"
@@ -128,6 +133,7 @@ export default function UsersPage() {
                         type="button"
                         className="button button--small button--danger"
                         onClick={() =>
+                          window.confirm(`¿Desactivar la cuenta de ${user.fullName}? No podrá ingresar hasta que la actives de nuevo.`) &&
                           run(() => apiPatch(`/admin/users/${user.id}/status`, { status: 'DISABLED' }), 'Cuenta desactivada.')
                         }
                       >
