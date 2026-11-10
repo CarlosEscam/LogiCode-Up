@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { compileArduino, simulate } from './arduino.js'
 import { checkFlow, newStep, parseProject, projectText, toPseint } from './flow.js'
-import PseintHighlight from './highlight.jsx'
+import PseintHighlight, { ArduinoHighlight } from './highlight.jsx'
 
 const STUDENT = {
   id: 's1',
@@ -162,6 +162,22 @@ describe('Colores de PSeInt', () => {
     expect(kinds('comment')).toEqual(['// dato'])
     expect(kinds('function')).toEqual(['RC'])
   })
+
+  it('pinta el código de Arduino: directivas, tipos, funciones de la placa y constantes', () => {
+    const code = '#define LED 13\n/* parpadeo */\nvoid setup() { pinMode(LED, OUTPUT); Serial.println("hola"); }'
+    const { container } = render(
+      <pre>
+        <ArduinoHighlight text={code} />
+      </pre>,
+    )
+    expect(container.textContent).toBe(code)
+    const kinds = (kind) => [...container.querySelectorAll(`.tok--${kind}`)].map((node) => node.textContent)
+    expect(kinds('keyword')).toEqual(['#define LED 13', 'void'])
+    expect(kinds('comment')).toEqual(['/* parpadeo */'])
+    expect(kinds('function')).toEqual(['setup', 'pinMode', 'Serial', 'println'])
+    expect(kinds('number')).toEqual(['OUTPUT'])
+    expect(kinds('string')).toEqual(['"hola"'])
+  })
 })
 
 describe('Programa de DFD y Scratch', () => {
@@ -292,16 +308,18 @@ describe('Pestaña Emulador', () => {
           ].join('\n'),
         },
       })
-      fireEvent.click(screen.getByRole('button', { name: '▶ Ejecutar' }))
+      fireEvent.click(screen.getByRole('button', { name: '→ Ejecutar' }))
       await act(async () => vi.advanceTimersByTime(300))
       expect(screen.getByRole('img', { name: 'LED del pin 13: HIGH (encendido)' })).toBeInTheDocument()
       await act(async () => vi.advanceTimersByTime(1000))
-      expect(screen.getByLabelText('Monitor Serie')).toHaveTextContent('suelto')
+      expect(screen.getByLabelText('Mensajes de la placa')).toHaveTextContent('suelto')
       fireEvent.click(screen.getByRole('button', { name: 'Presionar botón' }))
       await act(async () => vi.advanceTimersByTime(1000))
-      expect(screen.getByLabelText('Monitor Serie').textContent).toBe('suelto\npresionado\n')
+      expect(screen.getByLabelText('Mensajes de la placa').textContent).toBe('suelto\npresionado\n')
       fireEvent.click(screen.getByRole('button', { name: '■ Detener' }))
+      fireEvent.click(screen.getByRole('tab', { name: 'Salida' }))
       expect(screen.getByRole('status', { name: 'Resultado' })).toHaveTextContent('Ejecución detenida')
+      expect(screen.getByRole('status', { name: 'Resultado' })).toHaveTextContent('Compilación terminada: 2 funciones y 0 variables globales.')
     } finally {
       vi.useRealTimers()
     }

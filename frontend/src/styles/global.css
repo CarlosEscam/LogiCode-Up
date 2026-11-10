@@ -2146,7 +2146,7 @@ td .console {
   padding: 0.75rem;
   margin: 0 0 1rem;
   border-radius: 12px;
-  background: #0f5e6e;
+  background: var(--color-text);
   color: #fff;
 }
 
@@ -2170,7 +2170,7 @@ td .console {
 }
 
 .arduino-pin .page__note {
-  color: #d6eef2;
+  color: #d9cdeb;
 }
 
 .arduino-led {
@@ -2642,4 +2642,128 @@ td .console {
 .dfd__slot--armed .dfd__slot-plus,
 .dfd__slot--over .dfd__slot-plus {
   stroke: #fff;
+}
+
+/* Emulador de Arduino con aspecto del editor web de Arduino (usa la base .ide) y colores de LogiCode. */
+.arduino-ide__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.arduino-ide__round {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arduino-ide__round:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.arduino-ide__round--go {
+  border-color: var(--color-ok);
+  background: var(--color-ok);
+  color: #fff;
+}
+
+.arduino-ide__round--stop {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.arduino-ide__round:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.arduino-ide__board {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.arduino-ide__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-input);
+}
+
+.arduino-ide__dot[data-on] {
+  background: var(--color-ok);
+  box-shadow: 0 0 6px var(--color-ok);
+}
+
+.arduino-ide .arduino-board {
+  display: block;
+  margin: 0;
+  min-width: 0;
+}
+
+.arduino-board__time {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.arduino-board__empty {
+  padding: 0.75rem;
+}
+
+.arduino-ide .arduino-pins {
+  margin: 0.75rem;
+}
+
+.arduino-board__pot {
+  margin: 0.5rem 0.75rem;
+}
+
+.arduino-ide__bottom {
+  border-top: 1px solid var(--color-border);
+}
+
+.arduino-ide__tabs {
+  margin: 0;
+  padding: 0 0.75rem;
+  background: var(--color-band);
+}
+
+.arduino-ide__output {
+  padding: 0.5rem 0.75rem;
+  min-height: 6rem;
+}
+
+.arduino-ide .arduino-serial {
+  margin: 0;
+  border-radius: 0;
+  min-height: 8rem;
+  max-height: 14rem;
+}
+
+.arduino-ide__send {
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.arduino-ide__send input {
+  flex: 1;
+  min-width: 10rem;
+  padding: 0.35rem 0.6rem;
+  border: 1.5px solid var(--color-input);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
