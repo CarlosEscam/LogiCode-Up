@@ -46,3 +46,7 @@ certificados/
 
 # Resultados de la CI local (ci/ci-local.mjs)
 ci/resultados/
+
+# Configuración local de Codex (no se sube)
+.codex/
+AGENTS.md
