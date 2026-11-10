@@ -166,28 +166,28 @@ describe('Quizzes', () => {
 })
 
 describe('PSeInt', () => {
-  it('ejecuta el programa con las entradas y muestra la salida y el error', async () => {
+  it('en el Emulador, Leer pide el dato en la consola y luego muestra la salida y el error', async () => {
     window.history.replaceState(null, '', '/pseint')
+    const run = (output, error) => respond(200, { output, completed: false, errorKind: 'RUNTIME', error, steps: 4, durationMs: 1 })
     const fetchMock = stubApi({
       'GET /api/v1/me': respond(200, STUDENT),
-      'POST /api/v1/pseint/runs': respond(200, {
-        output: 'Hola, Ana\n',
-        completed: false,
-        errorKind: 'RUNTIME',
-        error: 'Línea 5: división por cero.',
-        steps: 4,
-        durationMs: 1,
-      }),
+      'POST /api/v1/pseint/runs': (url, options) =>
+        JSON.parse(options.body).input === ''
+          ? run('¿Cómo te llamas?\n', 'Línea 4: faltan datos de entrada para «Leer nombre».')
+          : run('¿Cómo te llamas?\nHola, Ana\n', 'Línea 5: división por cero.'),
     })
     render(<App />)
 
-    fireEvent.change(await screen.findByLabelText('Entradas para probar (una por línea)'), { target: { value: 'Ana' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Ejecutar' }))
-    const result = await screen.findByRole('status', { name: 'Resultado de la ejecución' })
-    expect(result).toHaveTextContent('Hola, Ana')
-    expect(result).toHaveTextContent('Error al ejecutar: Línea 5: división por cero.')
-    const call = fetchMock.mock.calls.find(([url]) => url === '/api/v1/pseint/runs')
-    expect(JSON.parse(call[1].body)).toMatchObject({ input: 'Ana', code: expect.stringContaining('Algoritmo Saludo') })
+    fireEvent.click(await screen.findByRole('button', { name: '▶ Ejecutar' }))
+    fireEvent.change(await screen.findByLabelText('> Dato para Leer'), { target: { value: 'Ana' } })
+    fireEvent.submit(screen.getByLabelText('> Dato para Leer').closest('form'))
+    const result = await screen.findByText(/Error al ejecutar:/)
+    expect(result.closest('[role=status]')).toHaveTextContent('Error al ejecutar: Línea 5: división por cero.')
+    expect(screen.getByRole('log', { name: 'Consola de salida' }).textContent).toContain('¿Cómo te llamas?\nAna\nHola, Ana\n')
+    expect(screen.getByText('Línea 5', { exact: false, selector: '.field__hint' })).toHaveTextContent('El error está en la línea 5.')
+    const calls = fetchMock.mock.calls.filter(([url]) => url === '/api/v1/pseint/runs').map(([, options]) => JSON.parse(options.body))
+    expect(calls.map((body) => body.input)).toEqual(['', 'Ana'])
+    expect(calls[0].code).toContain('Algoritmo Saludo')
   })
 
   it('el docente guarda casos de prueba en la rúbrica y los vuelve a ejecutar en una entrega', async () => {

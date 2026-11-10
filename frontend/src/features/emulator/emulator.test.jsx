@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../app/App.jsx'
 import { compileArduino, simulate } from './arduino.js'
 import { checkFlow, newStep, parseProject, projectText, toPseint } from './flow.js'
+import PseintHighlight from './highlight.jsx'
 
 const STUDENT = {
   id: 's1',
@@ -139,6 +140,24 @@ void loop() {
     // Un ciclo sin fin solo gasta los pasos permitidos.
     const { machine } = simulate('void setup() { while (true) {} }\nvoid loop() {}', 1000, { maxSteps: 10000 })
     expect(machine.steps).toBeGreaterThanOrEqual(10000)
+  })
+})
+
+describe('Colores de PSeInt', () => {
+  it('pinta palabras clave, textos, números y comentarios sin cambiar el texto', () => {
+    const code = 'Algoritmo A\n    Leer n // dato\n    Escribir "Doble: ", n * 2, RC(9)\nFinAlgoritmo'
+    const { container } = render(
+      <pre>
+        <PseintHighlight text={code} />
+      </pre>,
+    )
+    expect(container.textContent).toBe(code)
+    const kinds = (kind) => [...container.querySelectorAll(`.tok--${kind}`)].map((node) => node.textContent)
+    expect(kinds('keyword')).toEqual(['Algoritmo', 'Leer', 'Escribir', 'FinAlgoritmo'])
+    expect(kinds('string')).toEqual(['"Doble: "'])
+    expect(kinds('number')).toEqual(['2', '9'])
+    expect(kinds('comment')).toEqual(['// dato'])
+    expect(kinds('function')).toEqual(['RC'])
   })
 })
 

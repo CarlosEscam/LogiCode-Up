@@ -81,7 +81,8 @@ En el menú, **Emulador** abre el mismo editor para practicar cuando quieras, co
 
 **Emulador** del menú tiene una pestaña por herramienta: **PSeInt**, **DFD**, **Scratch** y **Arduino**. Ahí escribes o armas lo que quieras; no tiene nota ni se entrega.
 
-- **PSeInt** y **Arduino**: escribe el código. Los números de línea te ayudan a encontrar el error, que queda marcado en rojo.
+- **PSeInt**: escribe el código (las palabras clave salen de colores) y pulsa **▶ Ejecutar** o F9. Cuando el programa llega a un `Leer`, escribe el dato en la **consola de salida** y pulsa Enter. Si hay un error, su línea queda marcada en rojo.
+- **Arduino**: escribe el código. Los números de línea te ayudan a encontrar el error, que queda marcado en rojo.
 - **DFD**: agrega pasos (Leer, Escribir, asignación, decisión y ciclos) y el diagrama se dibuja solo. Para meter un paso dentro de una decisión o un ciclo, pulsa **agregar aquí** en esa rama.
 - **Scratch**: arma el programa con bloques (preguntar, decir, variables, si, repetir).
 - **Arduino**: **✓ Verificar** solo compila; **▶ Ejecutar** corre el programa en una placa virtual con LED, botones, potenciómetros y Monitor Serie. **■ Detener** lo para.

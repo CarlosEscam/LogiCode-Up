@@ -2187,3 +2187,214 @@ td .console {
   padding-left: 1.25rem;
   color: #8a4b00;
 }
+
+/* Emulador de PSeInt con aspecto de editor: código con colores a la izquierda y consola a la derecha (tema oscuro). */
+.ide {
+  --ide-bg: #1e1e22;
+  --ide-panel: #26262b;
+  --ide-line: #3a3a42;
+  --ide-text: #e8e8ea;
+  --ide-muted: #a3a3ad;
+  margin: 0.75rem 0 1rem;
+  border: 1px solid var(--ide-line);
+  border-radius: 12px;
+  background: var(--ide-bg);
+  color: var(--ide-text);
+  overflow: hidden;
+}
+
+.ide__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--ide-panel);
+  border-bottom: 1px solid var(--ide-line);
+}
+
+.ide .field label,
+.ide .field__hint,
+.ide .page__note {
+  color: var(--ide-muted);
+}
+
+.ide .field input,
+.ide .field select {
+  border-color: var(--ide-line);
+  background: var(--ide-bg);
+  color: var(--ide-text);
+}
+
+.ide .file-bar {
+  margin: 0;
+}
+
+.ide .file-bar .field,
+.ide__examples {
+  margin-bottom: 0;
+}
+
+.ide .button--secondary {
+  border-color: var(--ide-line);
+  background: var(--ide-bg);
+  color: var(--ide-text);
+}
+
+.ide__run {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.ide__play {
+  border-color: #2f9e5b;
+  background: #2f9e5b;
+}
+
+.ide__panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  min-height: 26rem;
+}
+
+@media (max-width: 760px) {
+  .ide__panes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ide .code-editor-field {
+  margin: 0;
+  border-right: 1px solid var(--ide-line);
+}
+
+.ide .code-editor-field .field__hint {
+  display: block;
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.ide .code-editor {
+  border: none;
+  border-radius: 0;
+  background: var(--ide-bg);
+}
+
+.ide .code-editor__gutter {
+  background: var(--ide-panel);
+  color: #6f6f7a;
+}
+
+.code-editor__body {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.code-editor__colors {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  overflow: hidden;
+  white-space: pre;
+  line-height: 1.5;
+  pointer-events: none;
+  color: var(--ide-text, var(--color-text));
+}
+
+.code-editor--colors textarea.code-editor__text {
+  position: relative;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ide-text, var(--color-text));
+}
+
+.code-editor--colors textarea.code-editor__text::selection {
+  background: rgb(109 179 255 / 35%);
+}
+
+.tok--keyword { color: #6db3ff; font-weight: 600; }
+.tok--function { color: #dcdcaa; }
+.tok--string { color: #f0836e; }
+.tok--number { color: #b5cea8; }
+.tok--comment { color: #6a9955; font-style: italic; }
+.tok--op { color: #c586c0; }
+
+.ide-console {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ide-console__title {
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ide-muted);
+  background: var(--ide-panel);
+  border-bottom: 1px solid var(--ide-line);
+}
+
+.ide-console__screen {
+  flex: 1;
+  min-height: 14rem;
+  max-height: 32rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  overflow: auto;
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ide-console__hint {
+  color: var(--ide-muted);
+}
+
+.ide-console__typed {
+  color: #6db3ff;
+}
+
+.ide-console__ask {
+  display: inline-flex;
+  width: 95%;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ide-console__prompt {
+  color: #2f9e5b;
+  font-weight: 700;
+}
+
+.ide-console__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.15rem 0.3rem;
+  border: none;
+  border-bottom: 1px solid #2f9e5b;
+  background: transparent;
+  color: var(--ide-text);
+  font: inherit;
+}
+
+.ide-console [role='status'] {
+  padding: 0 0.75rem;
+}
+
+.ide__status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--ide-muted);
+  background: var(--ide-panel);
+  border-top: 1px solid var(--ide-line);
+}

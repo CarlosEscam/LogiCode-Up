@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { apiPost } from '../../shared/api/httpClient.js'
 import { FormStatus } from '../../shared/ui/forms.jsx'
 import { useSubmit } from '../../shared/ui/useSubmit.js'
+import { ERROR_KIND_LABELS } from './errorLine.js'
 
 // Ejecuta un programa de PSeInt en el servidor (aislado y con límites, RNF-05) con las entradas
 // escritas, una por línea, y muestra si compila, lo que el programa escribió y el error, si lo hubo.
@@ -62,11 +63,4 @@ export function Verdict({ errorKind }) {
   }
   if (errorKind) return <p className="verdict verdict--warn">✓ Compila, pero ✗ falló al ejecutarse.</p>
   return <p className="verdict verdict--ok">✓ Compila y se ejecutó sin errores.</p>
-}
-
-const ERROR_KIND_LABELS = {
-  SYNTAX: 'Error de sintaxis',
-  UNSUPPORTED: 'Aún no disponible en LogiCode',
-  RUNTIME: 'Error al ejecutar',
-  LIMIT: 'Límite superado',
 }

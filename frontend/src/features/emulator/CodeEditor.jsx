@@ -1,9 +1,11 @@
 import { useRef } from 'react'
 
 // Editor de texto con números de línea y la línea del error resaltada. Tab escribe cuatro espacios; Esc y luego Tab
-// sale del editor (así el teclado nunca queda atrapado).
-export default function CodeEditor({ id, label, value, onChange, errorLine, rows = 18 }) {
+// sale del editor (así el teclado nunca queda atrapado). Highlight (opcional) pinta los colores de sintaxis debajo del
+// área de texto, que es transparente; onCursor recibe la línea y la columna del cursor.
+export default function CodeEditor({ id, label, value, onChange, errorLine, rows = 18, Highlight, onCursor, hideLabel = false }) {
   const gutter = useRef(null)
+  const colors = useRef(null)
   const escaped = useRef(false)
   const count = value.split('\n').length
 
@@ -23,10 +25,18 @@ export default function CodeEditor({ id, label, value, onChange, errorLine, rows
     escaped.current = false
   }
 
+  function cursor(event) {
+    if (!onCursor) return
+    const before = event.currentTarget.value.slice(0, event.currentTarget.selectionStart).split('\n')
+    onCursor(before.length, before.at(-1).length + 1)
+  }
+
   return (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
-      <div className="code-editor">
+    <div className="field code-editor-field">
+      <label htmlFor={id} className={hideLabel ? 'visually-hidden' : undefined}>
+        {label}
+      </label>
+      <div className={`code-editor${Highlight ? ' code-editor--colors' : ''}`}>
         <pre ref={gutter} className="code-editor__gutter" aria-hidden="true">
           {Array.from({ length: count }, (_, index) => (
             <span key={index} className={index + 1 === errorLine ? 'code-editor__error' : undefined}>
@@ -34,23 +44,39 @@ export default function CodeEditor({ id, label, value, onChange, errorLine, rows
             </span>
           ))}
         </pre>
-        <textarea
-          id={id}
-          rows={rows}
-          maxLength={20000}
-          spellCheck={false}
-          autoCapitalize="off"
-          autoComplete="off"
-          wrap="off"
-          className="code code-editor__text"
-          value={value}
-          aria-describedby={`${id}-ayuda`}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={keyDown}
-          onScroll={(event) => {
-            gutter.current.scrollTop = event.currentTarget.scrollTop
-          }}
-        />
+        <div className="code-editor__body">
+          {Highlight && (
+            <pre ref={colors} className="code code-editor__colors" aria-hidden="true">
+              <Highlight text={value} />
+              {'\n'}
+            </pre>
+          )}
+          <textarea
+            id={id}
+            rows={rows}
+            maxLength={20000}
+            spellCheck={false}
+            autoCapitalize="off"
+            autoComplete="off"
+            wrap="off"
+            className="code code-editor__text"
+            value={value}
+            aria-describedby={`${id}-ayuda`}
+            onChange={(event) => {
+              onChange(event.target.value)
+              cursor(event)
+            }}
+            onKeyDown={keyDown}
+            onSelect={cursor}
+            onScroll={(event) => {
+              gutter.current.scrollTop = event.currentTarget.scrollTop
+              if (colors.current) {
+                colors.current.scrollTop = event.currentTarget.scrollTop
+                colors.current.scrollLeft = event.currentTarget.scrollLeft
+              }
+            }}
+          />
+        </div>
       </div>
       <small id={`${id}-ayuda`} className="field__hint">
         Tab escribe una sangría; para salir del editor con el teclado pulsa Esc y luego Tab.
