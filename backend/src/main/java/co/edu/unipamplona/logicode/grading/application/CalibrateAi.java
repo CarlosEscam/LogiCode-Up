@@ -50,7 +50,7 @@ public class CalibrateAi {
     }
 
     /**
-     * Un curso sin registro no está en calibración: la IA publica sola con la regla del 80 % (Carlos, 10 de noviembre).
+     * Un curso sin registro no está en calibración: la IA publica sola con la regla del 90 % (Carlos, 10 de noviembre).
      * El docente la enciende con "Calibrar la IA" si quiere comparar antes de confiar.
      */
     public boolean isCalibrating(UUID courseId) {

@@ -74,7 +74,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * Pruebas de la Etapa 6 contra PostgreSQL real con un proveedor de IA simulado: publicación automática desde el 80 %
+ * Pruebas de la Etapa 6 contra PostgreSQL real con un proveedor de IA simulado: publicación automática desde el 90 %
  * de confianza, confirmación docente para ilegibles y baja confianza, fallos técnicos sin nota y con reintentos, y
  * ningún resultado de la IA pisa una nota puesta por el docente. Estas pruebas no miden el modelo real: eso lo hacen
  * las pruebas de aceptación de {@code ia-pruebas/} en el equipo de presentación.
@@ -260,7 +260,7 @@ class AiGradingFlowsIT {
     @Order(0)
     void calibrationIsOptionalAndLastsUntilTheTeacherHasComparedEnoughProposals() throws Exception {
         String calibration = "/api/v1/courses/" + courseId + "/ai-calibration";
-        // Un curso nuevo no está en calibración: la IA publica sola con 80 % o más.
+        // Un curso nuevo no está en calibración: la IA publica sola con 90 % o más.
         mvc.perform(get(calibration).cookie(teacher))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.calibrating").value(false))
@@ -338,6 +338,32 @@ class AiGradingFlowsIT {
                 .andExpect(jsonPath("$.grade.reviewReason").value("AI_FAILED"))
                 .andExpect(jsonPath("$.grade.score").doesNotExist());
         mvc.perform(post(calibration + "/close").cookie(teacher).with(csrf())).andExpect(status().isOk());
+    }
+
+    /** "Calificar todo con IA": manda a la IA cada entrega del curso que espera al docente; solo el docente puede. */
+    @Test
+    @Order(9)
+    void gradeAllWithAiSendsEveryPendingSubmissionOfTheCourseToTheAi() throws Exception {
+        String bulk = "/api/v1/courses/" + courseId + "/ai-grading";
+        String pending = submit(ana, multipart(submissions()).param("text", "prom <- (n1 + n2) / 2"));
+        PROVIDER.answer(true, 60, "6", "4");
+        assertThat(worker.processNext()).isTrue();
+        mvc.perform(get(grade(pending)).cookie(teacher))
+                .andExpect(jsonPath("$.grade.reviewReason").value("LOW_CONFIDENCE"));
+
+        mvc.perform(post(bulk).cookie(ana).with(csrf())).andExpect(status().isForbidden());
+        int queued = JsonPath.read(mvc.perform(post(bulk).cookie(teacher).with(csrf()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.queued");
+        assertThat(queued).isGreaterThanOrEqualTo(1);
+        mvc.perform(get(grade(pending)).cookie(teacher)).andExpect(jsonPath("$.grade.status").value("PROCESSING"));
+        for (int i = 0; i < queued; i++) {
+            PROVIDER.answer(true, 95, "6", "4");
+            assertThat(worker.processNext()).isTrue();
+        }
+        mvc.perform(get(grade(pending)).cookie(ana))
+                .andExpect(jsonPath("$.grade.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.grade.score").value(5.0));
+        mvc.perform(post(bulk).cookie(teacher).with(csrf())).andExpect(jsonPath("$.queued").value(0));
     }
 
     /**
@@ -423,7 +449,7 @@ class AiGradingFlowsIT {
     @Order(2)
     void lowConfidenceWaitsForTheTeacherWhoConfirmsTheProposal() throws Exception {
         String submission = submit(beto, multipart(submissions()).param("text", "prom <- n1 + n2 / 2"));
-        PROVIDER.answer(true, 79, "6", "1");
+        PROVIDER.answer(true, 89, "6", "1");
         assertThat(worker.processNext()).isTrue();
 
         mvc.perform(get(grade(submission)).cookie(teacher))
@@ -492,7 +518,7 @@ class AiGradingFlowsIT {
                 .andExpect(jsonPath("$.grade.status").value("PROCESSING"));
         mvc.perform(post(grade(submission) + "/ai-retry").cookie(teacher).with(csrf()))
                 .andExpect(status().isConflict());
-        PROVIDER.answer(true, 85, "5", "4");
+        PROVIDER.answer(true, 95, "5", "4");
         assertThat(worker.processNext()).isTrue();
         mvc.perform(get(grade(submission)).cookie(ana))
                 .andExpect(jsonPath("$.grade.status").value("PUBLISHED"))
@@ -553,7 +579,7 @@ class AiGradingFlowsIT {
 
         String pseint = submit(ana, multipart(submissions()).file(new MockMultipartFile("files", "promedio.psc",
                 "text/plain", "Algoritmo promedio\n  Leer n1, n2\nFinAlgoritmo\n".getBytes())));
-        PROVIDER.answer(true, 88, "6", "4");
+        PROVIDER.answer(true, 98, "6", "4");
         assertThat(worker.processNext()).isTrue();
         GradingProvider.Request request = PROVIDER.received.getLast();
         assertThat(request.textFiles()).singleElement().satisfies(file -> {

@@ -7,13 +7,13 @@ import java.util.List;
 
 /**
  * Regla de publicación automática (RF-14, RF-15, RN-09, RN-11): con contenido legible y confianza reportada igual o
- * superior al 80 % se publica la nota; si no, pasa a confirmación docente. La nota se calcula con los puntos que el
+ * superior al 90 % se publica la nota; si no, pasa a confirmación docente. La nota se calcula con los puntos que el
  * modelo dio a cada criterio de la rúbrica, llevados a la escala 0,0 a 5,0. Una respuesta incoherente con la rúbrica
  * no es una nota: se rechaza como fallo técnico.
  */
 public final class AiGradingPolicy {
 
-    public static final int AUTO_PUBLISH_CONFIDENCE = 80;
+    public static final int AUTO_PUBLISH_CONFIDENCE = 90;
 
     /** Lo que el modelo devolvió para un criterio, en el orden de la rúbrica. */
     public record CriterionResult(BigDecimal points, String comment) {

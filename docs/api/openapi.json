@@ -587,6 +587,19 @@
         },
         "type" : "object"
       },
+      "CourseAiRun" : {
+        "properties" : {
+          "queued" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "unreadable" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
       "CourseRequest" : {
         "properties" : {
           "description" : {
@@ -5619,7 +5632,7 @@
           "csrf" : [ ],
           "sesion" : [ ]
         } ],
-        "summary" : "Cerrar la calibración: desde ahora la IA publica sola con confianza de 80 % o más",
+        "summary" : "Cerrar la calibración: desde ahora la IA publica sola con confianza de 90 % o más",
         "tags" : [ "Calificación" ]
       }
     },
@@ -5699,6 +5712,85 @@
           "sesion" : [ ]
         } ],
         "summary" : "Reabrir la calibración: el docente vuelve a confirmar cada nota de la IA",
+        "tags" : [ "Calificación" ]
+      }
+    },
+    "/api/v1/courses/{courseId}/ai-grading" : {
+      "post" : {
+        "operationId" : "gradeCourseWithAi",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "actor",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/Actor"
+          }
+        }, {
+          "in" : "path",
+          "name" : "courseId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CourseAiRun"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description" : "Datos con formato inválido"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description" : "Sin sesión"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description" : "Sin permiso, o escritura sin token CSRF"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description" : "El recurso no existe"
+          }
+        },
+        "security" : [ {
+          "csrf" : [ ],
+          "sesion" : [ ]
+        } ],
+        "summary" : "Calificar todo con IA: manda a la IA las entregas del curso que esperan al docente",
         "tags" : [ "Calificación" ]
       }
     },

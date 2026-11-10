@@ -6,6 +6,7 @@ import { Field, FormStatus } from '../../shared/ui/forms.jsx'
 import { formValues, useSubmit } from '../../shared/ui/useSubmit.js'
 import ActivitiesPanel from '../activities/ActivitiesPanel.jsx'
 import ReviewPanel from '../activities/ReviewPanel.jsx'
+import ControlPanel from '../gradebook/ControlPanel.jsx'
 import GradebookPanel from '../gradebook/GradebookPanel.jsx'
 import QuestionBankPanel from '../quizzes/QuestionBankPanel.jsx'
 import StudentsPanel from './StudentsPanel.jsx'
@@ -34,6 +35,7 @@ export default function CoursePage({ id }) {
   const tabs = [
     ['temas', 'Temas'],
     ['actividades', 'Actividades'],
+    data.canViewCourseWork && ['control', 'Control'],
     data.canViewCourseWork && ['revisar', 'Por revisar'],
     data.canViewCourseWork ? ['planilla', 'Planilla'] : data.enrolled && ['planilla', 'Mis notas'],
     data.canViewCourseWork && ['preguntas', 'Banco de preguntas'],
@@ -64,6 +66,7 @@ export default function CoursePage({ id }) {
       </section>
       {tab === 'temas' && <TopicsPanel courseId={id} canManage={data.canManageContent} />}
       {tab === 'actividades' && <ActivitiesPanel course={data} />}
+      {tab === 'control' && <ControlPanel courseId={id} canGrade={data.canGrade} />}
       {tab === 'revisar' && <ReviewPanel courseId={id} canGrade={data.canGrade} />}
       {tab === 'planilla' && <GradebookPanel courseId={id} />}
       {tab === 'preguntas' && <QuestionBankPanel courseId={id} canManage={data.canManageContent} />}

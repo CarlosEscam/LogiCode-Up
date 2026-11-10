@@ -3,6 +3,7 @@ import { Link } from '../../shared/router/Link.jsx'
 import { FormStatus } from '../../shared/ui/forms.jsx'
 import { GRADE_STATUS_LABELS, REVIEW_REASON_LABELS, formatDateTime } from './labels.js'
 import CalibrationPanel from './CalibrationPanel.jsx'
+import { GradeAllWithAi } from '../gradebook/ControlPanel.jsx'
 import { useRefreshWhile } from './useRefreshWhile.js'
 
 // Bandeja Por revisar: el último intento de cada estudiante sin nota publicada, del más antiguo al más
@@ -12,9 +13,11 @@ export default function ReviewPanel({ courseId, canGrade }) {
   useRefreshWhile(queue.data?.some((item) => item.status === 'PROCESSING'), queue.reload)
   return (
     <>
-      <CalibrationPanel courseId={courseId} />
       <section className="card card--wide" aria-labelledby="revisar-titulo">
         <h2 id="revisar-titulo">Por revisar</h2>
+        {canGrade && queue.data?.some((item) => item.status !== 'PROCESSING') && (
+          <GradeAllWithAi courseId={courseId} onQueued={queue.reload} />
+        )}
         <FormStatus error={queue.error} />
         {queue.status === 'loading' && !queue.data && <p role="status">Cargando…</p>}
         {queue.data?.length === 0 && <p>No hay entregas pendientes de calificar.</p>}
@@ -64,6 +67,8 @@ export default function ReviewPanel({ courseId, canGrade }) {
           </div>
         )}
       </section>
+      {/* Opcional desde T-109: va debajo de la bandeja, que es el trabajo del día. */}
+      <CalibrationPanel courseId={courseId} />
     </>
   )
 }

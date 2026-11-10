@@ -29,6 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class GradeSubmissions {
 
+    /** Resultado de mandar a la IA las entregas pendientes del curso. */
+    public record CourseAiRun(int queued, int unreadable) {
+    }
+
     private final GradeRepository grades;
     private final GradeChangeRepository changes;
     private final RubricRepository rubrics;
@@ -39,13 +43,15 @@ public class GradeSubmissions {
     private final GradingAccess access;
     private final GradingViews views;
     private final RunPrograms programs;
+    private final ActivityCatalog catalog;
     private final Clock clock;
 
     public GradeSubmissions(GradeRepository grades, GradeChangeRepository changes, RubricRepository rubrics,
             AiEvaluationRepository evaluations, AiGradingJobRepository jobs, AiSubmissionContent content,
             AiGradingSettings aiSettings, GradingAccess access, GradingViews views, RunPrograms programs,
-            Clock clock) {
+            ActivityCatalog catalog, Clock clock) {
         this.programs = programs;
+        this.catalog = catalog;
         this.grades = grades;
         this.changes = changes;
         this.rubrics = rubrics;
@@ -92,6 +98,42 @@ public class GradeSubmissions {
         grade = grades.save(grade);
         jobs.save(new AiGradingJob(grade.getId(), actor.userId(), now));
         return detail(actor, submission, grade);
+    }
+
+    /**
+     * Botón "Calificar todo con IA": manda a la cola de IA el último intento de cada estudiante que espera al docente
+     * en el curso. Las notas publicadas no se tocan; lo que la IA no lee (Word, video…) se queda en Por revisar.
+     */
+    @Transactional
+    public CourseAiRun gradeCourseWithAi(Actor actor, UUID courseId) {
+        access.requireViewCourseWork(actor, courseId);
+        if (!access.canGrade(actor, courseId)) {
+            throw ApplicationException.forbidden("Solo el docente del curso puede calificar.");
+        }
+        if (!aiSettings.enabled()) {
+            throw ApplicationException.businessRule("La calificación con IA está desactivada.");
+        }
+        List<UUID> latest = catalog.activitiesOf(courseId).stream()
+                .flatMap(a -> BrowseGrades.latestAttempts(catalog.submissions(catalog.submissionIdsOf(a.id()))
+                        .values()).stream())
+                .map(ActivityCatalog.SubmissionInfo::id).toList();
+        Instant now = clock.instant();
+        int queued = 0;
+        int unreadable = 0;
+        for (Grade grade : grades.findBySubmissions(latest)) {
+            if (grade.getStatus() != GradeStatus.PENDING_REVIEW) {
+                continue;
+            }
+            if (!content.isReadable(grade.getSubmissionId())) {
+                unreadable++;
+                continue;
+            }
+            grade.startAiEvaluation(now);
+            Grade saved = grades.save(grade);
+            jobs.save(new AiGradingJob(saved.getId(), actor.userId(), now));
+            queued++;
+        }
+        return new CourseAiRun(queued, unreadable);
     }
 
     /** RF-17: el docente vuelve a ejecutar los casos de prueba y ve, caso por caso, la salida esperada y la obtenida. */

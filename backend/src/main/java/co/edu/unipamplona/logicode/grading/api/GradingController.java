@@ -103,8 +103,14 @@ public class GradingController {
         return calibrateAi.status(actor, courseId);
     }
 
+    @PostMapping("/courses/{courseId}/ai-grading")
+    @Operation(summary = "Calificar todo con IA: manda a la IA las entregas del curso que esperan al docente")
+    public GradeSubmissions.CourseAiRun gradeCourseWithAi(@CurrentActor Actor actor, @PathVariable UUID courseId) {
+        return gradeSubmissions.gradeCourseWithAi(actor, courseId);
+    }
+
     @PostMapping("/courses/{courseId}/ai-calibration/close")
-    @Operation(summary = "Cerrar la calibración: desde ahora la IA publica sola con confianza de 80 % o más")
+    @Operation(summary = "Cerrar la calibración: desde ahora la IA publica sola con confianza de 90 % o más")
     public CalibrateAi.View closeAiCalibration(@CurrentActor Actor actor, @PathVariable UUID courseId) {
         return calibrateAi.close(actor, courseId);
     }

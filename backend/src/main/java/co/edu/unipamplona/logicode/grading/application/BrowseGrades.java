@@ -114,7 +114,7 @@ public class BrowseGrades {
         }).toList();
     }
 
-    private static List<ActivityCatalog.SubmissionInfo> latestAttempts(
+    static List<ActivityCatalog.SubmissionInfo> latestAttempts(
             Collection<ActivityCatalog.SubmissionInfo> submissions) {
         return List.copyOf(submissions.stream().collect(Collectors.toMap(
                 s -> s.activityId() + ":" + s.studentId(), Function.identity(),

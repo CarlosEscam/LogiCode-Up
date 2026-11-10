@@ -8,7 +8,7 @@ public enum ReviewReason {
     UNSUPPORTED,
     /** El modelo indicó que la foto o el contenido no se puede leer. */
     ILLEGIBLE,
-    /** La confianza reportada por el modelo quedó por debajo del 80 %. */
+    /** La confianza reportada por el modelo quedó por debajo del 90 %. */
     LOW_CONFIDENCE,
     /** Falló el procesamiento técnico después de los reintentos; no hay nota. */
     AI_FAILED,

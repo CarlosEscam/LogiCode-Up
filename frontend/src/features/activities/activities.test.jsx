@@ -314,7 +314,7 @@ describe('Actividades y entregas', () => {
 
     render(<App />)
 
-    expect(await screen.findByText('Confianza menor al 80 %.')).toBeInTheDocument()
+    expect(await screen.findByText('Confianza menor al 90 %.')).toBeInTheDocument()
     const ia = screen.getByRole('region', { name: 'Resultado de la IA' })
     expect(within(ia).getByText('72 %')).toBeInTheDocument()
     expect(within(ia).getByText('3 de 4')).toBeInTheDocument()
