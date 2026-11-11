@@ -784,6 +784,92 @@ async function stageExcel(teacher, students, course) {
   log('Planilla: "Exportar a Excel (.xlsx)" en la pestaña Planilla. PDF con IA: la entrega de Felipe en el Taller 3')
 }
 
+// ---------- Curso completo · 20 estudiantes, 15 actividades y entregas para la IA ----------
+
+const FULL_COURSE = JSON.parse(readFileSync(new URL('./curso-completo.json', import.meta.url), 'utf8')).actividades
+const FULL_COURSE_TITLE = FULL_COURSE[0].titulo
+// 14 estudiantes más (ficticios) para llegar a 20 activos en el curso.
+const MORE_STUDENTS = [
+  'Karen Rincón Pardo', 'Luis Fernando Gil Ortega', 'Mariana Quintero Sanz', 'Nicolás Becerra Leal',
+  'Olga Patricia Niño Vera', 'Pablo Andrés Rey Duarte', 'Quintín Salas Mejía', 'Rosa Elena Cárdenas Ríos',
+  'Santiago Ibáñez Polo', 'Tatiana Lozano Prada', 'Úrsula Meneses Pinto', 'Valentina Acosta Lara',
+  'Wilmer Jaimes Contreras', 'Ximena Delgado Ortiz',
+].map((fullName, i) => {
+  const [first, , last] = fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(' ')
+  return { cedula: String(1000000211 + i), fullName, email: `${first}.${last ?? 'demo'}@demo.logicode.test` }
+})
+
+// Qué entrega cada estudiante en cada actividad, fijo para que la carga se repita igual:
+// la mitad correctas, un cuarto con error y un cuarto incompletas; 40 % foto, 30 % PDF, 20 % texto y 10 % archivo.
+function plan(i, k) {
+  const r = (i * 3 + k * 5) % 8
+  const variant = r < 4 ? 'correcta' : r < 6 ? 'error' : 'incompleta'
+  const f = (i * 7 + k * 3) % 10
+  const format = f < 4 ? 'foto' : f < 7 ? 'pdf' : f < 9 ? 'texto' : 'archivo'
+  return { variant, format, blurry: format === 'foto' && (i + k) % 6 === 0 }
+}
+
+async function stageFullCourse(teacher, students, course) {
+  console.log('Curso completo · 20 estudiantes, 15 actividades y entregas para la IA')
+  const all = Object.entries(STUDENTS).map(([key, person]) => ({ person, session: students[key] }))
+  for (const person of MORE_STUDENTS) {
+    await teacher.post(`/courses/${course.id}/enrollments`, { cedula: person.cedula, fullName: person.fullName })
+    await register('student-registrations', person)
+    all.push({ person, session: await Session.login(person.cedula, DEMO_PASSWORD) })
+  }
+  log(`${MORE_STUDENTS.length} estudiantes más inscritos y registrados: ${all.length} activos en el curso`)
+
+  const counts = { foto: 0, pdf: 0, texto: 0, archivo: 0, borrosa: 0 }
+  const submissions = []
+  for (const [k, a] of FULL_COURSE.entries()) {
+    const activity = await teacher.post(`/courses/${course.id}/activities`, {
+      title: a.titulo,
+      kind: 'WORKSHOP',
+      statement: a.enunciado,
+      acceptsText: true,
+      acceptsFiles: true,
+      acceptsPhotos: true,
+      fileGroups: ['DOCUMENTS', 'TOOL_FILES'],
+      weightPercent: null,
+      maxAttempts: 2,
+      opensAt: at(-2 * DAY),
+      closesAt: at(7 * DAY),
+    })
+    await teacher.put(`/activities/${activity.id}/rubric`, {
+      expectedAnswer: a.esperada,
+      criteria: a.criterios.map(([name, maxPoints, description]) => ({ name, maxPoints, description })),
+    })
+    await teacher.post(`/activities/${activity.id}/publish`)
+    for (const [i, { person, session }] of all.entries()) {
+      const { variant, format, blurry } = plan(i, k)
+      const lines = a.variantes[variant]
+      let text = null
+      let file = null
+      if (format === 'texto') text = lines.join('\n')
+      if (format === 'pdf') file = { name: `${a.clave}.pdf`, type: 'application/pdf', content: pdf(`${a.titulo} · ${person.fullName}`, lines) }
+      if (format === 'archivo') file = { name: a.archivo, type: 'text/plain', content: Buffer.from(lines.join('\r\n'), 'latin1') }
+      if (format === 'foto') {
+        const name = `${a.clave}-${variant}-${blurry ? 'borrosa' : 'legible'}.jpg`
+        file = { name, type: 'image/jpeg', content: sampleFile(`curso/${name}`) }
+      }
+      counts[format]++
+      if (blurry) counts.borrosa++
+      const form = fileForm({ text }, file ? [{ field: 'files', ...file }] : [])
+      submissions.push(await session.postForm(`/activities/${activity.id}/submissions`, form))
+    }
+  }
+  log(`6 talleres nuevos (Taller 5 a 10), 15 actividades en el curso. ${submissions.length} entregas: ${counts.foto} fotos ` +
+    `(${counts.borrosa} borrosas), ${counts.pdf} PDF, ${counts.texto} en texto y ${counts.archivo} archivos .psc o .ino`)
+  const states = await Promise.all(submissions.map((s) => teacher.get(`/submissions/${s.id}/grade`)))
+  const processing = states.filter((detail) => detail.grade.status === 'PROCESSING').length
+  if (processing > 0) {
+    log(`${processing} entregas en la cola de la IA; a cerca de 1 minuto cada una, unas ${Math.ceil(processing / 60)} horas. ` +
+      'Mira el avance en Control o Por revisar.')
+  } else {
+    log('La IA está desactivada: las entregas quedaron en Por revisar. Al activarla, usa "Calificar todo con IA" en Control.')
+  }
+}
+
 async function idOf(session) {
   return (await session.get('/me')).id
 }
@@ -839,6 +925,7 @@ async function main() {
   await stage8(teacher, students)
   await stageBlocks(teacher, students, course)
   await stageExcel(teacher, students, course)
+  await stageFullCourse(teacher, students, course)
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -859,6 +946,7 @@ async function addMissingStages(teacher) {
     ['la Etapa 8', STAGE8_TITLE, stage8],
     ['los retos de bloques', BLOCKS_TITLE, stageBlocks],
     ['la lista en Excel', EXCEL_LIST, stageExcel],
+    ['los 20 estudiantes y las 15 actividades', FULL_COURSE_TITLE, stageFullCourse],
   ].filter(([, title]) => !titles.has(title))
   if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')

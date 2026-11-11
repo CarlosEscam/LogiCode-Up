@@ -46,6 +46,7 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 | 1000000208 | Hugo Lara Medina | Estudiante fuera del curso | Solo ve la biblioteca pública |
 | 1000000209 | Iván Castro Rueda | Inscrito sin registrarse | Llegó con la lista de Excel (P-07) |
 | 1000000210 | Juliana Mora Díaz | Inscrita sin registrarse | Llegó con la lista de Excel (P-07) |
+| 1000000211 a 1000000224 | Karen Rincón Pardo … Ximena Delgado Ortiz (14) | Estudiantes del curso | Completan los 20 activos; entregan en los Talleres 5 a 10 (ver "Curso completo") |
 
 ## Contenido por etapa
 
@@ -53,7 +54,7 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 Las cuentas de la tabla: docente aprobada, solicitud pendiente, administradora ordinaria (cambio de rol hecho por la cuenta inicial), estudiantes registrados, una cédula inscrita sin cuenta y un estudiante habilitado fuera del curso.
 
 ### Etapa 4 · Curso, temas y biblioteca
-- Curso **Pensamiento Computacional · Grupo A** (2026-2), de Laura, con 7 inscritos (9 después de importar la lista de Excel, P-07).
+- Curso **Pensamiento Computacional · Grupo A** (2026-2), de Laura, con 7 inscritos (9 después de importar la lista de Excel, P-07, y 23 con el curso completo: 20 activos).
 - Temas: PSeInt (próxima clase), DFD, Scratch y Arduino.
 - Materiales públicos (biblioteca abierta): Guía 1 en PDF, enlace de descarga de PSeInt y editor de Scratch.
 - Materiales privados del curso: ejemplo `promedio.psc`, diagrama PNG y `led.ino`.
@@ -202,6 +203,28 @@ Para verlo: Laura abre la actividad (rúbrica con el tablero, "Editar rúbrica" 
 ### MinIO y remitente de Brevo (P-05 y P-06)
 
 No agregan datos: el script es el mismo. Los archivos de la demostración (guías, imágenes, programas, fotos de cuaderno, PDF y la lista de Excel) ahora quedan en MinIO en vez del disco. Si ya tenías los datos cargados, al actualizar el backend los pasa solo a MinIO y se siguen viendo y descargando igual; no hace falta volver a cargarlos.
+
+### Curso completo · 20 estudiantes y 15 actividades
+
+Para que el curso se vea como uno real, el script agrega 14 estudiantes registrados (20 activos con Ana, Bruno, Camila, David, Elena y Felipe) y 6 talleres publicados, sin porcentaje y abiertos una semana, que llevan el curso a 15 actividades. Las actividades, sus rúbricas y las tres respuestas de cada una (correcta, con error e incompleta) están en [`curso-completo.json`](curso-completo.json).
+
+| Taller | Herramienta | Error típico de la variante "con error" |
+| --- | --- | --- |
+| 5: par o impar | PSeInt | Usa `n / 2 = 0` en vez de `MOD` |
+| 6: área y perímetro de un rectángulo | PSeInt | Suma en vez de multiplicar |
+| 7: contar del 1 al 10 con Para | PSeInt | Cuenta de 0 a 9 |
+| 8: mayor de tres números | PSeInt | Compara solo dos números |
+| 9: grados Celsius a Fahrenheit | PSeInt | Invierte la fracción (5/9) |
+| 10: semáforo con Arduino | Arduino | Le falta un `pinMode`, no apaga los LED y cambia los tiempos |
+
+Los 20 estudiantes entregan en los 6 talleres: **120 entregas**. Qué entrega cada uno sale de una regla fija (la función `plan`), así que se repite igual en cada carga: la mitad correctas, un cuarto con error y un cuarto incompletas; 48 fotos de cuaderno (8 borrosas y oscuras, para el camino de foto ilegible), 36 PDF, 24 en texto y 12 archivos `.psc` o `.ino`.
+
+- Las fotos son imágenes sintéticas con letra a mano en [`muestras/curso/`](muestras/curso/), hechas con `python datos-demo/generar-fotos.py` (Pillow) desde el mismo JSON. No son de estudiantes reales. Solo hay que regenerarlas si cambias el JSON.
+- **Con la IA encendida**, las 120 entran a la cola y se califican de a una. En el equipo de referencia la IA promedió 66 segundos por entrega en las pruebas del 10 de noviembre, así que la cola tarda unas 2 horas; el avance se ve en **Control** y **Por revisar**. Con 90 % de confianza o más la nota se publica sola; las demás quedan para la docente.
+- **Con la IA apagada**, quedan en Por revisar; al encenderla, "Calificar todo con IA" en Control las manda a la cola.
+- Lo que diga la IA depende del modelo: la variante de cada entrega es lo que el caso busca mostrar, no un resultado medido.
+- Los 14 estudiantes nuevos llegan cuando la Tarea 1 y el Quiz 1 ya cerraron, así que la planilla les pone 0,0 en esas dos (regla de no entregadas).
+- Si ya tenías los datos anteriores, el script agrega solo esta parte. Si la carga se corta a la mitad, empieza de cero (`docker compose down -v`), porque las cuentas ya registradas no se vuelven a crear.
 
 ## Para las etapas siguientes
 

@@ -1,0 +1,107 @@
+{
+  "_nota": "Fuente única de las 6 actividades extra del curso de demostración. La leen cargar-datos-demo.mjs (entregas en texto, PDF y archivo) y generar-fotos.py (fotos de cuaderno en muestras/curso/). Todo es ficticio.",
+  "actividades": [
+    {
+      "clave": "par",
+      "titulo": "Taller 5: par o impar",
+      "archivo": "par.psc",
+      "enunciado": "Escribe un algoritmo en PSeInt que lea un número entero y diga si es par o impar.\nPuedes subir una foto de tu cuaderno, el PDF exportado, el archivo .psc o escribir la respuesta.",
+      "esperada": "Algoritmo ParImpar\n  Leer n\n  Si n MOD 2 = 0 Entonces\n    Escribir \"Par\"\n  SiNo\n    Escribir \"Impar\"\n  FinSi\nFinAlgoritmo",
+      "criterios": [
+        ["Lee el número", 1, "Usa Leer con una variable"],
+        ["Condición con MOD 2", 2.5, "Compara el residuo de dividir entre 2 con 0"],
+        ["Mensaje para ambos casos", 1.5, null]
+      ],
+      "variantes": {
+        "correcta": ["Algoritmo ParImpar", "  Leer n", "  Si n MOD 2 = 0 Entonces", "    Escribir \"Par\"", "  SiNo", "    Escribir \"Impar\"", "  FinSi", "FinAlgoritmo"],
+        "error": ["Algoritmo ParImpar", "  Leer n", "  Si n / 2 = 0 Entonces", "    Escribir \"Par\"", "  SiNo", "    Escribir \"Impar\"", "  FinSi", "FinAlgoritmo"],
+        "incompleta": ["Algoritmo ParImpar", "  Leer n", "  Si n MOD 2 = 0 Entonces", "    Escribir \"Par\"", "  FinSi", "FinAlgoritmo"]
+      }
+    },
+    {
+      "clave": "area",
+      "titulo": "Taller 6: área y perímetro de un rectángulo",
+      "archivo": "rectangulo.psc",
+      "enunciado": "Escribe un algoritmo que lea la base y la altura de un rectángulo y muestre su área y su perímetro.",
+      "esperada": "Algoritmo Rectangulo\n  Leer base, altura\n  area <- base * altura\n  perimetro <- 2 * (base + altura)\n  Escribir \"Área: \", area\n  Escribir \"Perímetro: \", perimetro\nFinAlgoritmo",
+      "criterios": [
+        ["Lee base y altura", 1, null],
+        ["Fórmulas correctas", 2.5, "Área = base × altura; perímetro = 2 × (base + altura)"],
+        ["Muestra los dos resultados", 1.5, null]
+      ],
+      "variantes": {
+        "correcta": ["Algoritmo Rectangulo", "  Leer base, altura", "  area <- base * altura", "  perimetro <- 2 * (base + altura)", "  Escribir \"Area: \", area", "  Escribir \"Perimetro: \", perimetro", "FinAlgoritmo"],
+        "error": ["Algoritmo Rectangulo", "  Leer base, altura", "  area <- base + altura", "  perimetro <- 2 * base + altura", "  Escribir \"Area: \", area", "  Escribir \"Perimetro: \", perimetro", "FinAlgoritmo"],
+        "incompleta": ["Algoritmo Rectangulo", "  Leer base, altura", "  area <- base * altura", "  Escribir \"Area: \", area", "FinAlgoritmo"]
+      }
+    },
+    {
+      "clave": "contar",
+      "titulo": "Taller 7: contar del 1 al 10 con Para",
+      "archivo": "contar.psc",
+      "enunciado": "Usa un ciclo Para que muestre los números del 1 al 10, uno por línea.",
+      "esperada": "Algoritmo Contar\n  Para i <- 1 Hasta 10 Con Paso 1 Hacer\n    Escribir i\n  FinPara\nFinAlgoritmo",
+      "criterios": [
+        ["Usa el ciclo Para", 2, null],
+        ["Límites correctos (1 a 10)", 2, null],
+        ["Cierra el ciclo con FinPara", 1, null]
+      ],
+      "variantes": {
+        "correcta": ["Algoritmo Contar", "  Para i <- 1 Hasta 10 Con Paso 1 Hacer", "    Escribir i", "  FinPara", "FinAlgoritmo"],
+        "error": ["Algoritmo Contar", "  Para i <- 0 Hasta 9 Con Paso 1 Hacer", "    Escribir i", "  FinPara", "FinAlgoritmo"],
+        "incompleta": ["Algoritmo Contar", "  Para i <- 1 Hasta 10 Hacer", "    Escribir i", "FinAlgoritmo"]
+      }
+    },
+    {
+      "clave": "mayor3",
+      "titulo": "Taller 8: mayor de tres números",
+      "archivo": "mayor3.psc",
+      "enunciado": "Escribe un algoritmo que lea tres números distintos y muestre el mayor usando condicionales.",
+      "esperada": "Algoritmo MayorTres\n  Leer a, b, c\n  Si a > b Y a > c Entonces\n    Escribir a\n  SiNo\n    Si b > c Entonces\n      Escribir b\n    SiNo\n      Escribir c\n    FinSi\n  FinSi\nFinAlgoritmo",
+      "criterios": [
+        ["Lee los tres números", 1, null],
+        ["Compara correctamente los tres", 2.5, "Cubre los casos en que el mayor es a, b o c"],
+        ["Muestra un solo resultado", 1.5, null]
+      ],
+      "variantes": {
+        "correcta": ["Algoritmo MayorTres", "  Leer a, b, c", "  Si a > b Y a > c Entonces", "    Escribir a", "  SiNo", "    Si b > c Entonces", "      Escribir b", "    SiNo", "      Escribir c", "    FinSi", "  FinSi", "FinAlgoritmo"],
+        "error": ["Algoritmo MayorTres", "  Leer a, b, c", "  Si a > b Entonces", "    Escribir a", "  SiNo", "    Escribir b", "  FinSi", "FinAlgoritmo"],
+        "incompleta": ["Algoritmo MayorTres", "  Leer a, b, c", "  Si a > b Y a > c Entonces", "    Escribir a", "  FinSi", "FinAlgoritmo"]
+      }
+    },
+    {
+      "clave": "temperatura",
+      "titulo": "Taller 9: grados Celsius a Fahrenheit",
+      "archivo": "temperatura.psc",
+      "enunciado": "Escribe un algoritmo que lea una temperatura en grados Celsius y la muestre en Fahrenheit (F = C × 9 / 5 + 32).",
+      "esperada": "Algoritmo Temperatura\n  Leer c\n  f <- c * 9 / 5 + 32\n  Escribir c, \" C = \", f, \" F\"\nFinAlgoritmo",
+      "criterios": [
+        ["Lee la temperatura", 1, null],
+        ["Fórmula correcta", 3, "F = C × 9 / 5 + 32"],
+        ["Muestra el resultado", 1, null]
+      ],
+      "variantes": {
+        "correcta": ["Algoritmo Temperatura", "  Leer c", "  f <- c * 9 / 5 + 32", "  Escribir c, \" C = \", f, \" F\"", "FinAlgoritmo"],
+        "error": ["Algoritmo Temperatura", "  Leer c", "  f <- c * 5 / 9 + 32", "  Escribir c, \" C = \", f, \" F\"", "FinAlgoritmo"],
+        "incompleta": ["Algoritmo Temperatura", "  Leer c", "  f <- c * 9 / 5 + 32", "FinAlgoritmo"]
+      }
+    },
+    {
+      "clave": "semaforo",
+      "titulo": "Taller 10: semáforo con Arduino",
+      "archivo": "semaforo.ino",
+      "enunciado": "Escribe el programa de Arduino para un semáforo con LED en los pines 2 (rojo), 3 (amarillo) y 4 (verde): verde 3 s, amarillo 1 s y rojo 3 s, repitiendo.",
+      "esperada": "void setup() {\n  pinMode(2, OUTPUT);\n  pinMode(3, OUTPUT);\n  pinMode(4, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(4, HIGH); delay(3000); digitalWrite(4, LOW);\n  digitalWrite(3, HIGH); delay(1000); digitalWrite(3, LOW);\n  digitalWrite(2, HIGH); delay(3000); digitalWrite(2, LOW);\n}",
+      "criterios": [
+        ["Configura los tres pines como salida", 1.5, "pinMode(…, OUTPUT) en setup"],
+        ["Orden y tiempos correctos", 2, "Verde 3 s, amarillo 1 s, rojo 3 s"],
+        ["Apaga cada LED antes del siguiente", 1.5, null]
+      ],
+      "variantes": {
+        "correcta": ["void setup() {", "  pinMode(2, OUTPUT);", "  pinMode(3, OUTPUT);", "  pinMode(4, OUTPUT);", "}", "void loop() {", "  digitalWrite(4, HIGH); delay(3000);", "  digitalWrite(4, LOW);", "  digitalWrite(3, HIGH); delay(1000);", "  digitalWrite(3, LOW);", "  digitalWrite(2, HIGH); delay(3000);", "  digitalWrite(2, LOW);", "}"],
+        "error": ["void setup() {", "  pinMode(2, OUTPUT);", "  pinMode(4, OUTPUT);", "}", "void loop() {", "  digitalWrite(4, HIGH); delay(1000);", "  digitalWrite(3, HIGH); delay(3000);", "  digitalWrite(2, HIGH); delay(3000);", "}"],
+        "incompleta": ["void setup() {", "  pinMode(2, OUTPUT);", "  pinMode(3, OUTPUT);", "  pinMode(4, OUTPUT);", "}", "void loop() {", "  digitalWrite(4, HIGH); delay(3000);", "  digitalWrite(4, LOW);", "  digitalWrite(2, HIGH); delay(3000);", "  digitalWrite(2, LOW);", "}"]
+      }
+    }
+  ]
+}
