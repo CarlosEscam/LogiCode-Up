@@ -64,7 +64,7 @@ describe('Control de calificaciones', () => {
     expect(tarea).toHaveTextContent('2 de 3')
     const taller = within(table).getByRole('row', { name: /Taller 2/ })
     // 3 estudiantes, 1 entregó: quedan 2 sin entregar.
-    expect(within(taller).getAllByRole('cell')[3]).toHaveTextContent('2')
+    expect(within(taller).getAllByRole('cell')[4]).toHaveTextContent('2')
     expect(screen.getByRole('link', { name: '2' })).toHaveAttribute('href', '/cursos/c1?seccion=revisar')
 
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Calificar todo con IA' })))

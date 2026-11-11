@@ -16,6 +16,8 @@ import TopicsPanel from './TopicsPanel.jsx'
 // la bandeja Por revisar, la planilla y los inscritos; el estudiante ve sus notas.
 export default function CoursePage({ id }) {
   const course = useQuery(`/courses/${id}`)
+  // Contador de la pestaña Por revisar, visible desde cualquier sección (solo para quien ve el trabajo del curso).
+  const review = useQuery(course.data?.canViewCourseWork ? `/courses/${id}/review-queue` : null)
   const { query } = useLocation()
 
   if (course.status === 'loading' && !course.data) return <p role="status">Cargando…</p>
@@ -43,7 +45,10 @@ export default function CoursePage({ id }) {
   ].filter(Boolean)
   // La sección va en la dirección (?seccion=actividades) para volver a ella desde otras páginas.
   const tab = tabs.some(([key]) => key === query.get('seccion')) ? query.get('seccion') : 'temas'
-  const setTab = (key) => navigate(key === 'temas' ? `/cursos/${id}` : `/cursos/${id}?seccion=${key}`, { replace: true })
+  const setTab = (key) => {
+    review.reload()
+    navigate(key === 'temas' ? `/cursos/${id}` : `/cursos/${id}?seccion=${key}`, { replace: true })
+  }
   return (
     <>
       <section className="card card--wide page-head" aria-labelledby="curso-titulo">
@@ -60,6 +65,7 @@ export default function CoursePage({ id }) {
           {tabs.map(([key, label]) => (
             <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
               {label}
+              {key === 'revisar' && review.data?.length > 0 && <span className="tab-count">{review.data.length}</span>}
             </button>
           ))}
         </div>

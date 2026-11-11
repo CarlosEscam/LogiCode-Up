@@ -178,29 +178,36 @@ function MaterialRow({ material, run, isFirst, isLast, onMove }) {
       </div>
       <div className="material__actions">
         <MaterialLinks material={material} fromCourse />
-        {material.canEdit && (
-          <>
-            <button
-              type="button"
-              className="button button--secondary button--small"
-              disabled={isFirst}
-              onClick={() => onMove(-1)}
-              aria-label={`Subir ${material.title}`}
-            >
-              Subir
-            </button>
-            <button
-              type="button"
-              className="button button--secondary button--small"
-              disabled={isLast}
-              onClick={() => onMove(1)}
-              aria-label={`Bajar ${material.title}`}
-            >
-              Bajar
-            </button>
-          </>
+        {(material.canEdit || material.canModerate) && (
+          <details className="more-menu">
+            <summary className="button button--secondary button--small">Más acciones</summary>
+            <div className="more-menu__list">
+              {material.canEdit && (
+                <>
+                  <button
+                    type="button"
+                    className="button button--secondary button--small"
+                    disabled={isFirst}
+                    onClick={() => onMove(-1)}
+                    aria-label={`Subir ${material.title}`}
+                  >
+                    Subir
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--secondary button--small"
+                    disabled={isLast}
+                    onClick={() => onMove(1)}
+                    aria-label={`Bajar ${material.title}`}
+                  >
+                    Bajar
+                  </button>
+                </>
+              )}
+              <MaterialModeration material={material} run={run} />
+            </div>
+          </details>
         )}
-        <MaterialModeration material={material} run={run} />
       </div>
     </li>
   )

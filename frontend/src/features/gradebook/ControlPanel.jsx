@@ -19,7 +19,7 @@ export default function ControlPanel({ courseId, canGrade, onGraded }) {
   return (
     <section className="card card--wide" aria-labelledby="control-titulo">
       <h2 id="control-titulo">Control de calificaciones</h2>
-      <dl className="overview">
+      <dl className="overview overview--color">
         <div>
           <dt>Calificadas</dt>
           <dd>{total((s) => s.graded)}</dd>
@@ -58,6 +58,7 @@ export default function ControlPanel({ courseId, canGrade, onGraded }) {
               <tr>
                 <th scope="col">Actividad</th>
                 <th scope="col">Cierre</th>
+                <th scope="col">Avance</th>
                 <th scope="col">Calificadas</th>
                 <th scope="col">Por revisar</th>
                 <th scope="col">Sin entregar</th>
@@ -71,6 +72,9 @@ export default function ControlPanel({ courseId, canGrade, onGraded }) {
                     <Link to={`/actividades/${column.activityId}`}>{column.title}</Link>
                   </th>
                   <td>{formatDateTime(column.closesAt)}</td>
+                  <td>
+                    <ProgressBar stats={column.stats} students={students} />
+                  </td>
                   <td>
                     {column.stats.graded} de {students}
                   </td>
@@ -90,6 +94,19 @@ export default function ControlPanel({ courseId, canGrade, onGraded }) {
         </div>
       )}
     </section>
+  )
+}
+
+// Barra de avance de una actividad: calificadas, por revisar y vencidas sobre el total de estudiantes. Es solo
+// visual (las cifras están en las columnas de al lado).
+function ProgressBar({ stats, students }) {
+  const share = (n) => `${students ? (100 * n) / students : 0}%`
+  return (
+    <div className="progress-bar" aria-hidden="true">
+      <span className="progress-bar__graded" style={{ width: share(stats.graded) }} />
+      <span className="progress-bar__review" style={{ width: share(stats.inReview) }} />
+      <span className="progress-bar__overdue" style={{ width: share(stats.overdue) }} />
+    </div>
   )
 }
 

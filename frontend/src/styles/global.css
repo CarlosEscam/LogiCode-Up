@@ -3171,3 +3171,86 @@ td .console {
 .home-pending .card {
   margin: 0;
 }
+
+/* ---------- Panel docente (2026-11-11): contador de Por revisar, menú de materiales, barras de avance ---------- */
+
+.tab-count {
+  margin-left: 0.375rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.more-menu {
+  position: relative;
+}
+
+.more-menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.more-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.more-menu > summary::after {
+  content: ' ▾';
+}
+
+.more-menu__list {
+  position: absolute;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 10rem;
+  margin-top: 0.375rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgb(43 37 64 / 0.12);
+}
+
+.overview--color div {
+  border: none;
+  background: var(--color-band);
+}
+
+.overview--color div:nth-child(2) {
+  background: #fef3c7;
+}
+
+.overview--color div:nth-child(4) {
+  background: #fee2e2;
+}
+
+.overview--color dd {
+  font-family: var(--font-display);
+  color: var(--color-primary);
+}
+
+.progress-bar {
+  display: flex;
+  width: 8rem;
+  height: 0.625rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-band);
+}
+
+.progress-bar__graded {
+  background: var(--color-primary);
+}
+
+.progress-bar__review {
+  background: #f59e0b;
+}
+
+.progress-bar__overdue {
+  background: var(--color-error);
+}

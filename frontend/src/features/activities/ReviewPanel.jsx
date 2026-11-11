@@ -6,6 +6,15 @@ import CalibrationPanel from './CalibrationPanel.jsx'
 import { GradeAllWithAi } from '../gradebook/ControlPanel.jsx'
 import { useRefreshWhile } from './useRefreshWhile.js'
 
+// Color del motivo: rojo si la IA no pudo (ilegible, falló, no corre), gris si es manual o un formato que no lee.
+const REASON_BADGE = {
+  ILLEGIBLE: 'badge--danger',
+  AI_FAILED: 'badge--danger',
+  CODE_ERROR: 'badge--danger',
+  AI_DISABLED: 'badge--muted',
+  UNSUPPORTED: 'badge--muted',
+}
+
 // Bandeja Por revisar: el último intento de cada estudiante sin nota publicada, del más antiguo al más
 // reciente. Incluye las que la IA está calificando y las que esperan al docente, con el motivo (RF-15).
 export default function ReviewPanel({ courseId, canGrade }) {
@@ -48,7 +57,9 @@ export default function ReviewPanel({ courseId, canGrade }) {
                       {item.status === 'PROCESSING' ? (
                         <span className="badge badge--info">{GRADE_STATUS_LABELS.PROCESSING}</span>
                       ) : (
-                        <span className="badge badge--warning">{REVIEW_REASON_LABELS[item.reviewReason] ?? GRADE_STATUS_LABELS.PENDING_REVIEW}</span>
+                        <span className={`badge ${REASON_BADGE[item.reviewReason] ?? 'badge--warning'}`}>
+                          {REVIEW_REASON_LABELS[item.reviewReason] ?? GRADE_STATUS_LABELS.PENDING_REVIEW}
+                        </span>
                       )}
                     </td>
                     <td>
