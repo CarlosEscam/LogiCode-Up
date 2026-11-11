@@ -158,9 +158,13 @@ management:
         http.server.requests: 1s
 
 springdoc:
+  # Documentación de la API apagada por defecto: muestra el mapa completo de la API a quien entre (también por
+  # ngrok). Se enciende con LOGICODE_API_DOCS=true para las guías; docs/api/openapi.json siempre está en el repositorio.
   api-docs:
+    enabled: ${LOGICODE_API_DOCS:false}
     path: /api/v1/openapi
   swagger-ui:
+    enabled: ${LOGICODE_API_DOCS:false}
     path: /swagger-ui.html
   paths-to-match: /api/v1/**
 

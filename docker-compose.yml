@@ -88,6 +88,8 @@ services:
       LOGICODE_FILE_RETENTION_MONTHS: ${LOGICODE_FILE_RETENTION_MONTHS:-6}
       # Carpeta compartida con el servicio backup: el panel lista las copias y deja ahí las solicitudes.
       LOGICODE_BACKUPS_DIR: /var/lib/logicode/backups
+      # Documentación de la API (Swagger): apagada salvo que .env diga LOGICODE_API_DOCS=true.
+      LOGICODE_API_DOCS: ${LOGICODE_API_DOCS:-false}
       # Calificación con IA (Etapa 6): Ollama + Qwen2.5-VL 7B en el servicio ollama (perfil ia).
       LOGICODE_AI_ENABLED: ${LOGICODE_AI_ENABLED:-false}
       LOGICODE_AI_OLLAMA_URL: http://ollama:11434

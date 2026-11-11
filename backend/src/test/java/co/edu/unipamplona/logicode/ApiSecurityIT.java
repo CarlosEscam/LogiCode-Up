@@ -31,7 +31,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * Etapa 9: recorre todos los endpoints de la API sin sesión. Solo los públicos aprobados responden algo distinto de
  * 401, y ninguna escritura pasa sin token CSRF. Un endpoint nuevo queda cubierto sin escribir otra prueba.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"springdoc.api-docs.enabled=true", "springdoc.swagger-ui.enabled=true"})
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
 class ApiSecurityIT {
@@ -70,6 +71,16 @@ class ApiSecurityIT {
             }
         }
         assertThat(open).as("endpoints que responden sin sesión").isEqualTo(new TreeSet<>(PUBLIC));
+    }
+
+    /** Fuera de la API solo se atiende lo aprobado (salud, métricas internas, documentación encendida). */
+    @Test
+    void unknownPathsOutsideTheApiAreDenied() throws Exception {
+        for (String path : List.of("/cualquier-cosa", "/actuator/env", "/actuator/heapdump", "/actuator/beans")) {
+            int status = mvc.perform(get(path)).andReturn().getResponse().getStatus();
+            assertThat(status).as(path).isIn(401, 403, 404);
+        }
+        assertThat(mvc.perform(get("/cualquier-cosa")).andReturn().getResponse().getStatus()).isEqualTo(401);
     }
 
     @Test

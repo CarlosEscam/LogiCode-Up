@@ -42,6 +42,8 @@ public class RequestEmailChange {
     private final EmailVerificationIssuer verificationIssuer;
     private final AuditLog auditLog;
     private final Clock clock;
+    /** Hash de relleno: una cédula inexistente tarda lo mismo que una real (no se distinguen por el tiempo). */
+    private final String unknownAccountHash;
 
     public RequestEmailChange(UserAccountRepository accounts, RecoveryRequestRepository recoveryRequests,
             PasswordHasher passwordHasher, EmailVerificationIssuer verificationIssuer, AuditLog auditLog, Clock clock) {
@@ -51,6 +53,7 @@ public class RequestEmailChange {
         this.verificationIssuer = verificationIssuer;
         this.auditLog = auditLog;
         this.clock = clock;
+        this.unknownAccountHash = passwordHasher.hash("cuenta-inexistente#2026");
     }
 
     @Transactional
@@ -61,6 +64,7 @@ public class RequestEmailChange {
         Optional<UserAccount> found = cedula == null ? Optional.empty()
                 : accounts.findByCedula(cedula).filter(a -> a.getStatus() != AccountStatus.DISABLED);
         if (found.isEmpty()) {
+            matches(String.valueOf(command.password()), unknownAccountHash);
             auditLog.record(AuditAction.EMAIL_CHANGE_REQUESTED, null, null, cedula, AuditEvent.Outcome.FAILURE,
                     "cuenta inexistente o desactivada");
             return;

@@ -2,6 +2,7 @@ package co.edu.unipamplona.logicode.identity.infrastructure.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import co.edu.unipamplona.logicode.identity.application.StudentEnablementRepository;
 import co.edu.unipamplona.logicode.identity.domain.StudentEnablement;
@@ -40,7 +41,8 @@ class StudentEnablementRepositoryAdapter implements StudentEnablementRepository 
     }
 
     @Override
-    public PageResult<StudentEnablement> list(int page, int size) {
-        return PageResults.of(jpa.findAll(PageRequest.of(page, size, Sort.by("enabledAt").descending())));
+    public PageResult<StudentEnablement> list(UUID enabledBy, int page, int size) {
+        PageRequest request = PageRequest.of(page, size, Sort.by("enabledAt").descending());
+        return PageResults.of(enabledBy == null ? jpa.findAll(request) : jpa.findByEnabledBy(enabledBy, request));
     }
 }

@@ -30,6 +30,8 @@ public class AuthenticateUser {
     private final PasswordHasher passwordHasher;
     private final AuditLog auditLog;
     private final Clock clock;
+    /** Hash de relleno: una cédula inexistente tarda lo mismo que una real (sin él se distinguían por el tiempo). */
+    private final String unknownAccountHash;
 
     public AuthenticateUser(UserAccountRepository accounts, AuditEventRepository auditEvents,
             PasswordHasher passwordHasher, AuditLog auditLog, Clock clock) {
@@ -38,6 +40,7 @@ public class AuthenticateUser {
         this.passwordHasher = passwordHasher;
         this.auditLog = auditLog;
         this.clock = clock;
+        this.unknownAccountHash = passwordHasher.hash("cuenta-inexistente#2026");
     }
 
     /** Devuelve el actor autenticado; lanza 401, 403 o 429 según el caso. El intento queda auditado. */
@@ -55,7 +58,10 @@ public class AuthenticateUser {
         Optional<UserAccount> found = cedula.isEmpty() ? Optional.empty() : accounts.findByCedula(cedula);
         boolean valid = found.filter(UserAccount::hasPassword)
                 .map(a -> password != null && passwordHasher.matches(password, a.getPasswordHash()))
-                .orElse(false);
+                .orElseGet(() -> {
+                    passwordHasher.matches(String.valueOf(password), unknownAccountHash);
+                    return false;
+                });
         if (!valid) {
             auditLog.record(AuditAction.LOGIN, null, found.map(UserAccount::getId).orElse(null), cedula,
                     AuditEvent.Outcome.FAILURE, null);

@@ -26,7 +26,8 @@ import tools.jackson.databind.json.JsonMapper;
  * (Testcontainers), aplica las migraciones y consulta los endpoints técnicos.
  * Se omite automáticamente si Docker no está disponible.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"springdoc.api-docs.enabled=true", "springdoc.swagger-ui.enabled=true"})
 @Testcontainers(disabledWithoutDocker = true)
 class LogiCodeApplicationIT {
 

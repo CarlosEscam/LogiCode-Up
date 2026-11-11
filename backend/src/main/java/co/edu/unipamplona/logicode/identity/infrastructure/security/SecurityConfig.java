@@ -1,6 +1,7 @@
 package co.edu.unipamplona.logicode.identity.infrastructure.security;
 
 import java.io.IOException;
+import java.time.Clock;
 
 import co.edu.unipamplona.logicode.identity.application.GetCurrentActor;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,9 +32,10 @@ class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository contextRepository,
-            GetCurrentActor getCurrentActor) throws Exception {
+            GetCurrentActor getCurrentActor, Clock clock) throws Exception {
         http
                 .addFilterAfter(new ActiveAccountFilter(getCurrentActor), SecurityContextHolderFilter.class)
+                .addFilterAfter(new AbuseLimitFilter(clock), ActiveAccountFilter.class)
                 .csrf(csrf -> csrf.spa())
                 // La vista previa de PDF se muestra en un iframe de la propia aplicación.
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
@@ -43,7 +45,10 @@ class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        // metrics y prometheus: el puerto del backend solo escucha en 127.0.0.1 y Nginx no publica /actuator.
+                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info",
+                                "/actuator/prometheus", "/actuator/metrics", "/actuator/metrics/**").permitAll()
                         .requestMatchers("/api/v1/openapi/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/system/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
@@ -53,7 +58,8 @@ class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/materials/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/forum/**").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
-                        .anyRequest().permitAll())
+                        // Lo que no está en esta lista se niega (antes se permitía).
+                        .anyRequest().denyAll())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, ex) -> problem(response,
                                 HttpServletResponse.SC_UNAUTHORIZED, "Sesión requerida", "Debes iniciar sesión."))
@@ -63,7 +69,7 @@ class SecurityConfig {
         return http.build();
     }
 
-    private static void problem(HttpServletResponse response, int status, String title, String detail)
+    static void problem(HttpServletResponse response, int status, String title, String detail)
             throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

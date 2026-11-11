@@ -11,6 +11,7 @@ import co.edu.unipamplona.logicode.identity.domain.StudentEnablement;
 import co.edu.unipamplona.logicode.shared.application.ApplicationException;
 import co.edu.unipamplona.logicode.shared.application.PageResult;
 import co.edu.unipamplona.logicode.shared.domain.Permission;
+import co.edu.unipamplona.logicode.shared.domain.Role;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +101,9 @@ public class EnableStudents {
     @Transactional(readOnly = true)
     public PageResult<StudentEnablement> list(Actor actor, int page, int size) {
         actor.require(Permission.MANAGE_STUDENT_ENABLEMENTS);
-        return enablements.list(Math.max(page, 0), Math.clamp(size, 1, 100));
+        // Un docente solo ve las cédulas que él habilitó (Ley 1581: los estudiantes de otros cursos no son suyos).
+        boolean staff = actor.fullPrivileges() || actor.role() == Role.ADMIN;
+        return enablements.list(staff ? null : actor.userId(), Math.max(page, 0), Math.clamp(size, 1, 100));
     }
 
     private static String cleanName(String name) {

@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,6 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -43,6 +48,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -53,6 +59,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -107,6 +116,10 @@ class ContentFlowsIT {
 
     @Autowired
     JdbcClient jdbc;
+
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    RequestMappingHandlerMapping mappings;
 
     Cookie admin;
     Cookie teacher;
@@ -391,7 +404,93 @@ class ContentFlowsIT {
         mvc.perform(get("/api/v1/materials/" + active + "/download")).andExpect(status().isOk());
     }
 
+    @Test
+    @Order(9)
+    void searchesTreatSqlInjectionAsPlainText() throws Exception {
+        List<String> payloads = List.of("' OR '1'='1", "' OR 1=1 --", "'; DROP TABLE user_account; --",
+                "\" OR \"\"=\"", "%", "_", "\\", "') UNION SELECT cedula FROM user_account --");
+        for (String payload : payloads) {
+            mvc.perform(get("/api/v1/library").param("q", payload))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(0));
+            mvc.perform(get("/api/v1/forum/threads").param("q", payload))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(0));
+            mvc.perform(get("/api/v1/admin/users").param("q", payload).cookie(admin))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(0));
+            mvc.perform(get("/api/v1/materials/{id}", payload)).andExpect(status().is4xxClientError());
+            mvc.perform(get("/api/v1/courses/{id}", payload).cookie(teacher)).andExpect(status().is4xxClientError());
+        }
+        // Nada se borró ni cambió: las tablas siguen ahí con sus datos.
+        mvc.perform(get("/api/v1/library")).andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(1));
+        mvc.perform(get("/api/v1/admin/users").param("q", "600001").cookie(admin))
+                .andExpect(jsonPath("$.totalItems").value(1));
+    }
+
+    @Test
+    @Order(10)
+    void documentationOfTheApiIsOffByDefault() throws Exception {
+        mvc.perform(get("/api/v1/openapi")).andExpect(status().isNotFound());
+        mvc.perform(get("/swagger-ui.html")).andExpect(status().is4xxClientError());
+    }
+
+    /**
+     * Entrar por URL con el rol equivocado: se recorren todos los endpoints de la API con la sesión de un estudiante
+     * inscrito y de uno sin inscripción, con identificadores reales del curso. Solo responde con éxito lo de esta lista.
+     */
+    @Test
+    @Order(11)
+    void studentsCannotReachStaffEndpointsByUrl() throws Exception {
+        mvc.perform(json(post("/api/v1/courses/" + courseId + "/enrollments").cookie(teacher), "{\"cedula\":\"600001\"}"))
+                .andExpect(status().isCreated());
+        Set<String> anyStudent = Set.of("GET /api/v1/me", "GET /api/v1/courses", "GET /api/v1/library",
+                "GET /api/v1/library/topics", "GET /api/v1/forum/threads", "GET /api/v1/system/info",
+                "POST /api/v1/me/email-verification"); // reenviar la verificación de su propio correo
+        Set<String> enrolled = new TreeSet<>(anyStudent);
+        enrolled.addAll(Set.of("GET /api/v1/courses/{courseId}", "GET /api/v1/courses/{courseId}/topics",
+                "GET /api/v1/courses/{courseId}/activities", "GET /api/v1/courses/{courseId}/grades/mine",
+                "GET /api/v1/courses/{courseId}/gradebook"));
+        assertThat(answeredBy(member)).as("estudiante inscrita").isEqualTo(enrolled);
+        assertThat(answeredBy(outsider)).as("estudiante de otro curso").isEqualTo(new TreeSet<>(anyStudent));
+    }
+
+    /** Un docente solo ve las cédulas que él habilitó; la administración las ve todas (Ley 1581). */
+    @Test
+    @Order(12)
+    void teachersSeeOnlyTheEnablementsTheyMade() throws Exception {
+        mvc.perform(json(post("/api/v1/student-enablements").cookie(admin), "{\"cedula\":\"600009\"}"))
+                .andExpect(status().isCreated());
+        String byTeacher = mvc.perform(get("/api/v1/student-enablements").param("size", "100").cookie(teacher))
+                .andReturn().getResponse().getContentAsString();
+        String byAdmin = mvc.perform(get("/api/v1/student-enablements").param("size", "100").cookie(ordinaryAdmin))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(JsonPath.<List<String>>read(byTeacher, "$.items[*].cedula")).contains("600001").doesNotContain("600009");
+        assertThat(JsonPath.<List<String>>read(byAdmin, "$.items[*].cedula")).contains("600001", "600009");
+    }
+
     // ---------- utilidades ----------
+
+    /** Endpoints que responden con éxito (2xx) a esta sesión; {courseId} y {topicId} son los reales del curso. */
+    private Set<String> answeredBy(Cookie session) throws Exception {
+        Set<String> answered = new TreeSet<>();
+        for (RequestMappingInfo info : mappings.getHandlerMethods().keySet()) {
+            for (String pattern : info.getPathPatternsCondition().getPatternValues()) {
+                if (!pattern.startsWith("/api/v1/") || pattern.startsWith("/api/v1/auth/")) {
+                    continue;
+                }
+                Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
+                for (RequestMethod method : methods.isEmpty() ? Set.of(RequestMethod.GET) : methods) {
+                    String uri = pattern.replace("{courseId}", courseId).replace("{topicId}", topicId)
+                            .replaceAll("\\{[^}]+}", UUID.randomUUID().toString());
+                    int status = mvc.perform(request(HttpMethod.valueOf(method.name()), uri).cookie(session)
+                            .with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                            .andReturn().getResponse().getStatus();
+                    if (status < 300) {
+                        answered.add(method + " " + pattern);
+                    }
+                }
+            }
+        }
+        return answered;
+    }
 
     private ResultActions upload(Cookie session, String title, String kind, String visibility,
             MockMultipartFile file) throws Exception {

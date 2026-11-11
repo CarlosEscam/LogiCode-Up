@@ -235,7 +235,7 @@ El dibujo de los DFD sigue vigente. Lo que cambió desde el análisis: el flujo 
 | Zona horaria | Datos en UTC (`TIMESTAMPTZ`, JVM en UTC). Reglas por "día calendario en Colombia" usan el `Clock` del negocio (`America/Bogota`, configurable con `LOGICODE_TIME_ZONE`) |
 | Trazabilidad | `X-Request-Id` en cada respuesta y línea de log; una línea por solicitud con estado y duración; logs JSON (ECS) en Docker; métricas en `/actuator/metrics`, solo desde el equipo servidor |
 | Health checks | `/actuator/health`, `/actuator/health/liveness`, `/actuator/health/readiness` (incluye la base de datos) |
-| OpenAPI | springdoc: `/api/v1/openapi` (JSON) y `/swagger-ui.html`; apagados en el modo piloto |
+| OpenAPI | springdoc: `/api/v1/openapi` (JSON) y `/swagger-ui.html`; apagados por defecto (`LOGICODE_API_DOCS=true` los enciende) y siempre en el modo piloto |
 | Configuración | Variables de entorno con valores por defecto seguros para desarrollo; secretos fuera del repositorio |
 
 ## Frontend

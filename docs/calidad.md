@@ -17,9 +17,9 @@ Riesgos aceptados o que pasaron a la Etapa 10 (no críticos):
 | Id | Riesgo | Decisión |
 | --- | --- | --- |
 | R9-01 | Sin HTTPS: en local la sesión viaja sin cifrar por la red del aula (RNF-02 pide HTTPS en despliegue) | **Resuelto en la Etapa 10**: el modo piloto (`docker-compose.piloto.yml`) sirve solo por HTTPS con cookies `Secure` ([piloto.md](piloto.md)). El modo de desarrollo sigue en HTTP local |
-| R9-02 | `/swagger-ui.html` y `/api/v1/openapi` son públicos | Solo describen la API, sin datos. **Etapa 10:** apagados en el modo piloto (`SPRINGDOC_APIDOCS_ENABLED=false`, `SPRINGDOC_SWAGGERUI_ENABLED=false`); siguen en desarrollo |
+| R9-02 | `/swagger-ui.html` y `/api/v1/openapi` son públicos | Solo describen la API, sin datos. **Etapa 10:** apagados en el modo piloto (`SPRINGDOC_APIDOCS_ENABLED=false`, `SPRINGDOC_SWAGGERUI_ENABLED=false`); **11 de noviembre de 2026:** apagados por defecto también en desarrollo, porque ngrok los dejaba ver desde internet; se encienden con `LOGICODE_API_DOCS=true` |
 | R9-03 | Cinco intentos fallidos bloquean 15 minutos la cédula, aunque los haga otra persona | Se mantiene: protege contra adivinar contraseñas; el bloqueo es corto y queda en la auditoría |
-| R9-04 | Una cédula sin cuenta responde un poco más rápido al iniciar sesión | Se mantiene: el registro ya informa si una cédula está registrada, así que medir tiempos no revela nada nuevo |
+| R9-04 | Una cédula sin cuenta responde un poco más rápido al iniciar sesión | **Corregido el 11 de noviembre de 2026** (S11-01): la diferencia medida era de 300 ms contra 11 ms. Ahora las dos tardan lo mismo. El registro de docente sigue diciendo si una cédula ya tiene cuenta, pero quedó limitado a 10 por hora por equipo |
 | R9-05 | Las dependencias Java no se revisaron contra la base de vulnerabilidades: el entorno de Claude no llega a esa base | **Resuelto en la Etapa 10** (27 de octubre): las 168 dependencias de `./mvnw dependency:list` (todas las de ejecución y de prueba) contra la base OSV de Maven. Con Spring Boot 4.1.1 había 10 avisos: tres críticos de Tomcat 11.0.24 en la autenticación DIGEST y FORM y en las restricciones de seguridad declaradas en el contenedor (LogiCode no usa ninguna de las tres: la seguridad la hace Spring Security) y siete altos o medios de Jackson 3.1.5 y 2.21.5 (consumo de recursos al leer JSON). Se subió a Spring Boot 4.1.2 (Tomcat 11.0.27, Jackson 3.1.7 y 2.21.7): 0 avisos. `npm audit`: 0. Repetir antes de cada entrega (manual técnico, sección 8). Con Apache POI 5.5.1 y PDFBox 3.0.8 (P-07, P-08) y sus dependencias: 0 avisos. **Repetida el 2 de noviembre** (con MinIO y Brevo ya integrados): 179 dependencias contra la base OSV de Maven actualizada al 31 de octubre de 2026: 0 avisos; el escáner se comprobó con versiones viejas conocidas (Tomcat 11.0.24, Jackson 3.1.5, Log4j 2.14.1) y sí las marca |
 
 ## Qué se revisó y cómo
@@ -91,6 +91,52 @@ Cuadrante de Fowler: deliberada o inadvertida, prudente o imprudente.
 | DT-10 | Al terminar las pruebas de integración se ven 5 errores `CannotCreateTransactionException` de la tarea que limpia sesiones (la base ya se cerró) | Pendiente | Inadvertida y prudente | Apagar las tareas programadas en las pruebas |
 | DT-11 | La espera de conexión de 30 s hace que un estudiante espere medio minuto para ver un error si la base cae | Pendiente (postmortem de la guía 14) | Inadvertida y prudente | Bajar a 5 s después de medirlo con la prueba de carga |
 | DT-12 | Sin pruebas E2E automáticas ni cobertura medida en la interfaz | Pendiente | Deliberada y prudente | Ver la hoja de ruta (guía 15) |
+
+## Revisión de seguridad del 11 de noviembre de 2026
+
+Carlos pidió revisar si se puede entrar a partes de LogiCode sin iniciar sesión o con el rol equivocado, si hay inyección SQL y, en general, atacar el proyecto por fuerza bruta. Se hizo sobre el código de `main` (`e367076`, versión 1.3.1). Primero se leyó el código y después se atacó una copia completa corriendo en Docker (Nginx, backend, PostgreSQL y MinIO) con los datos de demostración cargados. Los guiones de ataque no quedan en el repositorio. Los resultados y las pruebas automáticas que los repiten sí quedan.
+
+### Defectos encontrados y corregidos
+
+| Id | Severidad | Defecto | Estado |
+| --- | --- | --- | --- |
+| S11-01 | Media (seguridad) | Se podía saber qué cédulas tienen cuenta midiendo el tiempo del inicio de sesión: 300 ms con cuenta y 11 ms sin cuenta (R9-04). Pasaba lo mismo en la solicitud de cambio de correo | Corregido: sin cuenta se compara contra un hash de relleno, y las dos tardan lo mismo (medido: 294 a 339 ms en los dos casos) |
+| S11-02 | Media (seguridad) | El bloqueo de 5 intentos era solo por cédula: se podía probar una contraseña en 40 cuentas seguidas sin ningún freno (rociado de contraseñas) | Corregido: `AbuseLimitFilter` corta en 50 ingresos fallidos por equipo en 15 minutos (`429`) |
+| S11-03 | Media (disponibilidad) | Envío de correos sin límite: 15 solicitudes de docente seguidas pasaron, y un estudiante sin verificar hizo que LogiCode mandara 20 correos de verificación en un minuto a la dirección que quiso. Con la cuota diaria de Brevo agotada, nadie podría recuperar su contraseña | Corregido: por equipo, 10 solicitudes de docente y 10 reenvíos de verificación por hora, y 30 por hora para la recuperación de contraseña y el cambio de correo |
+| S11-04 | Media (privacidad, Ley 1581) | Un docente veía en "Habilitar estudiantes" las cédulas y los nombres habilitados en **toda** la plataforma, también los de cursos ajenos | Corregido: el docente ve solo las que habilitó él; la administración las ve todas |
+| S11-05 | Media (dependencia) | `opentelemetry-api` 1.62.0 (la que trae Spring Boot 4.1.2): GHSA-ccrj-gw8r-854m, una cabecera `tracestate` armada a propósito gasta CPU cuadrática | Corregido: `opentelemetry.version` 1.67.0 en `backend/pom.xml`; quitar cuando Spring Boot traiga una igual o mayor |
+| S11-06 | Baja (seguridad) | La documentación de la API (`/swagger-ui.html`, `/api/v1/openapi`) estaba abierta en desarrollo, y por ngrok cualquiera veía el mapa completo de la API | Corregido: apagada por defecto; `LOGICODE_API_DOCS=true` la enciende |
+| S11-07 | Baja (seguridad) | La última regla de Spring Security permitía cualquier ruta que no estuviera en la lista | Corregido: ahora niega (`denyAll`) todo lo que no esté permitido a propósito |
+| S11-08 | Baja (seguridad) | Nginx agregaba la `X-Forwarded-For` que mandaba el cliente, así que cualquiera podía inventarse otra IP y saltarse los límites por equipo | Corregido: Nginx la reemplaza por la IP real |
+
+### Ataques hechos y resultado
+
+| Ataque | Cómo | Resultado |
+| --- | --- | --- |
+| Inyección SQL | 24 cargas (`' OR '1'='1`, `UNION SELECT`, `pg_sleep` para medir demoras, comillas, `%`, `_`, `\`, textos de 5000 caracteres…) en **todos** los parámetros de consulta y de ruta del contrato OpenAPI y en los campos de texto de 6 escrituras: 1991 solicitudes | 0 errores 500, 0 demoras y la base intacta. Las 20 consultas escritas a mano usan parámetros; los buscadores escapan `%` y `_`; el orden está fijo en el código |
+| Entrar por URL sin sesión o con otro rol | 7 personas (visitante, estudiante de otro curso, compañero, estudiante dueña, docente de otro curso, administradora ordinaria, docente dueña) contra las 40 rutas de consulta con identificadores reales, y 48 escrituras armadas a mano (calificar, inscribir, cambiar roles, desactivar cuentas, responder quiz ajeno, moderar el foro…) | Ninguna se coló. Los cursos ajenos responden 404 para no revelar que existen. La página manda a "Ingresar" o muestra "Sin permiso" |
+| Fuerza bruta al ingresar | 7 intentos a una cédula; 1 intento a 40 cédulas; tiempos de cédula existente y no existente | Bloqueo por cédula al sexto (ya existía). S11-01 y S11-02 |
+| Correos | Solicitudes de docente y reenvíos de verificación en ráfaga | S11-03 |
+| Asignación masiva | Registro con `role=ADMIN`, `fullPrivileges=true`, `status=ACTIVE` | Se ignoran |
+| XSS | `<img onerror>`, `<svg onload>` y enlaces `javascript:` en el foro, temas y nombres, abiertos en Chromium | No se ejecutó nada; React escapa y la CSP bloquearía lo que quedara. `?volver=//sitio` y `?volver=javascript:` no redirigen afuera |
+| CSRF, CORS y sesión | Escritura sin token, preflight desde otro sitio, cookie antes y después de ingresar, cookie vieja tras cerrar sesión | `403`, sin `Access-Control-Allow-Origin`, la sesión cambia al ingresar, la vieja deja de servir; cookie `HttpOnly` y `SameSite=Lax` (`Secure` en el piloto) |
+| Archivos | `.html`, `.svg`, HTML disfrazado de `.pdf`, nombre con `../`, PDF con HTML adentro | Rechazados por extensión y por contenido; el nombre queda sin la ruta; descargas con `nosniff` y el tipo real |
+| Excel de inscritos | `.xlsx` con entidad externa (XXE a `/etc/passwd`) y bomba zip de 400 MB | Rechazados en 34 ms y 13 ms |
+| PSeInt | Bucle infinito, arreglo de 2000 millones, recursión infinita, texto que se duplica, salida infinita, 6 a la vez | Todos cortados por los límites en menos de 0,2 s; el backend siguió respondiendo |
+| Rutas escondidas | `/.env`, `/.git/config`, `/actuator/env`, `../` codificado, `size=1000000` | Nginx devuelve la página de la aplicación, no archivos; `/actuator` no sale de Nginx; las páginas tienen tope de tamaño |
+| Planilla exportada | Nombre `=HYPERLINK(...)` en el CSV | Sale con `'` adelante (Excel no lo ejecuta) |
+| Dependencias | 167 de Java contra la base OSV de Maven del 11 de noviembre; `npm audit` | S11-05; `npm audit`: 0 |
+
+Pruebas automáticas nuevas: `ContentFlowsIT` recorre todos los endpoints con un estudiante inscrito y uno de otro curso (rol equivocado), prueba las cargas de inyección en los tres buscadores y en rutas, comprueba que la documentación está apagada y que un docente solo ve sus habilitaciones; `ApiSecurityIT` comprueba que lo desconocido fuera de la API se niega; `AbuseLimitFilterTest` prueba los límites por equipo. Resultado: 102 pruebas unitarias y 63 de integración en verde.
+
+Riesgos que se mantienen:
+
+| Id | Riesgo | Decisión |
+| --- | --- | --- |
+| R11-01 | Los límites por equipo viven en la memoria del backend: se reinician al reiniciarlo | Suficiente con un solo backend. Con varias réplicas habría que guardarlos en PostgreSQL |
+| R11-02 | En Docker Desktop (Windows) todo el salón puede llegar al backend con la misma IP | Por eso los topes son altos (50 fallos en 15 minutos). Si un salón entero falla tanto, espera 15 minutos o se reinicia el backend |
+| R11-03 | El ranking de un quiz muestra a los compañeros el nombre y la nota de cada uno | Es parte del diseño del quiz (juego). Si se quiere privado, es un cambio de diseño |
+| R11-04 | Sin HSTS en el modo piloto | Con un certificado de autoridad local, HSTS dejaría a un equipo sin entrar si el certificado vence o falta la autoridad |
 
 ## Observabilidad
 

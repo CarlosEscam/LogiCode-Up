@@ -24,6 +24,9 @@
         <archunit.version>1.5.1</archunit.version>
         <poi.version>5.5.1</poi.version>
         <pdfbox.version>3.0.8</pdfbox.version>
+        <!-- GHSA-ccrj-gw8r-854m: la 1.62.0 que trae Spring Boot gasta CPU cuadrática con una cabecera tracestate
+             armada a propósito; corregido en 1.67.0. Quitar cuando Spring Boot traiga una igual o mayor. -->
+        <opentelemetry.version>1.67.0</opentelemetry.version>
         <!-- Puerta de cobertura (T-102). Medida el 6 de noviembre de 2026: 88,6 % de líneas y 71,2 % de ramas; el umbral
              queda unos 3 puntos abajo para que un cambio sin pruebas la rompa y uno normal no. docs/calidad.md. -->
         <logicode.cobertura.minima>0.85</logicode.cobertura.minima>

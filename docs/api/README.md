@@ -38,7 +38,7 @@ Los juegos (`/juegos`) no usan la API: corren en el navegador (T-59).
 | Códigos | `200` consulta, `201` creación (con cabecera `Location`), `202` solicitud aceptada (correos), `204` sin contenido, `400` formato inválido, `401` sin sesión, `403` sin permiso, `404` no existe, `409` conflicto de estado, `422` regla de negocio incumplida, `429` límite de solicitudes |
 | Paginación | `?page=0&size=20&sort=campo,asc`; respuesta `{ "items": [], "page": 0, "size": 20, "totalItems": 0, "totalPages": 0 }` |
 | Trazabilidad | Cada respuesta incluye `X-Request-Id` |
-| Documentación | El contrato vivo lo genera springdoc: `/api/v1/openapi` (JSON) y `/swagger-ui.html` (interfaz). En desarrollo se abre en `http://localhost:3000/swagger-ui.html`. En el modo piloto están apagados (`SPRINGDOC_APIDOCS_ENABLED=false`, R9-02) |
+| Documentación | El contrato vivo lo genera springdoc: `/api/v1/openapi` (JSON) y `/swagger-ui.html` (interfaz). Desde el 11 de noviembre de 2026 están apagados por defecto (R9-02): con `LOGICODE_API_DOCS=true` en `.env` se abren en `http://localhost:3000/swagger-ui.html`. En el modo piloto siempre están apagados (`SPRINGDOC_APIDOCS_ENABLED=false`). El archivo `docs/api/openapi.json` sigue en el repositorio |
 
 Ejemplos de error:
 

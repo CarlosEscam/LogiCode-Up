@@ -100,7 +100,7 @@ docker compose up --build
 | --- | --- |
 | http://localhost:3000 | Aplicación web (muestra el estado del servidor y la base de datos) |
 | http://localhost:3000/api/v1/system/info | API a través de Nginx |
-| http://localhost:3000/swagger-ui.html | Documentación interactiva de la API |
+| http://localhost:3000/swagger-ui.html | Documentación interactiva de la API (apagada por defecto; se enciende con `LOGICODE_API_DOCS=true` en `.env`) |
 | http://localhost:8080/actuator/health | Estado del backend |
 
 Detener: `docker compose down` (conserva los datos) · Borrar también la base de datos y los archivos cargados: `docker compose down -v`.
