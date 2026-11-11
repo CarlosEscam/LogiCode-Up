@@ -35,6 +35,7 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 | --- | --- | --- | --- |
 | 1000000101 | Laura Méndez Ríos | Docente (aprobada) | Dueña del curso: crea contenido, califica, da excepciones |
 | 1000000102 | Jorge Pabón Silva | Docente (pendiente) | Solicitud por aprobar en Usuarios; no puede ingresar aún |
+| 1000000104 | Andrés Felipe Molina Arias | Docente (aprobado por Diana) | Dueño de los Grupos B y C |
 | 1000000103 | Diana Rojas Castro | Administradora ordinaria | Ve todo en solo lectura; no crea ni califica (RN-04) |
 | 1000000201 | Ana Sofía Torres | Estudiante del curso | Tiene notas publicadas (una corregida) y una foto por revisar |
 | 1000000202 | Bruno Díaz León | Estudiante del curso | Nota 3,0 y una entrega en texto por revisar |
@@ -47,6 +48,8 @@ Contraseña de todas las cuentas de demostración: **`Demo#2026`** (solo para es
 | 1000000209 | Iván Castro Rueda | Inscrito sin registrarse | Llegó con la lista de Excel (P-07) |
 | 1000000210 | Juliana Mora Díaz | Inscrita sin registrarse | Llegó con la lista de Excel (P-07) |
 | 1000000211 a 1000000224 | Karen Rincón Pardo … Ximena Delgado Ortiz (14) | Estudiantes del curso | Completan los 20 activos; entregan en los Talleres 5 a 10 (ver "Curso completo") |
+| 1000000301 a 1000000320 | 20 estudiantes (Alejandro Arango Flórez, …) | Estudiantes del Grupo B | Entregan en sus 6 talleres |
+| 1000000401 a 1000000420 | 20 estudiantes (Kevin Medina …, …) | Estudiantes del Grupo C | Entregan en sus 6 talleres |
 
 ## Contenido por etapa
 
@@ -225,6 +228,21 @@ Los 20 estudiantes entregan en los 6 talleres: **120 entregas**. Qué entrega ca
 - Lo que diga la IA depende del modelo: la variante de cada entrega es lo que el caso busca mostrar, no un resultado medido.
 - Los 14 estudiantes nuevos llegan cuando la Tarea 1 y el Quiz 1 ya cerraron, así que la planilla les pone 0,0 en esas dos (regla de no entregadas).
 - Si ya tenías los datos anteriores, el script agrega solo esta parte. Si la carga se corta a la mitad, empieza de cero (`docker compose down -v`), porque las cuentas ya registradas no se vuelven a crear.
+
+### Más cursos · Grupos B y C
+
+Tres cursos de demostración con al menos 20 estudiantes y como máximo 15 actividades cada uno (el curso "Pruebas de aceptación IA" de `ia-pruebas/` es aparte y no cuenta):
+
+| Curso | Docente | Estudiantes activos | Actividades |
+| --- | --- | --- | --- |
+| Pensamiento Computacional · Grupo A | Laura Méndez Ríos (`1000000101`) | 20 | 15 |
+| Pensamiento Computacional · Grupo B | Andrés Felipe Molina Arias (`1000000104`) | 20 | 6 |
+| Pensamiento Computacional · Grupo C | Andrés Felipe Molina Arias (`1000000104`) | 20 | 6 |
+
+- Andrés pide su cuenta de docente y **Diana la aprueba** (las administradoras ordinarias tienen ese permiso), así que esta parte no pide la cuenta inicial.
+- Cada grupo tiene 3 temas (condicionales y ciclos en PSeInt, Arduino) y los mismos 6 talleres de `curso-completo.json`, numerados del 1 al 6. Los 20 estudiantes entregan en todos: 120 entregas por curso, con la misma mezcla de fotos, PDF, texto y archivos, pero repartida distinto en cada grupo (parámetro `offset`).
+- Con la IA encendida son 240 entregas más en la cola (360 con el Grupo A): a cerca de un minuto cada una, unas 6 horas en el equipo de referencia.
+- Si ya tenías los datos anteriores, el script agrega solo esta parte (lo detecta por la cuenta de Andrés).
 
 ## Para las etapas siguientes
 

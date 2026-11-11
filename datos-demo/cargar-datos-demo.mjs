@@ -812,18 +812,31 @@ function plan(i, k) {
 async function stageFullCourse(teacher, students, course) {
   console.log('Curso completo · 20 estudiantes, 15 actividades y entregas para la IA')
   const all = Object.entries(STUDENTS).map(([key, person]) => ({ person, session: students[key] }))
-  for (const person of MORE_STUDENTS) {
+  all.push(...(await enrollNew(teacher, course, MORE_STUDENTS)))
+  log(`${MORE_STUDENTS.length} estudiantes más inscritos y registrados: ${all.length} activos en el curso`)
+  await aiWorkshops(teacher, course, all, { label: '6 talleres nuevos (Taller 5 a 10), 15 actividades en el curso' })
+}
+
+// Inscribe y registra estudiantes nuevos; devuelve sus sesiones.
+async function enrollNew(teacher, course, people) {
+  const sessions = []
+  for (const person of people) {
     await teacher.post(`/courses/${course.id}/enrollments`, { cedula: person.cedula, fullName: person.fullName })
     await register('student-registrations', person)
-    all.push({ person, session: await Session.login(person.cedula, DEMO_PASSWORD) })
+    sessions.push({ person, session: await Session.login(person.cedula, DEMO_PASSWORD) })
   }
-  log(`${MORE_STUDENTS.length} estudiantes más inscritos y registrados: ${all.length} activos en el curso`)
+  return sessions
+}
 
+// Los 6 talleres de curso-completo.json con una entrega de cada estudiante. offset cambia quién entrega qué,
+// para que dos cursos no queden iguales; renumber los numera desde 1 (en un curso nuevo no hay Taller 1 a 4).
+async function aiWorkshops(teacher, course, all, { label, offset = 0, renumber = false }) {
   const counts = { foto: 0, pdf: 0, texto: 0, archivo: 0, borrosa: 0 }
   const submissions = []
   for (const [k, a] of FULL_COURSE.entries()) {
+    const title = renumber ? a.titulo.replace(/^Taller \d+/, `Taller ${k + 1}`) : a.titulo
     const activity = await teacher.post(`/courses/${course.id}/activities`, {
-      title: a.titulo,
+      title,
       kind: 'WORKSHOP',
       statement: a.enunciado,
       acceptsText: true,
@@ -841,12 +854,12 @@ async function stageFullCourse(teacher, students, course) {
     })
     await teacher.post(`/activities/${activity.id}/publish`)
     for (const [i, { person, session }] of all.entries()) {
-      const { variant, format, blurry } = plan(i, k)
+      const { variant, format, blurry } = plan(i + offset, k)
       const lines = a.variantes[variant]
       let text = null
       let file = null
       if (format === 'texto') text = lines.join('\n')
-      if (format === 'pdf') file = { name: `${a.clave}.pdf`, type: 'application/pdf', content: pdf(`${a.titulo} · ${person.fullName}`, lines) }
+      if (format === 'pdf') file = { name: `${a.clave}.pdf`, type: 'application/pdf', content: pdf(`${title} · ${person.fullName}`, lines) }
       if (format === 'archivo') file = { name: a.archivo, type: 'text/plain', content: Buffer.from(lines.join('\r\n'), 'latin1') }
       if (format === 'foto') {
         const name = `${a.clave}-${variant}-${blurry ? 'borrosa' : 'legible'}.jpg`
@@ -858,7 +871,7 @@ async function stageFullCourse(teacher, students, course) {
       submissions.push(await session.postForm(`/activities/${activity.id}/submissions`, form))
     }
   }
-  log(`6 talleres nuevos (Taller 5 a 10), 15 actividades en el curso. ${submissions.length} entregas: ${counts.foto} fotos ` +
+  log(`${label}. ${submissions.length} entregas: ${counts.foto} fotos ` +
     `(${counts.borrosa} borrosas), ${counts.pdf} PDF, ${counts.texto} en texto y ${counts.archivo} archivos .psc o .ino`)
   const states = await Promise.all(submissions.map((s) => teacher.get(`/submissions/${s.id}/grade`)))
   const processing = states.filter((detail) => detail.grade.status === 'PROCESSING').length
@@ -867,6 +880,59 @@ async function stageFullCourse(teacher, students, course) {
       'Mira el avance en Control o Por revisar.')
   } else {
     log('La IA está desactivada: las entregas quedaron en Por revisar. Al activarla, usa "Calificar todo con IA" en Control.')
+  }
+}
+
+// ---------- Más cursos · un segundo docente con los Grupos B y C ----------
+
+const SECOND_TEACHER = { cedula: '1000000104', fullName: 'Andrés Felipe Molina Arias', email: 'andres.molina@demo.logicode.test' }
+const FIRST_NAMES = ['Alejandro', 'Beatriz', 'Carlos', 'Daniela', 'Esteban', 'Fernanda', 'Gustavo', 'Helena', 'Ignacio', 'Juana',
+  'Kevin', 'Lorena', 'Manuel', 'Natalia', 'Óscar', 'Paola', 'Ricardo', 'Sara', 'Tomás', 'Viviana']
+const SURNAMES = ['Arango', 'Bautista', 'Contreras', 'Durán', 'Escobar', 'Flórez', 'Galvis', 'Hernández', 'Jaramillo', 'Leal',
+  'Medina', 'Navarro', 'Ospina', 'Parra', 'Quiroga', 'Rangel', 'Sandoval', 'Toro', 'Uribe', 'Villamizar']
+const ascii = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+// 20 estudiantes ficticios por curso: cédulas 1000000301 a 320 (Grupo B) y 1000000401 a 420 (Grupo C).
+const groupStudents = (base, shift, step) =>
+  Array.from({ length: 20 }, (_, i) => {
+    const first = FIRST_NAMES[(i + shift) % 20]
+    const last = SURNAMES[(i * step + shift) % 20]
+    const cedula = String(base + i + 1)
+    return {
+      cedula,
+      fullName: `${first} ${last} ${SURNAMES[(i * 7 + shift + 5) % 20]}`,
+      email: `${ascii(first)}.${ascii(last)}${cedula.slice(-3)}@demo.logicode.test`,
+    }
+  })
+const MORE_COURSES = [
+  { name: 'Pensamiento Computacional · Grupo B', people: groupStudents(1000000300, 0, 3), offset: 3 },
+  { name: 'Pensamiento Computacional · Grupo C', people: groupStudents(1000000400, 10, 7), offset: 5 },
+]
+
+// Diana (administradora ordinaria de la demostración) aprueba al docente: tiene ese permiso, así que esta parte
+// no necesita la cuenta inicial.
+async function stageMoreCourses() {
+  console.log('Más cursos · Grupos B y C con un segundo docente')
+  await register('teacher-requests', SECOND_TEACHER)
+  const diana = await Session.login(ORDINARY_ADMIN.cedula, DEMO_PASSWORD)
+  await diana.post(`/admin/teachers/${await userId(diana, SECOND_TEACHER.cedula)}/approve`)
+  log(`Docente aprobado por ${ORDINARY_ADMIN.fullName}: ${SECOND_TEACHER.fullName} (${SECOND_TEACHER.cedula})`)
+  const teacher = await Session.login(SECOND_TEACHER.cedula, DEMO_PASSWORD)
+  for (const { name, people, offset } of MORE_COURSES) {
+    const course = await teacher.post('/courses', {
+      name,
+      period: '2026-2',
+      description: 'Lógica de programación con PSeInt y Arduino. Curso de demostración.',
+    })
+    for (const [title, tool, description] of [
+      ['Algoritmos y condicionales en PSeInt', 'PSEINT', 'Entrada, proceso y salida; decisiones con Si.'],
+      ['Ciclos en PSeInt', 'PSEINT', 'Para y Mientras.'],
+      ['Primeros pasos con Arduino', 'ARDUINO', 'Salidas digitales y tiempos.'],
+    ]) {
+      await teacher.post(`/courses/${course.id}/topics`, { title, tool, description })
+    }
+    const all = await enrollNew(teacher, course, people)
+    log(`"${name}": 3 temas y ${all.length} estudiantes inscritos y registrados`)
+    await aiWorkshops(teacher, course, all, { label: `"${name}": 6 talleres`, offset, renumber: true })
   }
 }
 
@@ -926,6 +992,7 @@ async function main() {
   await stageBlocks(teacher, students, course)
   await stageExcel(teacher, students, course)
   await stageFullCourse(teacher, students, course)
+  await stageMoreCourses()
 
   console.log(`\nListo. Todas las cuentas de demostración usan la contraseña ${DEMO_PASSWORD}. Detalle en datos-demo/README.md`)
 }
@@ -940,6 +1007,8 @@ async function addMissingStages(teacher) {
   threads.items.forEach((thread) => titles.add(thread.title))
   const enrolled = await teacher.get(`/courses/${course.id}/enrollments?size=100`)
   if (enrolled.items.some((student) => student.cedula === EXCEL_STUDENTS[0])) titles.add(EXCEL_LIST)
+  const secondTeacher = await Session.login(SECOND_TEACHER.cedula, DEMO_PASSWORD).catch(() => null)
+  if (secondTeacher) titles.add(SECOND_TEACHER.cedula)
   const missing = [
     ['la Etapa 6', STAGE6_TITLE, stage6],
     ['la Etapa 7', STAGE7_TITLE, stage7],
@@ -947,6 +1016,7 @@ async function addMissingStages(teacher) {
     ['los retos de bloques', BLOCKS_TITLE, stageBlocks],
     ['la lista en Excel', EXCEL_LIST, stageExcel],
     ['los 20 estudiantes y las 15 actividades', FULL_COURSE_TITLE, stageFullCourse],
+    ['los Grupos B y C', SECOND_TEACHER.cedula, stageMoreCourses],
   ].filter(([, title]) => !titles.has(title))
   if (missing.length === 0) {
     console.log('Los datos de demostración ya están cargados hasta la etapa actual. No se cambió nada.')
