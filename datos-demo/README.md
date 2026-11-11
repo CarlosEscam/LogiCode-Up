@@ -93,7 +93,7 @@ Lo que diga la IA depende del modelo; la tabla es lo que el caso busca mostrar, 
 
 ### Etapa 7 · Quizzes, PSeInt y juegos
 
-**Banco de preguntas** del curso: 9 preguntas de los cuatro tipos (selección única, múltiple, falso o verdadero y respuesta corta), con explicación para la revisión.
+**Banco de preguntas** del curso: 10 preguntas de los cuatro tipos (selección única, múltiple, falso o verdadero y respuesta corta), con explicación para la revisión.
 
 **Quiz 1: ciclos y condiciones** (calificable, 6 preguntas, 7 puntos, 15 minutos, un intento, sin porcentaje porque el curso ya suma 100 %). Se responde abierto y luego el script lo cierra, así que ya se ven la revisión y el ranking.
 

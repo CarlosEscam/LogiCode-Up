@@ -100,7 +100,7 @@ public class RequestEmailChange {
 
         recoveryRequests.save(new RecoveryRequest(account.getId(), RecoveryKind.EMAIL_CHANGE, today,
                 RecoveryRequest.Outcome.ACCEPTED, now));
-        verificationIssuer.issue(account, newEmail);
+        verificationIssuer.issueEmailChange(account, newEmail);
         auditLog.record(AuditAction.EMAIL_CHANGE_REQUESTED, null, account.getId(), cedula, AuditEvent.Outcome.SUCCESS,
                 null);
     }

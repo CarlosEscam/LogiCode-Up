@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ActivityCatalog {
 
     public record ActivityInfo(UUID id, UUID courseId, String title, String statement, Instant closesAt,
-            boolean published, boolean quiz, boolean acceptsText) {
+            boolean published, boolean quiz, boolean acceptsText, boolean practice) {
     }
 
     /**
@@ -159,6 +159,6 @@ public class ActivityCatalog {
 
     private static ActivityInfo info(Activity a) {
         return new ActivityInfo(a.getId(), a.getCourseId(), a.getTitle(), a.getStatement(), a.getClosesAt(),
-                a.isPublished(), a.isQuiz(), a.isAcceptsText());
+                a.isPublished(), a.isQuiz(), a.isAcceptsText(), a.isPractice());
     }
 }

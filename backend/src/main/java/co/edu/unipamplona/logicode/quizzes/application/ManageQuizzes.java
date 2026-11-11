@@ -86,6 +86,7 @@ public class ManageQuizzes {
             if (question == null || question.isArchived() || !question.getCourseId().equals(activity.courseId())) {
                 throw ApplicationException.businessRule("Una de las preguntas no está en el banco de este curso.");
             }
+            requireNotSharedAcrossKinds(question, activity);
             chosen.add(question);
         }
         Quiz quiz = quizzes.findById(activityId).orElse(null);
@@ -101,6 +102,22 @@ public class ManageQuizzes {
         return new QuizViews.QuizView(activityId, timeLimitMinutes, chosen.size(),
                 chosen.stream().mapToInt(QuizQuestion::getPoints).sum(),
                 chosen.stream().map(q -> QuizViews.question(q, false)).toList(), false);
+    }
+
+    /**
+     * P-04 (pentest 2026-11-11): al terminar un repaso el estudiante ve la respuesta de cada pregunta, así que una
+     * pregunta no puede estar a la vez en un repaso y en un quiz calificable.
+     */
+    private void requireNotSharedAcrossKinds(QuizQuestion question, ActivityCatalog.QuizActivity activity) {
+        for (Quiz other : quizzes.findUsing(question.getId())) {
+            boolean clash = !other.getActivityId().equals(activity.id()) && catalog.activity(other.getActivityId())
+                    .filter(o -> o.practice() != activity.practice()).isPresent();
+            if (clash) {
+                throw ApplicationException.businessRule("La pregunta «" + question.getPrompt() + "» ya está en un "
+                        + (activity.practice() ? "quiz calificable" : "quiz de repaso") + ". El repaso muestra las "
+                        + "respuestas al terminar: usa preguntas distintas en los repasos y en los quizzes calificables.");
+            }
+        }
     }
 
     /** Preguntas del quiz en su orden. */

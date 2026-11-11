@@ -9,6 +9,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
@@ -61,12 +66,48 @@ class IdentityFlowsIT {
     static final Pattern TOKEN = Pattern.compile("token=([A-Za-z0-9_-]+)");
     static final String PASSWORD = "Clave#2026";
 
+    static final MovableClock CLOCK = new MovableClock(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+
     @TestConfiguration
     static class CapturingMail {
         @Bean
         @Primary
         EmailSender capturingEmailSender() {
             return OUTBOX::add;
+        }
+
+        @Bean
+        @Primary
+        Clock movableClock() {
+            return CLOCK;
+        }
+    }
+
+    static final class MovableClock extends Clock {
+
+        private volatile Instant now;
+
+        MovableClock(Instant start) {
+            this.now = start;
+        }
+
+        void advance(Duration duration) {
+            now = now.plus(duration);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneId.of("America/Bogota");
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return now;
         }
     }
 
@@ -245,19 +286,62 @@ class IdentityFlowsIT {
 
         // Contraseña inmediatamente anterior: válida (RN-25).
         emailChange("640001", "perdido@example.com", PASSWORD, "nuevo@example.com").andExpect(status().isAccepted());
-        assertThat(OUTBOX.getLast().toAddress()).isEqualTo("nuevo@example.com");
-        Cookie beforeConfirm = sessionOf(login("640001", "Actual#2026").andReturn());
-        mvc.perform(get("/api/v1/me").cookie(beforeConfirm)).andExpect(jsonPath("$.email").value("perdido@example.com"));
-
-        confirmEmail(lastTokenFor("nuevo@example.com"));
-        mvc.perform(get("/api/v1/me").cookie(beforeConfirm))
-                .andExpect(jsonPath("$.email").value("nuevo@example.com"))
-                .andExpect(jsonPath("$.emailVerified").value(true));
+        // P-02: el correo actual recibe un aviso.
+        assertThat(OUTBOX.subList(before, OUTBOX.size())).extracting(EmailMessage::toAddress)
+                .containsExactlyInAnyOrder("nuevo@example.com", "perdido@example.com");
+        String token = lastTokenFor("nuevo@example.com");
 
         // Límite independiente de 2 intentos diarios para este flujo (ya se usaron 2).
         before = OUTBOX.size();
-        emailChange("640001", "nuevo@example.com", "Actual#2026", "otro@example.com").andExpect(status().isAccepted());
+        emailChange("640001", "perdido@example.com", "Actual#2026", "otro@example.com")
+                .andExpect(status().isAccepted());
         assertThat(OUTBOX).hasSize(before);
+
+        // P-02: el enlace no sirve hasta 24 horas después; mientras tanto el correo no cambia.
+        Cookie beforeConfirm = sessionOf(login("640001", "Actual#2026").andReturn());
+        confirmEmailRaw(token).andExpect(status().isUnprocessableContent());
+        mvc.perform(get("/api/v1/me").cookie(beforeConfirm)).andExpect(jsonPath("$.email").value("perdido@example.com"));
+
+        CLOCK.advance(Duration.ofHours(25));
+        confirmEmail(token);
+        // P-02: confirmar el correo nuevo cierra las sesiones abiertas.
+        mvc.perform(get("/api/v1/me").cookie(beforeConfirm)).andExpect(status().isUnauthorized());
+        Cookie after = sessionOf(login("640001", "Actual#2026").andReturn());
+        mvc.perform(get("/api/v1/me").cookie(after))
+                .andExpect(jsonPath("$.email").value("nuevo@example.com"))
+                .andExpect(jsonPath("$.emailVerified").value(true));
+    }
+
+    @Test
+    void changingThePasswordCancelsAPendingEmailChange() throws Exception {
+        createActiveStudent("641001", "duena@example.com");
+        emailChange("641001", "duena@example.com", PASSWORD, "intruso@example.com").andExpect(status().isAccepted());
+        String token = lastTokenFor("intruso@example.com");
+
+        Cookie owner = sessionOf(login("641001", PASSWORD).andReturn());
+        mvc.perform(post("/api/v1/me/password").cookie(owner).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"Propia#2026\"}"))
+                .andExpect(status().isOk());
+
+        CLOCK.advance(Duration.ofHours(25));
+        confirmEmailRaw(token).andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void registrationNeedsTheEnabledNameAndTeacherRequestsCannotTakeStudentCedulas() throws Exception {
+        mvc.perform(post("/api/v1/student-enablements").cookie(admin1Session).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cedula\":\"650001\",\"fullName\":\"María José Pérez\"}"))
+                .andExpect(status().isCreated());
+
+        // P-01: con la cédula ajena no basta.
+        register("teacher-requests", "650001", "Impostor Docente", "impostor1@example.com")
+                .andExpect(status().isConflict());
+        register("student-registrations", "650001", "Impostor Total", "impostor2@example.com")
+                .andExpect(status().isUnprocessableContent());
+        // Sin tildes, en otro orden de mayúsculas y con el segundo apellido: es la misma persona.
+        register("student-registrations", "650001", "maria jose PEREZ Gomez", "maria@example.com")
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -266,6 +350,26 @@ class IdentityFlowsIT {
             login("700001", "Mala#1234").andExpect(status().isUnauthorized());
         }
         login("700001", "Mala#1234").andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void othersCannotLockOwnerOutOfAKnownDevice() throws Exception {
+        createActiveStudent("710001", "conocido@example.com");
+        Cookie device = login("710001", PASSWORD).andExpect(status().isOk()).andReturn().getResponse()
+                .getCookie("LOGICODE_DEVICE");
+        assertThat(device).as("cookie de equipo conocido").isNotNull();
+        assertThat(device.isHttpOnly()).isTrue();
+
+        for (int i = 0; i < 5; i++) {
+            login("710001", "Mala#1234").andExpect(status().isUnauthorized());
+        }
+        // P-03: el atacante queda bloqueado; la dueña, desde su equipo, entra.
+        login("710001", PASSWORD).andExpect(status().isTooManyRequests());
+        mvc.perform(json(post("/api/v1/auth/login"), "{\"cedula\":\"710001\",\"password\":\"" + PASSWORD + "\"}")
+                .cookie(device)).andExpect(status().isOk());
+        // Una cookie inventada no cuenta como equipo conocido.
+        mvc.perform(json(post("/api/v1/auth/login"), "{\"cedula\":\"710001\",\"password\":\"" + PASSWORD + "\"}")
+                .cookie(new Cookie("LOGICODE_DEVICE", device.getValue() + "x"))).andExpect(status().isTooManyRequests());
     }
 
     @Test
@@ -322,8 +426,11 @@ class IdentityFlowsIT {
     }
 
     private org.springframework.test.web.servlet.ResultActions confirmEmail(String token) throws Exception {
-        return mvc.perform(json(post("/api/v1/auth/email-verifications/confirm"), "{\"token\":\"" + token + "\"}"))
-                .andExpect(status().isOk());
+        return confirmEmailRaw(token).andExpect(status().isOk());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions confirmEmailRaw(String token) throws Exception {
+        return mvc.perform(json(post("/api/v1/auth/email-verifications/confirm"), "{\"token\":\"" + token + "\"}"));
     }
 
     private org.springframework.test.web.servlet.ResultActions emailChange(String cedula, String lastEmail,

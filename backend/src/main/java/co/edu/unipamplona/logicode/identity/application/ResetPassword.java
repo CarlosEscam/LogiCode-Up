@@ -51,6 +51,7 @@ public class ResetPassword {
         token.consume(now);
         tokens.save(token);
         tokens.invalidateUnused(account.getId(), TokenPurpose.PASSWORD_RESET, now);
+        tokens.invalidatePendingEmailChanges(account.getId(), account.getEmail(), now); // P-02: cancela un cambio pendiente
         accounts.save(account);
         sessionRevoker.revokeAll(account.getId());
         auditLog.record(AuditAction.PASSWORD_RESET, account.getId(), account.getId(), null, AuditEvent.Outcome.SUCCESS,

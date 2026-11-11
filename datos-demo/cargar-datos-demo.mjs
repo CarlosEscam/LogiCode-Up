@@ -562,8 +562,12 @@ async function stage7(teacher, students, course) {
     real: await question('SINGLE', '¿De qué tipo es el valor 3.5?', {
       options: [['Entero', false], ['Real', true], ['Lógico', false], ['Caracter', false]],
     }),
+    // El repaso muestra las respuestas al terminar: no comparte preguntas con el Quiz 1 calificable (P-04).
+    entero: await question('TRUE_FALSE', 'El valor 12 es de tipo Entero.', {
+      options: [['Verdadero', true], ['Falso', false]],
+    }),
   }
-  log('Banco de preguntas: 9 preguntas de los cuatro tipos')
+  log('Banco de preguntas: 10 preguntas de los cuatro tipos')
 
   // Respuestas por texto de opción: { clave: ['Para', 'Mientras'] } o { clave: 'Escribir' } en las cortas.
   const answersFor = (attempt, picks) => ({
@@ -632,10 +636,10 @@ async function stage7(teacher, students, course) {
   })
   await teacher.put(`/activities/${practice.id}/quiz`, {
     timeLimitMinutes: 5,
-    questionIds: ['logico', 'nombre', 'real', 'finito'].map((key) => q[key].id),
+    questionIds: ['logico', 'nombre', 'real', 'entero'].map((key) => q[key].id),
   })
   await teacher.post(`/activities/${practice.id}/publish`)
-  const practiceRight = { logico: 'Lógico', nombre: 'Caracter', real: 'Real', finito: 'Verdadero' }
+  const practiceRight = { logico: 'Lógico', nombre: 'Caracter', real: 'Real', entero: 'Verdadero' }
   await take(students.ana, practice.id, { ...practiceRight, logico: 'Entero', real: 'Entero' })
   await take(students.ana, practice.id, practiceRight)
   await take(students.bruno, practice.id, { ...practiceRight, nombre: 'Número' })

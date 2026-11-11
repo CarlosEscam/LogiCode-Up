@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Clock;
 
 import co.edu.unipamplona.logicode.identity.application.GetCurrentActor;
+import co.edu.unipamplona.logicode.identity.application.TrustedDevices;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,10 +33,10 @@ class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository contextRepository,
-            GetCurrentActor getCurrentActor, Clock clock) throws Exception {
+            GetCurrentActor getCurrentActor, TrustedDevices trustedDevices, Clock clock) throws Exception {
         http
                 .addFilterAfter(new ActiveAccountFilter(getCurrentActor), SecurityContextHolderFilter.class)
-                .addFilterAfter(new AbuseLimitFilter(clock), ActiveAccountFilter.class)
+                .addFilterAfter(new AbuseLimitFilter(clock, trustedDevices), ActiveAccountFilter.class)
                 .csrf(csrf -> csrf.spa())
                 // La vista previa de PDF se muestra en un iframe de la propia aplicación.
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

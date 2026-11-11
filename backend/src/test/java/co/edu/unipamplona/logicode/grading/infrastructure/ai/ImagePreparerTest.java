@@ -40,6 +40,25 @@ class ImagePreparerTest {
                 .isInstanceOf(GradingProvider.GradingFailure.class);
     }
 
+    @Test
+    void hugeImagesAreRejectedBeforeOpeningThem() throws IOException {
+        // P-08: cabecera PNG de 20.000 × 20.000 píxeles; abrirla ocuparía más de 1 GB.
+        ByteArrayOutputStream png = new ByteArrayOutputStream();
+        png.write(new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A});
+        java.nio.ByteBuffer ihdr = java.nio.ByteBuffer.allocate(13).putInt(20_000).putInt(20_000)
+                .put((byte) 8).put((byte) 2).put((byte) 0).put((byte) 0).put((byte) 0);
+        java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update("IHDR".getBytes());
+        crc.update(ihdr.array());
+        png.write(java.nio.ByteBuffer.allocate(4).putInt(13).array());
+        png.write("IHDR".getBytes());
+        png.write(ihdr.array());
+        png.write(java.nio.ByteBuffer.allocate(4).putInt((int) crc.getValue()).array());
+        assertThatThrownBy(() -> new ImagePreparer(1280).prepare(png.toByteArray()))
+                .isInstanceOf(GradingProvider.GradingFailure.class)
+                .hasMessageContaining("demasiado grande");
+    }
+
     private static byte[] jpeg(int width, int height) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB), "jpg", out);

@@ -23,6 +23,7 @@ import co.edu.unipamplona.logicode.identity.application.RequestEmailChange;
 import co.edu.unipamplona.logicode.identity.application.RequestPasswordRecovery;
 import co.edu.unipamplona.logicode.identity.application.RequestTeacherAccount;
 import co.edu.unipamplona.logicode.identity.application.ResetPassword;
+import co.edu.unipamplona.logicode.identity.application.TrustedDevices;
 import co.edu.unipamplona.logicode.identity.domain.UserAccount;
 import co.edu.unipamplona.logicode.shared.api.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +32,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -39,6 +42,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,11 +58,13 @@ public class AuthController {
     static final String GENERIC_RECOVERY_MESSAGE =
             "Si el correo pertenece a una cuenta con correo verificado, recibirás un enlace para restablecer la contraseña.";
     static final String GENERIC_EMAIL_CHANGE_MESSAGE =
-            "Si los datos coinciden, enviaremos un enlace de confirmación al correo nuevo. El cambio se aplica al confirmarlo.";
+            "Si los datos coinciden, enviaremos un enlace al correo nuevo y un aviso al anterior. Por seguridad, el enlace "
+                    + "sirve 24 horas después de pedirlo y el cambio se aplica al confirmarlo.";
 
     private final RegisterStudent registerStudent;
     private final RequestTeacherAccount requestTeacherAccount;
     private final AuthenticateUser authenticateUser;
+    private final TrustedDevices trustedDevices;
     private final GetCurrentActor getCurrentActor;
     private final RecordLogout recordLogout;
     private final ConfirmEmail confirmEmail;
@@ -70,7 +76,9 @@ public class AuthController {
     public AuthController(RegisterStudent registerStudent, RequestTeacherAccount requestTeacherAccount,
             AuthenticateUser authenticateUser, GetCurrentActor getCurrentActor, RecordLogout recordLogout,
             ConfirmEmail confirmEmail, RequestPasswordRecovery requestPasswordRecovery, ResetPassword resetPassword,
-            RequestEmailChange requestEmailChange, SecurityContextRepository securityContextRepository) {
+            RequestEmailChange requestEmailChange, SecurityContextRepository securityContextRepository,
+            TrustedDevices trustedDevices) {
+        this.trustedDevices = trustedDevices;
         this.registerStudent = registerStudent;
         this.requestTeacherAccount = requestTeacherAccount;
         this.authenticateUser = authenticateUser;
@@ -108,9 +116,15 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Iniciar sesión con cédula y contraseña (RF-03)")
-    public MeResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse) {
-        Actor actor = authenticateUser.execute(request.cedula(), request.password());
+    public MeResponse login(@Valid @RequestBody LoginRequest request,
+            @CookieValue(name = TrustedDevices.COOKIE, required = false) String deviceCookie,
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        Actor actor = authenticateUser.execute(request.cedula(), request.password(), deviceCookie);
+        // Equipo conocido (P-03): solo viaja al ingresar y JavaScript no la lee.
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(TrustedDevices.COOKIE,
+                        trustedDevices.issue(actor.userId()))
+                .httpOnly(true).secure(httpRequest.isSecure()).sameSite("Strict").path(ApiPaths.V1 + "/auth/login")
+                .maxAge(TrustedDevices.VALIDITY).build().toString());
 
         HttpSession existing = httpRequest.getSession(false);
         if (existing != null) {

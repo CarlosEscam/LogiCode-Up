@@ -18,12 +18,14 @@ public class ChangePassword {
     private final UserAccountRepository accounts;
     private final PasswordHasher passwordHasher;
     private final SessionRevoker sessionRevoker;
+    private final OneTimeTokenRepository tokens;
     private final AuditLog auditLog;
     private final Clock clock;
 
     public ChangePassword(UserAccountRepository accounts, PasswordHasher passwordHasher, SessionRevoker sessionRevoker,
-            AuditLog auditLog, Clock clock) {
+            OneTimeTokenRepository tokens, AuditLog auditLog, Clock clock) {
         this.accounts = accounts;
+        this.tokens = tokens;
         this.passwordHasher = passwordHasher;
         this.sessionRevoker = sessionRevoker;
         this.auditLog = auditLog;
@@ -43,6 +45,8 @@ public class ChangePassword {
         RegistrationRules.requireValidPassword(newPassword);
         account.changePassword(passwordHasher.hash(newPassword), clock.instant());
         accounts.save(account);
+        // P-02: cambiar la contraseña cancela un cambio de correo pendiente (lo dice el aviso al correo actual).
+        tokens.invalidatePendingEmailChanges(account.getId(), account.getEmail(), clock.instant());
         sessionRevoker.revokeAll(account.getId());
         auditLog.record(AuditAction.PASSWORD_CHANGED, actor.userId(), actor.userId(), null, AuditEvent.Outcome.SUCCESS,
                 "sesiones cerradas");

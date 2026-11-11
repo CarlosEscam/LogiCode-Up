@@ -24,6 +24,9 @@ public class OneTimeToken {
 
     /** Vigencia del enlace de verificación de correo (decisión técnica T-13). */
     public static final Duration EMAIL_VERIFICATION_VALIDITY = Duration.ofHours(24);
+    /** P-02: el correo nuevo de un cambio asistido solo se confirma tras esta espera; el enlace vive 48 h más. */
+    public static final Duration EMAIL_CHANGE_WAIT = Duration.ofHours(24);
+    public static final Duration EMAIL_CHANGE_VALIDITY = Duration.ofHours(72);
 
     @Id
     private UUID id;
@@ -72,6 +75,17 @@ public class OneTimeToken {
     public static OneTimeToken emailVerification(UUID userId, String tokenHash, String targetEmail, Instant now) {
         return new OneTimeToken(userId, TokenPurpose.EMAIL_VERIFICATION, tokenHash,
                 Objects.requireNonNull(targetEmail), now, EMAIL_VERIFICATION_VALIDITY);
+    }
+
+    /** Enlace para un correo que reemplazará al actual (RF-30): se puede usar desde {@link #usableFrom()}. */
+    public static OneTimeToken emailChange(UUID userId, String tokenHash, String targetEmail, Instant now) {
+        return new OneTimeToken(userId, TokenPurpose.EMAIL_VERIFICATION, tokenHash,
+                Objects.requireNonNull(targetEmail), now, EMAIL_CHANGE_VALIDITY);
+    }
+
+    /** Desde cuándo un correo nuevo puede reemplazar al actual: así el dueño alcanza a ver el aviso y cancelarlo. */
+    public Instant usableFrom() {
+        return createdAt.plus(EMAIL_CHANGE_WAIT);
     }
 
     public boolean isUsable(Instant now) {

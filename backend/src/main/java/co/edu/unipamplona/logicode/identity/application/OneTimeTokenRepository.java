@@ -15,4 +15,7 @@ public interface OneTimeTokenRepository {
 
     /** Invalida los tokens sin usar de una cuenta para un propósito (solo el último enlace sirve). */
     void invalidateUnused(UUID userId, TokenPurpose purpose, Instant now);
+
+    /** Invalida los enlaces sin usar hacia un correo distinto del actual: cancela un cambio de correo pendiente. */
+    void invalidatePendingEmailChanges(UUID userId, String currentEmail, Instant now);
 }

@@ -9,11 +9,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Iterator;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
 import co.edu.unipamplona.logicode.grading.application.GradingProvider;
@@ -25,6 +28,11 @@ import co.edu.unipamplona.logicode.grading.application.GradingProvider;
 class ImagePreparer {
 
     private static final float JPEG_QUALITY = 0.9f;
+    /**
+     * P-08 (pentest 2026-11-11): una foto de 1 MB puede decir 20.000 × 20.000 píxeles y abrirla ocupa más de 1 GB.
+     * 50 megapíxeles sobran para cualquier celular (uno de 200 MP envía fotos de 12 a 50 MP).
+     */
+    static final long MAX_PIXELS = 50_000_000L;
 
     private final int maxSide;
 
@@ -33,6 +41,10 @@ class ImagePreparer {
     }
 
     byte[] prepare(byte[] original) {
+        if (pixels(original) > MAX_PIXELS) {
+            throw new GradingProvider.GradingFailure("Una imagen de la entrega es demasiado grande (más de "
+                    + MAX_PIXELS / 1_000_000 + " megapíxeles).");
+        }
         BufferedImage image;
         try {
             image = ImageIO.read(new ByteArrayInputStream(original));
@@ -43,6 +55,25 @@ class ImagePreparer {
             throw new GradingProvider.GradingFailure("Una imagen de la entrega no se pudo abrir.");
         }
         return toJpeg(scaleAndRotate(image, exifOrientation(original)));
+    }
+
+    /** Ancho × alto leídos de la cabecera, sin abrir la imagen; 0 si no se reconoce (ImageIO.read lo rechazará). */
+    private static long pixels(byte[] original) {
+        try (ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(original))) {
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+            if (!readers.hasNext()) {
+                return 0;
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in, true, true);
+                return (long) reader.getWidth(0) * reader.getHeight(0);
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     private BufferedImage scaleAndRotate(BufferedImage image, int orientation) {

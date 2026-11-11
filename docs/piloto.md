@@ -128,7 +128,7 @@ Decisión: ☐ Piloto aceptado ☐ Aceptado con observaciones ☐ No aceptado
 Para enseñar LogiCode a alguien que no está en la misma red, mientras la publicación en línea (P-09) sigue en observación, se usa un túnel gratuito de [ngrok](https://ngrok.com). No es el piloto: es una instalación normal (sin `docker-compose.piloto.yml`) que se abre a internet solo mientras dura la demostración.
 
 1. Crea una cuenta gratis en ngrok. En el panel copia el **Authtoken** y, en **Domains**, el dominio fijo gratuito que te asigna (algo como `nombre-asignado.ngrok-free.dev`). El token es secreto: no lo escribas en el repositorio ni en `.env`.
-2. En `.env` pon `LOGICODE_PUBLIC_URL=https://<tu-dominio-de-ngrok>` y corre `docker compose up -d --wait`, para que los enlaces de los correos lleven esa dirección. Se hace una sola vez porque el dominio no cambia.
+2. En `.env` pon `LOGICODE_PUBLIC_URL=https://<tu-dominio-de-ngrok>` y `SESSION_COOKIE_SECURE=true` (la cookie de sesión solo viaja por HTTPS; en el mismo PC `http://localhost:3000` sigue funcionando porque los navegadores tratan `localhost` como seguro) y corre `docker compose up -d --wait`, para que los enlaces de los correos lleven esa dirección. Se hace una sola vez porque el dominio no cambia.
 3. Abre el túnel con ngrok dentro de Docker (en Windows, Smart App Control puede bloquear `ngrok.exe`; no hace falta desactivarlo):
 
    ```

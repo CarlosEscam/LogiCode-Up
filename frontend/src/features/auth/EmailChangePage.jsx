@@ -23,8 +23,8 @@ export default function EmailChangePage() {
       <h1 id="correo-titulo">Recuperar el acceso a mi correo</h1>
       <p className="page__note">
         Si ya no puedes usar tu correo, confirma tu identidad con el último correo registrado y tu contraseña actual o
-        la anterior. Enviaremos un enlace al correo nuevo; el cambio se aplica cuando lo abras. Máximo dos intentos por
-        día.
+        la anterior. Enviaremos un enlace al correo nuevo y un aviso al anterior. Por seguridad, el enlace sirve 24 horas
+        después de pedirlo; el cambio se aplica cuando lo abras. Máximo dos intentos por día.
       </p>
       <form onSubmit={submit} noValidate>
         <Field label="Cédula" name="cedula" inputMode="numeric" required />

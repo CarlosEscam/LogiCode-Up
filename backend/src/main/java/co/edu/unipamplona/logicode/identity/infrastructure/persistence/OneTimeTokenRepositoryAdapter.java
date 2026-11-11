@@ -32,4 +32,9 @@ class OneTimeTokenRepositoryAdapter implements OneTimeTokenRepository {
     public void invalidateUnused(UUID userId, TokenPurpose purpose, Instant now) {
         jpa.invalidateUnused(userId, purpose, now);
     }
+
+    @Override
+    public void invalidatePendingEmailChanges(UUID userId, String currentEmail, Instant now) {
+        jpa.invalidatePendingEmailChanges(userId, currentEmail, now);
+    }
 }

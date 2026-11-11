@@ -4732,6 +4732,14 @@
     "/api/v1/auth/login" : {
       "post" : {
         "operationId" : "login",
+        "parameters" : [ {
+          "in" : "cookie",
+          "name" : "LOGICODE_DEVICE",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "requestBody" : {
           "content" : {
             "application/json" : {

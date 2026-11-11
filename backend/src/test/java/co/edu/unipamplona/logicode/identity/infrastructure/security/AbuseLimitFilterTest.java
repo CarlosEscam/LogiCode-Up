@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import co.edu.unipamplona.logicode.identity.application.TrustedDevices;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -34,7 +35,7 @@ class AbuseLimitFilterTest {
 
     @Test
     void teacherRequestsFromOneAddressStopAtTheLimit() throws Exception {
-        AbuseLimitFilter filter = new AbuseLimitFilter(clock);
+        AbuseLimitFilter filter = new AbuseLimitFilter(clock, new TrustedDevices(clock));
         for (int i = 0; i < 10; i++) {
             assertThat(send(filter, "POST", "/api/v1/auth/teacher-requests", "10.0.0.1", 201)).isEqualTo(201);
         }
@@ -45,7 +46,7 @@ class AbuseLimitFilterTest {
 
     @Test
     void onlyFailedLoginsCountAndTheWindowExpires() throws Exception {
-        AbuseLimitFilter filter = new AbuseLimitFilter(clock);
+        AbuseLimitFilter filter = new AbuseLimitFilter(clock, new TrustedDevices(clock));
         for (int i = 0; i < 100; i++) {
             send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 200);
         }
@@ -58,10 +59,43 @@ class AbuseLimitFilterTest {
         assertThat(send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 200)).as("pasó la ventana").isEqualTo(200);
     }
 
+    @Test
+    void failedStudentRegistrationsAreLimitedButSuccessfulOnesAreNot() throws Exception {
+        AbuseLimitFilter filter = new AbuseLimitFilter(clock, new TrustedDevices(clock));
+        for (int i = 0; i < 60; i++) {
+            assertThat(send(filter, "POST", "/api/v1/auth/student-registrations", "10.0.0.1", 201)).isEqualTo(201);
+        }
+        for (int i = 0; i < 30; i++) {
+            send(filter, "POST", "/api/v1/auth/student-registrations", "10.0.0.1", 409);
+        }
+        assertThat(send(filter, "POST", "/api/v1/auth/student-registrations", "10.0.0.1", 201)).isEqualTo(429);
+    }
+
+    @Test
+    void aKnownDeviceIsNotStoppedByTheSharedAddressLimit() throws Exception {
+        TrustedDevices devices = new TrustedDevices(clock);
+        AbuseLimitFilter filter = new AbuseLimitFilter(clock, devices);
+        for (int i = 0; i < 50; i++) {
+            send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 401);
+        }
+        assertThat(send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 200)).isEqualTo(429);
+        String cookie = devices.issue(java.util.UUID.randomUUID());
+        assertThat(send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 200, cookie)).isEqualTo(200);
+        assertThat(send(filter, "POST", "/api/v1/auth/login", "10.0.0.1", 200, cookie + "x")).isEqualTo(429);
+    }
+
     private static int send(AbuseLimitFilter filter, String method, String uri, String ip, int status)
+            throws Exception {
+        return send(filter, method, uri, ip, status, null);
+    }
+
+    private static int send(AbuseLimitFilter filter, String method, String uri, String ip, int status, String device)
             throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest(method, uri);
         request.setRemoteAddr(ip);
+        if (device != null) {
+            request.setCookies(new jakarta.servlet.http.Cookie(TrustedDevices.COOKIE, device));
+        }
         MockHttpServletResponse response = new MockHttpServletResponse();
         filter.doFilter(request, response, new MockFilterChain() {
             @Override

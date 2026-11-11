@@ -31,6 +31,18 @@ class AuditEventRepositoryAdapter implements AuditEventRepository {
     }
 
     @Override
+    public long countByActionAndSubjectAndOutcomeAndDetailsSince(AuditAction action, String subject,
+            AuditEvent.Outcome outcome, String details, Instant since) {
+        return jpa.countByActionAndSubjectAndOutcomeAndDetailsAndOccurredAtAfter(action, subject, outcome, details,
+                since);
+    }
+
+    @Override
+    public void lockSubject(String subject) {
+        jpa.lockSubject(subject);
+    }
+
+    @Override
     public PageResult<AuditEvent> listLatest(int page, int size) {
         return PageResults.of(jpa.findAll(PageRequest.of(page, size, Sort.by("occurredAt").descending())));
     }

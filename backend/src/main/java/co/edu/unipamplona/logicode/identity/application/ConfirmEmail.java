@@ -27,11 +27,16 @@ public class ConfirmEmail {
     private final OneTimeTokenRepository tokens;
     private final UserAccountRepository accounts;
     private final AuditLog auditLog;
+    private final SessionRevoker sessionRevoker;
+    private final EmailTemplates templates;
     private final Clock clock;
 
-    public ConfirmEmail(OneTimeTokenRepository tokens, UserAccountRepository accounts, AuditLog auditLog, Clock clock) {
+    public ConfirmEmail(OneTimeTokenRepository tokens, UserAccountRepository accounts, AuditLog auditLog,
+            SessionRevoker sessionRevoker, EmailTemplates templates, Clock clock) {
         this.tokens = tokens;
         this.accounts = accounts;
+        this.sessionRevoker = sessionRevoker;
+        this.templates = templates;
         this.auditLog = auditLog;
         this.clock = clock;
     }
@@ -45,9 +50,15 @@ public class ConfirmEmail {
                 .orElseThrow(() -> ApplicationException.businessRule(INVALID_LINK));
 
         String target = token.getTargetEmail();
+        String previousEmail = account.getEmail();
         if (target.equalsIgnoreCase(account.getEmail())) {
             account.markEmailVerified(now);
         } else {
+            if (now.isBefore(token.usableFrom())) {
+                throw ApplicationException.businessRule("Por seguridad, el correo nuevo se puede confirmar desde el "
+                        + templates.dateTime(token.usableFrom()) + " (hora de Colombia). Abre este enlace otra vez a "
+                        + "partir de ese momento.");
+            }
             accounts.findByEmailIgnoreCase(target)
                     .filter(other -> !other.getId().equals(account.getId()))
                     .ifPresent(other -> {
@@ -58,6 +69,9 @@ public class ConfirmEmail {
         token.consume(now);
         tokens.save(token);
         accounts.save(account);
+        if (!target.equalsIgnoreCase(previousEmail)) {
+            sessionRevoker.revokeAll(account.getId()); // P-02: quien tenía la cuenta abierta debe volver a ingresar
+        }
         auditLog.record(AuditAction.EMAIL_VERIFIED, account.getId(), account.getId(), null, AuditEvent.Outcome.SUCCESS,
                 null);
         return new Result(account.getEmail(), !account.hasPassword());

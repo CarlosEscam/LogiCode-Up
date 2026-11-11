@@ -47,6 +47,7 @@ public class RegisterStudent {
         if (enablement.isRegistered() || accounts.existsByCedula(cedula)) {
             throw ApplicationException.conflict("Ya existe una cuenta con esta cédula.");
         }
+        RegistrationRules.requireEnabledName(enablement.getFullName(), fullName);
         if (accounts.existsByEmailIgnoreCase(email)) {
             throw ApplicationException.conflict("Este correo ya está registrado en otra cuenta.");
         }

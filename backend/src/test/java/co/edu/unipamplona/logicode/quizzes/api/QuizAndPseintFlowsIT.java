@@ -368,7 +368,19 @@ class QuizAndPseintFlowsIT {
         practiceId = id(mvc.perform(json(post("/api/v1/courses/" + courseId + "/activities").cookie(teacher),
                         activity("Repaso de ciclos", "PRACTICE_QUIZ", null, 1)))
                 .andExpect(status().isCreated()));
+        // P-04: el repaso muestra las respuestas al terminar, así que no puede usar preguntas del quiz calificable.
         mvc.perform(json(put(quiz(practiceId)).cookie(teacher), quizBody(5, trueFalse, shortAnswer)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("quiz calificable")));
+        String bank = "/api/v1/courses/" + courseId + "/questions";
+        String practiceTrueFalse = id(mvc.perform(json(post(bank).cookie(teacher), "{\"kind\":\"TRUE_FALSE\","
+                        + "\"prompt\":\"Mientras puede no ejecutarse nunca.\",\"options\":[{\"text\":\"x\",\"correct\":true},"
+                        + "{\"text\":\"y\",\"correct\":false}]}"))
+                .andExpect(status().isCreated()));
+        String practiceShort = id(mvc.perform(json(post(bank).cookie(teacher), "{\"kind\":\"SHORT\",\"prompt\":\"¿Qué "
+                        + "instrucción lee datos?\",\"acceptedAnswers\":[\"Leer\"]}"))
+                .andExpect(status().isCreated()));
+        mvc.perform(json(put(quiz(practiceId)).cookie(teacher), quizBody(5, practiceTrueFalse, practiceShort)))
                 .andExpect(status().isOk());
         mvc.perform(post("/api/v1/activities/" + practiceId + "/publish").cookie(teacher).with(csrf()))
                 .andExpect(status().isOk());
@@ -378,7 +390,7 @@ class QuizAndPseintFlowsIT {
                     .andExpect(status().isOk()));
             CLOCK.advance(Duration.ofSeconds(30 + i * 30));
             mvc.perform(json(post("/api/v1/quiz-attempts/" + attempt + "/finish").cookie(ana),
-                            answers(answer(trueFalse, i == 0 ? "[1]" : "[0]"))))
+                            answers(answer(practiceTrueFalse, i == 0 ? "[1]" : "[0]"))))
                     .andExpect(jsonPath("$.reviewAvailable").value(true))
                     .andExpect(jsonPath("$.submissionId").doesNotExist())
                     .andExpect(jsonPath("$.questions[0].correctChoices[0]").value(0));

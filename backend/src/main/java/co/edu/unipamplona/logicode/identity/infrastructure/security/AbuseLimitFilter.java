@@ -5,13 +5,16 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import co.edu.unipamplona.logicode.identity.application.TrustedDevices;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,13 +30,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 class AbuseLimitFilter extends OncePerRequestFilter {
 
-    /** {@code onlyFailures}: solo cuentan las respuestas 401 (intentos de ingreso fallidos). */
+    /** {@code onlyFailures}: solo cuentan las respuestas con error (4xx), no los ingresos o registros logrados. */
     record Rule(String path, int limit, Duration window, boolean onlyFailures) {
     }
 
+    private static final String LOGIN = "/api/v1/auth/login";
+
     static final List<Rule> RULES = List.of(
-            new Rule("/api/v1/auth/login", 50, Duration.ofMinutes(15), true),
+            new Rule(LOGIN, 50, Duration.ofMinutes(15), true),
             new Rule("/api/v1/auth/teacher-requests", 10, Duration.ofHours(1), false),
+            // P-06: sin límite, el registro decía qué cédulas tienen cuenta o están habilitadas. Solo cuentan los
+            // rechazos: un salón entero que se registra desde la misma IP no lo alcanza.
+            new Rule("/api/v1/auth/student-registrations", 30, Duration.ofHours(1), true),
             new Rule("/api/v1/auth/password-recovery", 30, Duration.ofHours(1), false),
             new Rule("/api/v1/auth/email-change-requests", 30, Duration.ofHours(1), false),
             new Rule("/api/v1/me/email-verification", 10, Duration.ofHours(1), false));
@@ -41,10 +49,12 @@ class AbuseLimitFilter extends OncePerRequestFilter {
     private static final int MAX_KEYS = 50_000;
 
     private final Clock clock;
+    private final TrustedDevices devices;
     private final Map<String, Deque<Instant>> hits = new ConcurrentHashMap<>();
 
-    AbuseLimitFilter(Clock clock) {
+    AbuseLimitFilter(Clock clock, TrustedDevices devices) {
         this.clock = clock;
+        this.devices = devices;
     }
 
     @Override
@@ -52,7 +62,8 @@ class AbuseLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         Rule rule = "POST".equals(request.getMethod()) ? RULES.stream()
                 .filter(r -> r.path().equals(request.getRequestURI())).findFirst().orElse(null) : null;
-        if (rule == null) {
+        if (rule == null || rule.path().equals(LOGIN) && devices.trusts(deviceCookie(request), null)) {
+            // P-03: desde un equipo conocido el límite por IP no aplica; la cédula sigue limitada en AuthenticateUser.
             chain.doFilter(request, response);
             return;
         }
@@ -64,7 +75,7 @@ class AbuseLimitFilter extends OncePerRequestFilter {
             return;
         }
         chain.doFilter(request, response);
-        if (!rule.onlyFailures() || response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+        if (!rule.onlyFailures() || response.getStatus() >= 400 && response.getStatus() < 500) {
             if (hits.size() > MAX_KEYS) {
                 hits.clear(); // un ataque con miles de IP distintas no llena la memoria
             }
@@ -73,6 +84,12 @@ class AbuseLimitFilter extends OncePerRequestFilter {
                 times.addLast(now);
             }
         }
+    }
+
+    private static String deviceCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        return cookies == null ? null : Arrays.stream(cookies).filter(c -> TrustedDevices.COOKIE.equals(c.getName()))
+                .map(Cookie::getValue).findFirst().orElse(null);
     }
 
     private int count(String key, Instant since) {

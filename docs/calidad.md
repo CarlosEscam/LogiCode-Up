@@ -136,7 +136,41 @@ Riesgos que se mantienen:
 | R11-01 | Los límites por equipo viven en la memoria del backend: se reinician al reiniciarlo | Suficiente con un solo backend. Con varias réplicas habría que guardarlos en PostgreSQL |
 | R11-02 | En Docker Desktop (Windows) todo el salón puede llegar al backend con la misma IP | Por eso los topes son altos (50 fallos en 15 minutos). Si un salón entero falla tanto, espera 15 minutos o se reinicia el backend |
 | R11-03 | El ranking de un quiz muestra a los compañeros el nombre y la nota de cada uno | Es parte del diseño del quiz (juego). Si se quiere privado, es un cambio de diseño |
-| R11-04 | Sin HSTS en el modo piloto | Con un certificado de autoridad local, HSTS dejaría a un equipo sin entrar si el certificado vence o falta la autoridad |
+| R11-04 | Sin HSTS en el modo piloto | Con un certificado de autoridad local, HSTS dejaría a un equipo sin entrar si el certificado vence o falta la autoridad. Desde el pentest (P-09) sí se manda cuando la página llega por ngrok, que tiene certificado público |
+
+## Pentest OWASP WSTG del 11 de noviembre de 2026
+
+Carlos pidió pruebas de penetración de caja gris y caja blanca, con auditoría manual de la lógica de negocio y de las sesiones, según la guía OWASP WSTG. Se hizo sobre `226001f` (la revisión de seguridad de arriba ya instalada), atacando una copia propia en Docker con los datos de demostración, nunca el equipo de Carlos ni ngrok. Resultado: 0 hallazgos críticos o altos, 4 medios, 5 bajos y 4 informativos. Carlos aprobó corregir todos menos la regla RF-30 (el cambio de correo sigue pidiendo la contraseña actual o la anterior).
+
+| Id | Severidad | WSTG | Hallazgo | Estado |
+| --- | --- | --- | --- | --- |
+| P-01 | Media | IDNT-02, BUSL-01 | Cualquiera con una cédula habilitada ajena creaba la cuenta con el nombre que quisiera, y una solicitud de docente podía ocupar la cédula de un estudiante habilitado | Corregido: el nombre debe tener todas las palabras del nombre habilitado (sin importar tildes ni mayúsculas), y la solicitud de docente rechaza cédulas habilitadas como estudiante. Verificar el correo no se exigió: quien ocupa la cédula verifica su propio correo, así que no lo frenaría |
+| P-02 | Media | ATHN-09, BUSL-01 | Con la contraseña **anterior** se cambiaba el correo y se tomaba la cuenta, sin aviso al correo viejo y sin cerrar las sesiones | Corregido en lo aprobado: aviso al correo viejo, el enlace nuevo sirve solo 24 h después de pedirlo, cambiar la contraseña o recuperarla cancela el cambio, y al confirmarlo se cierran todas las sesiones. La contraseña anterior sigue sirviendo (RF-30) |
+| P-03 | Media | ATHN-03 | El bloqueo de 5 intentos por cédula también rechazaba la contraseña correcta: cualquiera dejaba a otro sin entrar 15 minutos, una y otra vez | Corregido: tras un ingreso correcto el navegador guarda una cookie firmada `LOGICODE_DEVICE` (30 días). Desde ese equipo solo cuentan sus propios fallos, así que los intentos de otros no lo bloquean. Un equipo nuevo sigue con el bloqueo de siempre |
+| P-04 | Media | BUSL-01 | Un quiz de repaso (práctica) mostraba las respuestas de preguntas que también estaban en un quiz calificable | Corregido: una pregunta no puede estar a la vez en un quiz de práctica y en uno calificable (`422`) |
+| P-05 | Baja | ATHN-03, BUSL-04 | 25 intentos simultáneos alcanzaron a probar 14 contraseñas, no 5 | Corregido: los intentos de una misma cédula van en fila (bloqueo consultivo de PostgreSQL) |
+| P-06 | Baja | IDNT-04 | El registro de estudiantes no tenía límite por equipo y servía para saber qué cédulas tienen cuenta | Corregido: 30 rechazos por hora por equipo |
+| P-07 | Baja | BUSL-05 | Los cambios de correo rechazados cuentan para el límite de 2 diarios: con la cédula de alguien se le agotan | Se mantiene a propósito: ese límite es lo que impide adivinar la contraseña por este formulario (si se acierta, el correo llega al atacante). Sin él, quedaría una puerta para probar contraseñas |
+| P-08 | Baja | BUSL-09 | Una foto PNG de 1,1 MB y 20.000 × 20.000 píxeles hacía reservar 1,2 GB al prepararla para la IA | Corregido: se leen el ancho y el alto sin abrir la imagen y se rechaza si pasa de 50 megapíxeles |
+| P-09 | Baja | CONF-07, SESS-02 | Sin HSTS, y por ngrok la cookie de sesión salía sin `Secure` | Corregido: HSTS cuando la página llega por ngrok (en el piloto con autoridad local no, ver R11-04), y [piloto.md](piloto.md) pide `SESSION_COOKIE_SECURE=true` para las demostraciones |
+| P-10 | Info | ATHZ-02 | Un docente puede inscribir cualquier cédula y ver así el nombre de esa persona | Aceptado: los docentes los aprueba un administrador |
+| P-11 | Info | SESS-07 | La sesión vence tras 2 h sin uso, pero no tiene duración máxima | Aceptado |
+| P-12 | Info | ERRH-01 | Una URL con la barra vertical sin codificar muestra la página de error de Tomcat (sin versión) | Aceptado |
+| P-13 | Info | BUSL | El ranking del quiz muestra nombre y nota a los compañeros | Es la regla RN-14 |
+
+Limitación conocida: la llave que firma la cookie de equipo conocido se crea al arrancar el backend, así que al reiniciarlo todos los equipos vuelven a ser nuevos (se arregla solo con el siguiente ingreso correcto).
+
+Pruebas automáticas nuevas: `IdentityFlowsIT` (nombre habilitado, solicitud de docente con cédula de estudiante, aviso y espera de 24 h del cambio de correo, cancelación al cambiar la contraseña, equipo conocido que otros no bloquean), `AbuseLimitFilterTest` (límite del registro y exención del equipo conocido), `ImagePreparerTest` (imagen gigante) y `QuizAndPseintFlowsIT` (pregunta compartida entre práctica y calificable).
+
+### Pruebas de seguridad del código
+
+| Herramienta | Alcance | Resultado |
+| --- | --- | --- |
+| Semgrep (reglas de la comunidad) | 454 archivos de Java, JavaScript, Nginx, Docker y YAML | 0 hallazgos de seguridad en Java. Los avisos restantes son de textos sin traducir o falsos positivos revisados uno por uno (código de prueba, enlaces que el backend ya valida, expresiones con números fijos) |
+| SpotBugs + FindSecBugs | Todo el backend compilado | 292 avisos, casi todos "esto es un endpoint" o "se expone una lista interna". Revisados los de seguridad: el identificador de solicitud se valida, las respuestas de error son textos fijos, la "clave fija" es la firma de los formatos de archivo y el azar es la función `Azar` de PSeInt. Ninguno explotable |
+| OSV (Maven) y `npm audit` | 166 dependencias de Java y 145 de JavaScript | 0 vulnerabilidades conocidas |
+| detect-secrets y búsqueda en el historial de Git | Código actual y los 84 commits | Sin claves reales. Solo aparecen contraseñas de prueba, la clave de ejemplo de AWS y hashes de archivos |
+| Revisión manual de puertas traseras | Reglas de acceso, endpoints, migraciones, cuentas iniciales, conexiones de salida, Docker | Ninguna ruta escondida ni contraseña fija. Las cuentas iniciales salen de la configuración y nacen sin contraseña; las únicas conexiones de salida son Brevo, MinIO, Ollama y Jaeger; solo el puerto web sale del equipo; los contenedores no corren como root |
 
 ## Observabilidad
 

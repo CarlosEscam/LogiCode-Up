@@ -17,14 +17,16 @@ public class RequestTeacherAccount {
     }
 
     private final UserAccountRepository accounts;
+    private final StudentEnablementRepository enablements;
     private final PasswordHasher passwordHasher;
     private final EmailVerificationIssuer verificationIssuer;
     private final AuditLog auditLog;
     private final Clock clock;
 
-    public RequestTeacherAccount(UserAccountRepository accounts, PasswordHasher passwordHasher,
-            EmailVerificationIssuer verificationIssuer, AuditLog auditLog, Clock clock) {
+    public RequestTeacherAccount(UserAccountRepository accounts, StudentEnablementRepository enablements,
+            PasswordHasher passwordHasher, EmailVerificationIssuer verificationIssuer, AuditLog auditLog, Clock clock) {
         this.accounts = accounts;
+        this.enablements = enablements;
         this.passwordHasher = passwordHasher;
         this.verificationIssuer = verificationIssuer;
         this.auditLog = auditLog;
@@ -40,6 +42,11 @@ public class RequestTeacherAccount {
 
         if (accounts.existsByCedula(cedula)) {
             throw ApplicationException.conflict("Ya existe una cuenta con esta cédula.");
+        }
+        // P-01: una solicitud docente no puede ocupar la cédula que un docente habilitó para un estudiante.
+        if (enablements.findByCedula(cedula).isPresent()) {
+            throw ApplicationException.conflict(
+                    "Esta cédula está habilitada como estudiante. Si eres docente, comunícate con un administrador.");
         }
         if (accounts.existsByEmailIgnoreCase(email)) {
             throw ApplicationException.conflict("Este correo ya está registrado en otra cuenta.");
