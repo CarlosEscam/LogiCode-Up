@@ -44,7 +44,7 @@ export const REVIEW_REASON_LABELS = {
   AI_DISABLED: 'Calificación manual',
   UNSUPPORTED: 'Formato que la IA no lee',
   ILLEGIBLE: 'Foto ilegible',
-  LOW_CONFIDENCE: 'Confianza menor al 90 %',
+  LOW_CONFIDENCE: 'Confianza menor al 80 %',
   AI_FAILED: 'Falló la IA',
   CODE_ERROR: 'El programa no se pudo ejecutar',
   CALIBRATION: 'Calibración de la IA',
@@ -55,16 +55,16 @@ export const REVIEW_REASON_HELP = {
   UNSUPPORTED:
     'La entrega trae archivos que la IA no lee (Word, PowerPoint, video, Scratch o un PDF con contraseña, dañado o de más de 5 páginas). La IA lee respuestas escritas, fotos PNG o JPG, PDF cortos y archivos de PSeInt o Arduino.',
   ILLEGIBLE: 'La IA indicó que no puede leer la entrega con seguridad. Revísala y pon la nota.',
-  LOW_CONFIDENCE: 'La IA propuso una nota, pero su confianza quedó por debajo del 90 %. Revísala y confírmala o ajústala.',
+  LOW_CONFIDENCE: 'La IA propuso una nota, pero su confianza quedó por debajo del 80 %. Revísala y confírmala o ajústala.',
   AI_FAILED: 'La IA no pudo procesar la entrega después de varios intentos. No se asignó nota; puedes reintentar o calificar tú.',
   CODE_ERROR:
     'El programa tiene un error de sintaxis o usa algo que el intérprete de LogiCode aún no ejecuta, así que no se corrieron los casos de prueba. Revísalo y pon la nota.',
   CALIBRATION:
-    'El curso está en calibración: la IA propuso una nota con confianza de 90 % o más, pero no la publica sola hasta que compares suficientes propuestas con tu nota. Confírmala si estás de acuerdo o pon la tuya.',
+    'El curso está en calibración: la IA propuso una nota con confianza de 80 % o más, pero no la publica sola hasta que compares suficientes propuestas con tu nota. Confírmala si estás de acuerdo o pon la tuya.',
 }
 
 export const AI_OUTCOME_LABELS = {
-  PUBLISHED: 'Confianza de 90 % o más',
+  PUBLISHED: 'Confianza de 80 % o más',
   ILLEGIBLE: 'Ilegible',
   LOW_CONFIDENCE: 'Confianza baja',
   FAILED: 'Fallo técnico',

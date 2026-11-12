@@ -396,8 +396,8 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 | Entregable de la especificación | Estado | Dónde |
 | --- | --- | --- |
 | Calificación con IA de fotos y archivos compatibles (RF-14, RN-08) | Implementado | Al llegar una entrega se crea la nota en evaluación y un trabajo en la cola (`ai_grading_job`). El worker envía a Ollama el nombre del estudiante, el enunciado, la respuesta esperada, la rúbrica y el contenido (texto, fotos PNG/JPG, archivos `.psc`/`.ino`). Nunca cédula, correo ni nombres de archivo (T-44) |
-| Publicación automática con contenido legible y confianza ≥ 90 % (RN-09, RN-11; 80 % hasta el 10 de noviembre, T-110) | Implementado | `AiGradingPolicy`: la nota sale de los puntos por criterio (T-39). Con 80 % o más se publica con su retroalimentación y queda en el historial como "IA" |
-| Foto ilegible o confianza < 90 % a confirmación docente (RF-15) | Implementado | La entrega pasa a Por revisar con el motivo y la propuesta de la IA; el docente la confirma o la ajusta |
+| Publicación automática con contenido legible y confianza ≥ 80 % (RN-09, RN-11; fue 90 % del 10 al 11 de noviembre, T-110 y T-111) | Implementado | `AiGradingPolicy`: la nota sale de los puntos por criterio (T-39). Con 80 % o más se publica con su retroalimentación y queda en el historial como "IA" |
+| Foto ilegible o confianza < 80 % a confirmación docente (RF-15) | Implementado | La entrega pasa a Por revisar con el motivo y la propuesta de la IA; el docente la confirma o la ajusta |
 | Fallo técnico sin nota y con reintento (RF-15, RNF-06, RNF-07) | Implementado | 3 intentos automáticos con espera creciente; después, "Falló la IA" en Por revisar. Botón "Reintentar con IA" y calificación manual siempre disponibles. La entrega nunca se bloquea ni se pierde |
 | Trabajo en segundo plano con estado visible (RNF-08) | Implementado | Estado "Calificando con IA" en la bandeja, la entrega y la vista del estudiante; se actualiza solo |
 | Resultado de la IA e historial para el docente (RF-17) | Implementado | Lectura del modelo, legibilidad, confianza, puntos y comentario por criterio, retroalimentación propuesta, duración y evaluaciones anteriores. El estudiante no ve nada de esto |
@@ -415,7 +415,7 @@ Lista de defectos, riesgos aceptados, revisión de seguridad y accesibilidad, ob
 
 | Criterio | Cómo se comprueba |
 | --- | --- |
-| Confianza ≥ 90 % y contenido legible publica la nota | `AiGradingPolicyTest`, `AiGradingFlowsIT` |
+| Confianza ≥ 80 % y contenido legible publica la nota | `AiGradingPolicyTest`, `AiGradingFlowsIT` |
 | Foto ilegible o confianza inferior requiere confirmación docente | `AiGradingFlowsIT` (79 %, ilegible) y pantallas de Por revisar y de la entrega |
 | Un fallo técnico no asigna nota y permite reintento | `AiGradingFlowsIT`, `OllamaGradingAdapterTest` y el recorrido con Ollama real |
 | Lectura manuscrita, coincidencia de notas, confianza, legibilidad, latencia y RAM con Qwen2.5-VL 7B Q4_K_M en el Ryzen 7 5700U | **Pendiente con fotos reales** (ensayo sintético hecho el 1 de noviembre). `node ia-pruebas/ejecutar-pruebas.mjs ia-pruebas/muestras/muestras.json` en el equipo de presentación; el resumen queda en `ia-pruebas/resultados/` |

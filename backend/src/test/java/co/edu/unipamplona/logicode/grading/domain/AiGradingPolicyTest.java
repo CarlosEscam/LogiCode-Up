@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-/** RF-14, RF-15, RN-09, RN-11: publicación automática solo con contenido legible y confianza de 90 % o más. */
+/** RF-14, RF-15, RN-09, RN-11: publicación automática solo con contenido legible y confianza de 80 % o más. */
 class AiGradingPolicyTest {
 
     static final RubricVersion RUBRIC = new RubricVersion(UUID.randomUUID(), 1, "Enunciado", "Esperada",
@@ -19,8 +19,8 @@ class AiGradingPolicyTest {
             List.of(), null, UUID.randomUUID(), Instant.parse("2026-10-20T15:00:00Z"));
 
     @Test
-    void legibleWithNinetyPercentConfidencePublishes() {
-        AiGradingPolicy.Decision decision = AiGradingPolicy.decide(RUBRIC, true, 90, points("6", "3"));
+    void legibleWithEightyPercentConfidencePublishes() {
+        AiGradingPolicy.Decision decision = AiGradingPolicy.decide(RUBRIC, true, 80, points("6", "3"));
         assertThat(decision.outcome()).isEqualTo(AiOutcome.PUBLISHED);
         assertThat(decision.publishes()).isTrue();
         assertThat(decision.score()).isEqualByComparingTo("4.5");
@@ -28,8 +28,8 @@ class AiGradingPolicyTest {
     }
 
     @Test
-    void belowNinetyPercentGoesToTheTeacherWithAProposal() {
-        AiGradingPolicy.Decision decision = AiGradingPolicy.decide(RUBRIC, true, 89, points("5.5", "2"));
+    void belowEightyPercentGoesToTheTeacherWithAProposal() {
+        AiGradingPolicy.Decision decision = AiGradingPolicy.decide(RUBRIC, true, 79, points("5.5", "2"));
         assertThat(decision.outcome()).isEqualTo(AiOutcome.LOW_CONFIDENCE);
         assertThat(decision.reviewReason()).isEqualTo(ReviewReason.LOW_CONFIDENCE);
         assertThat(decision.score()).isEqualByComparingTo("3.8");

@@ -5,7 +5,7 @@ import { useSubmit } from '../../shared/ui/useSubmit.js'
 import { formatDateTime } from './labels.js'
 
 // Calibración de la IA del curso (T-90), opcional: mientras está abierta, la IA propone y el docente confirma; LogiCode
-// muestra cuánto coinciden para decidir cuándo dejar que la IA publique sola con la regla del 90 %.
+// muestra cuánto coinciden para decidir cuándo dejar que la IA publique sola con la regla del 80 %.
 export default function CalibrationPanel({ courseId }) {
   const status = useQuery(`/courses/${courseId}/ai-calibration`)
   const action = (name) => async () => {
@@ -24,13 +24,13 @@ export default function CalibrationPanel({ courseId }) {
       {c.calibrating ? (
         <p>
           <span className="badge badge--warning">En calibración</span> La IA propone y tú confirmas cada nota. Cuando
-          tenga suficientes comparaciones contigo, puedes dejar que publique sola las notas con confianza de 90 % o más.
+          tenga suficientes comparaciones contigo, puedes dejar que publique sola las notas con confianza de 80 % o más.
         </p>
       ) : (
         <p>
           <span className="badge badge--ok">La IA publica sola</span>{' '}
           {c.closedAt ? `Desde ${formatDateTime(c.closedAt)}, la IA publica` : 'La IA publica'} las notas legibles con
-          confianza de 90 % o más; las demás llegan a Por revisar. Si quieres comparar sus notas con las tuyas antes de
+          confianza de 80 % o más; las demás llegan a Por revisar. Si quieres comparar sus notas con las tuyas antes de
           confiar, enciende la calibración.
         </p>
       )}

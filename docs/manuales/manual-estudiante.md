@@ -65,7 +65,7 @@ Ten en cuenta:
 | Calificada: 4,2 | Ya tiene nota. Ábrela para ver la retroalimentación |
 | Vencida sin entrega: 0,0 | Pasó el cierre sin entrega |
 
-Cuando la IA está activa, califica las fotos y archivos con la rúbrica y publica la nota sola solo si leyó bien tu trabajo y está segura (90 % o más). Si no, la revisa tu docente. Un fallo técnico nunca te pone nota.
+Cuando la IA está activa, califica las fotos y archivos con la rúbrica y publica la nota sola solo si leyó bien tu trabajo y está segura (80 % o más). Si no, la revisa tu docente. Un fallo técnico nunca te pone nota.
 
 ## 5. Talleres de PSeInt con casos de prueba
 

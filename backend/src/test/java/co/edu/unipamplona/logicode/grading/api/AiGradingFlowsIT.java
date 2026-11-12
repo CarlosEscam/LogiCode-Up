@@ -74,7 +74,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * Pruebas de la Etapa 6 contra PostgreSQL real con un proveedor de IA simulado: publicación automática desde el 90 %
+ * Pruebas de la Etapa 6 contra PostgreSQL real con un proveedor de IA simulado: publicación automática desde el 80 %
  * de confianza, confirmación docente para ilegibles y baja confianza, fallos técnicos sin nota y con reintentos, y
  * ningún resultado de la IA pisa una nota puesta por el docente. Estas pruebas no miden el modelo real: eso lo hacen
  * las pruebas de aceptación de {@code ia-pruebas/} en el equipo de presentación.
@@ -260,7 +260,7 @@ class AiGradingFlowsIT {
     @Order(0)
     void calibrationIsOptionalAndLastsUntilTheTeacherHasComparedEnoughProposals() throws Exception {
         String calibration = "/api/v1/courses/" + courseId + "/ai-calibration";
-        // Un curso nuevo no está en calibración: la IA publica sola con 90 % o más.
+        // Un curso nuevo no está en calibración: la IA publica sola con 80 % o más.
         mvc.perform(get(calibration).cookie(teacher))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.calibrating").value(false))
@@ -449,7 +449,7 @@ class AiGradingFlowsIT {
     @Order(2)
     void lowConfidenceWaitsForTheTeacherWhoConfirmsTheProposal() throws Exception {
         String submission = submit(beto, multipart(submissions()).param("text", "prom <- n1 + n2 / 2"));
-        PROVIDER.answer(true, 89, "6", "1");
+        PROVIDER.answer(true, 79, "6", "1");
         assertThat(worker.processNext()).isTrue();
 
         mvc.perform(get(grade(submission)).cookie(teacher))

@@ -111,7 +111,7 @@ function ProgressBar({ stats, students }) {
 }
 
 // Botón "Calificar todo con IA": manda a la IA cada entrega del curso que espera al docente. La IA publica sola
-// con 90 % de confianza o más; el resto vuelve a Por revisar.
+// con 80 % de confianza o más; el resto vuelve a Por revisar.
 export function GradeAllWithAi({ courseId, onQueued }) {
   const run = useSubmit(async () => {
     const result = await apiPost(`/courses/${courseId}/ai-grading`)
@@ -126,7 +126,7 @@ export function GradeAllWithAi({ courseId, onQueued }) {
         className="button"
         disabled={run.pending}
         onClick={() =>
-          window.confirm('¿Mandar a la IA todas las entregas que esperan revisión? Publicará sola las que califique con 90 % de confianza o más.') &&
+          window.confirm('¿Mandar a la IA todas las entregas que esperan revisión? Publicará sola las que califique con 80 % de confianza o más.') &&
           run.submit()
         }
       >

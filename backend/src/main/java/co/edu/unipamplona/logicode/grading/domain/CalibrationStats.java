@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Concordancia entre la IA y el docente en un curso (T-90). Solo se comparan las propuestas que la IA habría publicado
- * sola (legibles y con confianza de 90 % o más) contra la nota final que puso el docente. Coinciden si difieren en
+ * sola (legibles y con confianza de 80 % o más) contra la nota final que puso el docente. Coinciden si difieren en
  * 0,5 o menos, la misma tolerancia de las pruebas de aceptación (ia-pruebas).
  *
  * @param compared propuestas comparadas

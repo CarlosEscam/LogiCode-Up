@@ -11,9 +11,9 @@ import jakarta.persistence.Version;
 
 /**
  * Calibración de la IA en un curso (T-90). Es opcional: un curso sin registro no está en calibración. Mientras está
- * abierta, la IA no publica notas sola aunque su confianza sea de 90 % o más: el docente confirma cada propuesta y así
+ * abierta, la IA no publica notas sola aunque su confianza sea de 80 % o más: el docente confirma cada propuesta y así
  * se mide cuánto coincide la IA con él. Se cierra cuando hay suficientes comparaciones; desde entonces vuelve a aplicar
- * la regla del 90 % (RN-09, RN-11).
+ * la regla del 80 % (RN-09, RN-11).
  */
 @Entity
 @Table(name = "ai_calibration")

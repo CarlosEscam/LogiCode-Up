@@ -5640,7 +5640,7 @@
           "csrf" : [ ],
           "sesion" : [ ]
         } ],
-        "summary" : "Cerrar la calibración: desde ahora la IA publica sola con confianza de 90 % o más",
+        "summary" : "Cerrar la calibración: desde ahora la IA publica sola con confianza de 80 % o más",
         "tags" : [ "Calificación" ]
       }
     },

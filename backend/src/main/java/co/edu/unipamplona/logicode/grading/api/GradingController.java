@@ -110,7 +110,7 @@ public class GradingController {
     }
 
     @PostMapping("/courses/{courseId}/ai-calibration/close")
-    @Operation(summary = "Cerrar la calibración: desde ahora la IA publica sola con confianza de 90 % o más")
+    @Operation(summary = "Cerrar la calibración: desde ahora la IA publica sola con confianza de 80 % o más")
     public CalibrateAi.View closeAiCalibration(@CurrentActor Actor actor, @PathVariable UUID courseId) {
         return calibrateAi.close(actor, courseId);
     }
