@@ -3221,11 +3221,11 @@ td .console {
   background: var(--color-band);
 }
 
-.overview--color div:nth-child(2) {
+.overview--control div:nth-child(2) {
   background: #fef3c7;
 }
 
-.overview--color div:nth-child(4) {
+.overview--control div:nth-child(4) {
   background: #fee2e2;
 }
 
@@ -3253,4 +3253,15 @@ td .console {
 
 .progress-bar__overdue {
   background: var(--color-error);
+}
+
+/* Panel de administración (2026-11-12): cifras agrupadas en tarjetas lavanda; ámbar si hay algo pendiente. */
+.overview__title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  color: var(--color-eyebrow);
+}
+
+.overview--color div.overview__alert {
+  background: #fef3c7;
 }

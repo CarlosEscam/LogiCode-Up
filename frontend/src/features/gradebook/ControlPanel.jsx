@@ -19,7 +19,7 @@ export default function ControlPanel({ courseId, canGrade, onGraded }) {
   return (
     <section className="card card--wide" aria-labelledby="control-titulo">
       <h2 id="control-titulo">Control de calificaciones</h2>
-      <dl className="overview overview--color">
+      <dl className="overview overview--color overview--control">
         <div>
           <dt>Calificadas</dt>
           <dd>{total((s) => s.graded)}</dd>

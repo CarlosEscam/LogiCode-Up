@@ -17,44 +17,69 @@ export default function AdminPanelPage() {
 
   return (
     <>
-      <section className="card card--wide" aria-labelledby="panel-titulo">
+      <section className="card card--wide page-head" aria-labelledby="panel-titulo">
         <h1 id="panel-titulo">Administración</h1>
-        <nav className="actions" aria-label="Tareas administrativas">
-          {session.can('MANAGE_USERS') && <Link to="/admin/usuarios">Usuarios y docentes</Link>}
-          {session.can('MANAGE_STUDENT_ENABLEMENTS') && <Link to="/admin/habilitaciones">Habilitar estudiantes</Link>}
-          {session.can('VIEW_AUDIT') && <Link to="/admin/auditoria">Auditoría</Link>}
-          <Link to="/biblioteca">Biblioteca</Link>
-          <Link to="/foro">Foro</Link>
+        <nav className="toolbar" aria-label="Tareas administrativas">
+          {session.can('MANAGE_USERS') && <TaskLink to="/admin/usuarios">Usuarios y docentes</TaskLink>}
+          {session.can('MANAGE_STUDENT_ENABLEMENTS') && <TaskLink to="/admin/habilitaciones">Habilitar estudiantes</TaskLink>}
+          {session.can('VIEW_AUDIT') && <TaskLink to="/admin/auditoria">Auditoría</TaskLink>}
+          <TaskLink to="/biblioteca">Biblioteca</TaskLink>
+          <TaskLink to="/foro">Foro</TaskLink>
         </nav>
-        <FormStatus error={overview.error} />
-        {data && (
-          <dl className="overview">
+      </section>
+      <FormStatus error={overview.error} />
+      {data && (
+        <section className="card card--wide" aria-labelledby="cifras-titulo">
+          <h2 id="cifras-titulo">La plataforma hoy</h2>
+          <FigureGroup title="Personas">
             <Figure label="Estudiantes activos" value={data.activeStudents} />
             <Figure label="Docentes activos" value={data.activeTeachers} />
-            <Figure label="Docentes por aprobar" value={data.pendingTeachers} to="/admin/usuarios?rol=TEACHER&estado=PENDING_APPROVAL" />
+            <Figure label="Docentes por aprobar" value={data.pendingTeachers} to="/admin/usuarios?rol=TEACHER&estado=PENDING_APPROVAL" alert />
             <Figure label="Administradores" value={data.activeAdmins} to="/admin/usuarios?rol=ADMIN" />
             <Figure label="Cuentas desactivadas" value={data.disabledAccounts} to="/admin/usuarios?estado=DISABLED" />
+          </FigureGroup>
+          <FigureGroup title="Cursos y calificaciones">
             <Figure label="Cursos" value={data.courses} />
             <Figure label="Actividades publicadas" value={data.publishedActivities} />
             <Figure label="Entregas" value={data.submissions} />
-            <Figure label="En revisión docente" value={data.gradesInReview} />
+            <Figure label="En revisión docente" value={data.gradesInReview} alert />
             <Figure label="Calificando con IA" value={data.gradesProcessing} />
+          </FigureGroup>
+          <FigureGroup title="Contenido y foro">
             <Figure label="Materiales públicos" value={data.publicMaterials} />
             <Figure label="Materiales privados" value={data.privateMaterials} />
             <Figure label="Archivos cargados" value={formatSize(data.storedFileBytes)} />
             <Figure label="Hilos del foro" value={data.forumThreads} />
             <Figure label="Respuestas del foro" value={data.forumReplies} />
-          </dl>
-        )}
-      </section>
+          </FigureGroup>
+        </section>
+      )}
       {session.can('MANAGE_BACKUPS') && <Backups />}
     </>
   )
 }
 
-function Figure({ label, value, to }) {
+function TaskLink({ to, children }) {
   return (
-    <div>
+    <Link className="button button--secondary button--small" to={to}>
+      {children}
+    </Link>
+  )
+}
+
+function FigureGroup({ title, children }) {
+  return (
+    <>
+      <h3 className="overview__title">{title}</h3>
+      <dl className="overview overview--color">{children}</dl>
+    </>
+  )
+}
+
+// alert: en ámbar cuando hay algo pendiente (docentes por aprobar, notas por revisar).
+function Figure({ label, value, to, alert = false }) {
+  return (
+    <div className={alert && value > 0 ? 'overview__alert' : undefined}>
       <dt>{label}</dt>
       <dd>{to && value > 0 ? <Link to={to}>{value}</Link> : value}</dd>
     </div>
